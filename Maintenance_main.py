@@ -27,7 +27,7 @@ class Sens():
                 tek_f = f.read()
                 f.close()
                 cl_stat = tek_f.split()[7]
-                cl_val = tek_f.split()[4][1:]
+                cl_val = str(float(tek_f.split()[4][1:]))[:-2]
                 cl_batt = cl_stat[5::3]
                 cl_norm = '0000'
             #Проверка ошибок и вывод результата
@@ -67,7 +67,7 @@ class Sens():
                 tek_f = f.read()
                 f.close()
                 lt_stat = tek_f.split()[6]
-                lt_val = tek_f.split()[4][:5]
+                lt_val = str(float(tek_f.split()[4][:5]))[:-2]
                 lt_batt = lt_stat[2]
             #Проверка ошибок и вывод результата
                 if lt_batt == '1' and lt_stat[0] == '0' or lt_batt == '2' and lt_stat[0] == '0':
@@ -117,7 +117,9 @@ class Sens():
                 tek_f = f.read()
                 f.close()
                 wt_stat = "OK"
-                wt_val = tek_f.split()[3][:3] + " / " + tek_f.split()[4]
+                dd = str(float(tek_f.split()[3][:3]))[:-2]
+                ff = str(float(tek_f.split()[4]))
+                wt_val = (dd + " / " + ff)
             #Проверка ошибок и вывод результата
                 wt_status = (self.wt + " " + wt_stat)
                 wt_error = 0
