@@ -44,7 +44,7 @@ class Sens():
                 self.repWrite("", cl_status)
         except (FileNotFoundError, PermissionError):
             cl_status = str(self.cl + " Ошибка чтения файла !!!")
-            cl_error = 1
+            cl_error = 3
             cl_val = "ERROR"
             pass
     def ltInit(self):
@@ -95,7 +95,7 @@ class Sens():
                 self.repWrite(lt_status, "" )
         except (FileNotFoundError, PermissionError):
             lt_status = str(self.lt + " Ошибка чтения файла с данными!!!")
-            lt_error = 1
+            lt_error = 3
             lt_val = "ERROR"
             pass
     def wtInit(self):
@@ -123,7 +123,7 @@ class Sens():
                 wt_error = 0
         except (FileNotFoundError, PermissionError):
             wt_status = str(self.wt + " Ошибка чтения файла с данными!!!")
-            wt_error = 1
+            wt_error = 3
             wt_val = "ERROR"
             pass
     def repWrite(self, l, c):

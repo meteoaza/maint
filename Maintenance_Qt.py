@@ -226,6 +226,9 @@ class Window(QtWidgets.QMainWindow):
                     self.LT_v.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.363636 rgba(219, 219, 0, 255), stop:1 rgba(255, 255, 255, 255));")
                     if self.ml[i] == 0:
                         self.sndplay()
+                elif Maintenance_main.lt_error == 3:
+                    self.LT_l.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
+                    self.LT_v.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
                 else:
                     self.LT_l.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.529, angle:0, stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255));")
                     self.LT_v.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.529, angle:0, stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255));")
@@ -257,6 +260,9 @@ class Window(QtWidgets.QMainWindow):
                     self.CL_v.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.363636 rgba(219, 219, 0, 255), stop:1 rgba(255, 255, 255, 255));")
                     if self.mc[i] == 0:
                         self.sndplay()
+                elif Maintenance_main.cl_error == 3:
+                    self.CL_l.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
+                    self.CL_v.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
                 else:
                     self.CL_l.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.529, angle:0, stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255))")
                     self.CL_v.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.529, angle:0, stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255))")
@@ -283,6 +289,9 @@ class Window(QtWidgets.QMainWindow):
                     self.WT_v.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
                     if self.mw[i] == 0:
                         self.sndplay()
+                elif Maintenance_main.wt_error == 3:
+                    self.WT_l.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
+                    self.WT_v.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
                 else:
                     self.WT_l.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.529, angle:0, stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255));")
                     self.WT_v.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.529, angle:0, stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255));")
