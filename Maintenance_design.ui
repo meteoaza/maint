@@ -1172,7 +1172,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <string>M</string>
         </property>
         <property name="checkable">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -1194,7 +1194,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <string>M</string>
         </property>
         <property name="checkable">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -1222,7 +1222,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <string>M</string>
         </property>
         <property name="checkable">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -1244,7 +1244,10 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <string>M</string>
         </property>
         <property name="checkable">
-         <bool>true</bool>
+         <bool>false</bool>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -1272,7 +1275,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <string>M</string>
         </property>
         <property name="checkable">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -1294,7 +1297,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <string>M</string>
         </property>
         <property name="checkable">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -1332,7 +1335,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <string>M</string>
         </property>
         <property name="checkable">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -1354,7 +1357,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <string>M</string>
         </property>
         <property name="checkable">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -1398,7 +1401,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <string>M</string>
         </property>
         <property name="checkable">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -1449,7 +1452,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <string>M</string>
         </property>
         <property name="checkable">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -1471,7 +1474,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <string>M</string>
         </property>
         <property name="checkable">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -1493,7 +1496,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <string>M</string>
         </property>
         <property name="checkable">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -1521,7 +1524,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <string>M</string>
         </property>
         <property name="checkable">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -1543,7 +1546,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <string>M</string>
         </property>
         <property name="checkable">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -1571,7 +1574,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <string>M</string>
         </property>
         <property name="checkable">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -1599,7 +1602,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <string>M</string>
         </property>
         <property name="checkable">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>

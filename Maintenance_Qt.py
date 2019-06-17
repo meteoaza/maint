@@ -90,6 +90,10 @@ class Window(QtWidgets.QMainWindow):
         self.iram.triggered.connect(self.sett)
         #Настройка таймера
         self.tTimer = 2000
+        #Определение цвета
+        self.red = "background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));"
+        self.green = "background-color: qconicalgradient(cx:1, cy:0.529, angle:0, stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255));"
+        self.yellow = "background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.363636 rgba(219, 219, 0, 255), stop:1 rgba(255, 255, 255, 255));"
         #Привязка датчиков
         try:
             f_sens = open('sensconf.txt', 'r', encoding = 'utf-8')
@@ -118,8 +122,8 @@ class Window(QtWidgets.QMainWindow):
             self.info.setText('Не найден файл привязки датчиков')
             QTimer().singleShot(3000, self.close)
         #инициализируем переменные выключения звука и прогресс бара
-        self.mc = [0, 0, 0, 0]
         self.ml = [0, 0, 0, 0, 0, 0]
+        self.mc = [0, 0, 0, 0]
         self.mw = [0, 0, 0, 0, 0, 0]
         self.progress = 0
     def sett(self):
@@ -171,21 +175,37 @@ class Window(QtWidgets.QMainWindow):
         #Привязка кнопок к mute
         self.btn.clicked.connect(self.muteALL)
         self.btnCL1.clicked.connect(lambda: self.muteCL(0))
+        self.btnCL1.setStyleSheet(self.green)
         self.btnCL2.clicked.connect(lambda: self.muteCL(1))
+        self.btnCL2.setStyleSheet(self.green)
         self.btnCL3.clicked.connect(lambda: self.muteCL(2))
+        self.btnCL3.setStyleSheet(self.green)
         self.btnCL4.clicked.connect(lambda: self.muteCL(3))
+        self.btnCL4.setStyleSheet(self.green)
         self.btnLT1.clicked.connect(lambda: self.muteLT(0))
+        self.btnLT1.setStyleSheet(self.green)
         self.btnLT2.clicked.connect(lambda: self.muteLT(1))
+        self.btnLT2.setStyleSheet(self.green)
         self.btnLT3.clicked.connect(lambda: self.muteLT(2))
+        self.btnLT3.setStyleSheet(self.green)
         self.btnLT4.clicked.connect(lambda: self.muteLT(3))
+        self.btnLT4.setStyleSheet(self.green)
         self.btnLT5.clicked.connect(lambda: self.muteLT(4))
+        self.btnLT5.setStyleSheet(self.green)
         self.btnLT6.clicked.connect(lambda: self.muteLT(5))
+        self.btnLT6.setStyleSheet(self.green)
         self.btnWT1.clicked.connect(lambda: self.muteWT(0))
+        self.btnWT1.setStyleSheet(self.green)
         self.btnWT2.clicked.connect(lambda: self.muteWT(1))
+        self.btnWT2.setStyleSheet(self.green)
         self.btnWT3.clicked.connect(lambda: self.muteWT(2))
+        self.btnWT3.setStyleSheet(self.green)
         self.btnWT4.clicked.connect(lambda: self.muteWT(3))
+        self.btnWT4.setStyleSheet(self.green)
         self.btnWT5.clicked.connect(lambda: self.muteWT(4))
+        self.btnWT5.setStyleSheet(self.green)
         self.btnWT6.clicked.connect(lambda: self.muteWT(5))
+        self.btnWT6.setStyleSheet(self.green)
         #заводим часы
         self.dtimeTick()
         #Запуск процесса
@@ -193,7 +213,7 @@ class Window(QtWidgets.QMainWindow):
     def statPause(self):
         self.pause = True
         self.start.setText("Пуск")
-        self.start.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
+        self.start.setStyleSheet(self.red)
         self.start.clicked.disconnect()
         self.start.clicked.connect(self.statUnPause)
     def statUnPause(self):
@@ -212,26 +232,27 @@ class Window(QtWidgets.QMainWindow):
                 self.LT_l = l1[i]
                 self.lt = l2[i]
                 self.LT_v = l3[i]
-                Sens(self.iram, "", self.lt, "", self.dur).ltInit()
-                self.LT_l.setText(Maintenance_main.lt_status)
-                self.LT_v.setText(Maintenance_main.lt_val)
+                s = Sens(self.iram, self.lt, "", "", self.dur)
+                s.ltInit()
+                self.LT_l.setText(s.lt_status)
+                self.LT_v.setText(s.lt_val)
                 self.info.setText("Идет процесс... LT31 ")
-                if Maintenance_main.lt_error == 1:
-                    self.LT_l.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
-                    self.LT_v.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
+                if s.lt_error == 1:
+                    self.LT_l.setStyleSheet(self.red)
+                    self.LT_v.setStyleSheet(self.red)
                     if self.ml[i] == 0:
                         self.sndplay()
-                elif Maintenance_main.lt_error == 2:
-                    self.LT_l.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.363636 rgba(219, 219, 0, 255), stop:1 rgba(255, 255, 255, 255));")
-                    self.LT_v.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.363636 rgba(219, 219, 0, 255), stop:1 rgba(255, 255, 255, 255));")
+                elif s.lt_error == 2:
+                    self.LT_l.setStyleSheet(self.yellow)
+                    self.LT_v.setStyleSheet(self.yellow)
                     if self.ml[i] == 0:
                         self.sndplay()
-                elif Maintenance_main.lt_error == 3:
-                    self.LT_l.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
-                    self.LT_v.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
+                elif s.lt_error == 3:
+                    self.LT_l.setStyleSheet(self.red)
+                    self.LT_v.setStyleSheet(self.red)
                 else:
-                    self.LT_l.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.529, angle:0, stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255));")
-                    self.LT_v.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.529, angle:0, stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255));")
+                    self.LT_l.setStyleSheet(self.green)
+                    self.LT_v.setStyleSheet(self.green)
                     pass
             QTimer().singleShot(self.tTimer, self.statCL)
         else:
@@ -246,26 +267,27 @@ class Window(QtWidgets.QMainWindow):
                 self.CL_l = l1[i]
                 self.cl = l2[i]
                 self.CL_v = l3[i]
-                Sens(self.iram, self.cl, "", "", self.dur).clInit()
-                self.CL_l.setText(Maintenance_main.cl_status)
-                self.CL_v.setText(Maintenance_main.cl_val)
+                s = Sens(self.iram, "", self.cl, "", self.dur)
+                s.clInit()
+                self.CL_l.setText(s.cl_status)
+                self.CL_v.setText(s.cl_val)
                 self.info.setText("Идет процесс... CL31 ")
-                if Maintenance_main.cl_error == 1:
-                    self.CL_l.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
-                    self.CL_v.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
+                if s.cl_error == 1:
+                    self.CL_l.setStyleSheet(self.red)
+                    self.CL_v.setStyleSheet(self.red)
                     if self.mc[i] == 0:
                         self.sndplay()
-                elif Maintenance_main.cl_error == 2:
-                    self.CL_l.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.363636 rgba(219, 219, 0, 255), stop:1 rgba(255, 255, 255, 255));")
-                    self.CL_v.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.363636 rgba(219, 219, 0, 255), stop:1 rgba(255, 255, 255, 255));")
+                elif s.cl_error == 2:
+                    self.CL_l.setStyleSheet(self.yellow)
+                    self.CL_v.setStyleSheet(self.yellow)
                     if self.mc[i] == 0:
                         self.sndplay()
-                elif Maintenance_main.cl_error == 3:
-                    self.CL_l.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
-                    self.CL_v.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
+                elif s.cl_error == 3:
+                    self.CL_l.setStyleSheet(self.red)
+                    self.CL_v.setStyleSheet(self.red)
                 else:
-                    self.CL_l.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.529, angle:0, stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255))")
-                    self.CL_v.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.529, angle:0, stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255))")
+                    self.CL_l.setStyleSheet(self.green)
+                    self.CL_v.setStyleSheet(self.green)
                     pass
             QTimer().singleShot(self.tTimer, self.statWT)
         else:
@@ -280,21 +302,22 @@ class Window(QtWidgets.QMainWindow):
                 self.WT_l = l1[i]
                 self.wt = l2[i]
                 self.WT_v = l3[i]
-                Sens(self.iram, "", "", self.wt, self.dur).wtInit()
-                self.WT_l.setText(Maintenance_main.wt_status)
-                self.WT_v.setText(Maintenance_main.wt_val)
+                s = Sens(self.iram, "", "", self.wt, self.dur)
+                s.wtInit()
+                self.WT_l.setText(s.wt_status)
+                self.WT_v.setText(s.wt_val)
                 self.info.setText("Идет процесс... WIND")
-                if Maintenance_main.wt_error == 1:
-                    self.WT_l.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
-                    self.WT_v.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
+                if s.wt_error == 1:
+                    self.WT_l.setStyleSheet(self.red)
+                    self.WT_v.setStyleSheet(self.red)
                     if self.mw[i] == 0:
                         self.sndplay()
-                elif Maintenance_main.wt_error == 3:
-                    self.WT_l.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
-                    self.WT_v.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
+                elif s.wt_error == 3:
+                    self.WT_l.setStyleSheet(self.red)
+                    self.WT_v.setStyleSheet(self.red)
                 else:
-                    self.WT_l.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.529, angle:0, stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255));")
-                    self.WT_v.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.529, angle:0, stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255));")
+                    self.WT_l.setStyleSheet(self.green)
+                    self.WT_v.setStyleSheet(self.green)
                     pass
             QTimer().singleShot(self.tTimer, self.statLT)
         else:
@@ -304,45 +327,45 @@ class Window(QtWidgets.QMainWindow):
         mixer.init()
         mixer.music.load(self.snd)
         mixer.music.play()
+    def muteLT(self, m):
+        b = [self.btnLT1, self.btnLT2, self.btnLT3, self.btnLT4, self.btnLT5, self.btnLT6]
+        b = b[m]
+        b.setStyleSheet(self.red)
+        b.clicked.disconnect()
+        b.clicked.connect(lambda: self.unmuteLT(m))
+        self.ml[m] = 1
+    def unmuteLT(self, m):
+        b = [self.btnLT1, self.btnLT2, self.btnLT3, self.btnLT4, self.btnLT5, self.btnLT6]
+        b = b[m]
+        b.setStyleSheet(self.green)
+        b.clicked.disconnect()
+        b.clicked.connect(lambda: self.muteLT(m))
+        self.ml[m] = 0
     def muteCL(self, m):
         b = [self.btnCL1, self.btnCL2, self.btnCL3, self.btnCL4]
         b = b[m]
-        b.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
+        b.setStyleSheet(self.red)
         b.clicked.disconnect()
         b.clicked.connect(lambda: self.unmuteCL(m))
         self.mc[m] = 1
     def unmuteCL(self, m):
         b = [self.btnCL1, self.btnCL2, self.btnCL3, self.btnCL4]
         b = b[m]
-        b.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.529, angle:0, stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255));")
+        b.setStyleSheet(self.green)
         b.clicked.disconnect()
         b.clicked.connect(lambda: self.muteCL(m))
         self.mc[m] = 0
-    def muteLT(self, m):
-        b = [self.btnLT1, self.btnLT2, self.btnLT3, self.btnLT4, self.btnLT5, self.btnLT6]
-        b = b[m]
-        b.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
-        b.clicked.disconnect()
-        b.clicked.connect(lambda: self.unmuteCL(m))
-        self.ml[m] = 1
-    def unmuteLT(self, m):
-        b = [self.btnLT1, self.btnLT2, self.btnLT3, self.btnLT4, self.btnLT5, self.btnLT6]
-        b = b[m]
-        b.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.529, angle:0, stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255));")
-        b.clicked.disconnect()
-        b.clicked.connect(lambda: self.muteLT(m))
-        self.ml[m] = 0
     def muteWT(self, m):
         b = [self.btnWT1, self.btnWT2, self.btnWT3, self.btnWT4, self.btnWT5, self.btnWT6]
         b = b[m]
-        b.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));")
+        b.setStyleSheet(self.red)
         b.clicked.disconnect()
         b.clicked.connect(lambda: self.unmuteWT(m))
         self.mw[m] = 1
     def unmuteWT(self, m):
         b = [self.btnWT1, self.btnWT2, self.btnWT3, self.btnWT4, self.btnWT5, self.btnWT6]
         b = b[m]
-        b.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.529, angle:0, stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255));")
+        b.setStyleSheet(self.green)
         b.clicked.disconnect()
         b.clicked.connect(lambda: self.muteWT(m))
         self.mw[m] = 0
@@ -371,7 +394,8 @@ class Window(QtWidgets.QMainWindow):
             self.pBar.setValue(self.progress)
         else:
             self.progress = 0
-        self.bar.showMessage("Рабочий каталог " + self.iram + "       Время ожидания файла " + self.dur + " мин.")
+        self.bar.showMessage("Рабочий каталог " + self.iram +
+        "                     Время ожидания файла " + self.dur + " мин.")
         self.dtime.setText(t)
         QTimer().singleShot(1000, self.dtimeTick)
     def putty(self, n):

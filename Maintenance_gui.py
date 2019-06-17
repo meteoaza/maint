@@ -1,5 +1,4 @@
 import Maintenance_main
-#import time
 from tkinter import *
 from pygame import mixer
 from datetime import datetime
@@ -81,33 +80,13 @@ class Window:
 
     # Check CL status and write to text labels
     def setStatCl(self):
-        try:
-                try:
-                    try:
-                        self.c = self.cl_list[self.c_list]
-                        Sens(self.iram, self.c, "", self.snd, self.dur ).cl()
-                    except FileNotFoundError:
-                        Maintenance_sub.status_cl = (self.c + ' Не найден файл с данными!!!\n' )
-                        log = open(self.iram + "maintenance.log", "a+")
-                        log.write(str(datetime.now()) + " " + self.c + ' Не найден файл с данными!!!\n' )
-                        log.close()
-                        mixer.music.load(self.snd)
-                        mixer.music.play(0)
-                except PermissionError:
-                    Maintenance_sub.status_cl = ('Ошибка чтения файла ' + self.c )
-                    log = open(self.iram + "maintenance.log", "a+")
-                    log.write(str(datetime.now()) + " " + self.c + ' Ошибка чтения файла\n' )
-                    log.close()
-                    mixer.music.load(self.snd)
-                    mixer.music.play(0)
-                    pass
-                self.txtC.configure(font=self.myfont, text = Maintenance_sub.status_cl)
-                self.txtC.after(3000, self.setIcl)
-        except (FileNotFoundError, AttributeError):
-            self.clearSettings()
-            self.settings.configure(bg='red', font=self.myfont)
-            self.settings.insert(0, 'ERROR SETTINGS')
-            root.destroy
+        self.c = self.cl_list[self.c_list]
+        s = Sens(self.iram, self.c, "", "", self.dur )
+        s.clInit()
+        if s.cl_error != 0:
+            self.sndPlay()
+        self.txtC.configure(font=self.myfont, text = s.cl_status)
+        self.txtC.after(3000, self.setIcl)
     # Rotate CL sensors numbers
     def setIcl(self):
         if self.c_list < 3:
@@ -118,33 +97,13 @@ class Window:
             self.setStatCl()
     # Check CL status and write to text labels
     def setStatLt(self):
-        try:
-            try:
-                try:
-                    self.l = self.lt_list[self.l_list]
-                    Sens(self.iram, "", self.l, self.snd, self.dur ).lt()
-                except FileNotFoundError:
-                    Maintenance_sub.status_lt = (self.l + ' Не найден файл с данными!!!\n' )
-                    log = open(self.iram + "maintenance.log", "a+")
-                    log.write(str(datetime.now()) + " " + self.l + ' Не найден файл с данными!!!\n' )
-                    log.close()
-                    mixer.music.load(self.snd)
-                    mixer.music.play(0)
-            except PermissionError:
-                Maintenance_sub.status_lt = ('Ошибка чтения файла ' + self.l )
-                log = open(self.iram + "maintenance.log", "a+")
-                log.write(str(datetime.now()) + " " + self.l + ' Ошибка чтения файла\n' )
-                log.close()
-                mixer.music.load(self.snd)
-                mixer.music.play(0)
-                pass
-            self.txtL.configure(font=self.myfont, text = Maintenance_sub.status_lt)
-            self.txtL.after(3000, self.setIlt)
-        except (FileNotFoundError, AttributeError):
-            self.clearSettings()
-            self.settings.configure(bg='red', font=self.myfont)
-            self.settings.insert(0, 'ERROR SETTINGS')
-            root.destroy
+        self.l = self.lt_list[self.l_list]
+        s = Sens(self.iram, "", self.l, "", self.dur )
+        s.ltInit()
+        if s.lt_error != 0:
+            self.sndPlay()
+        self.txtL.configure(font=self.myfont, text = s.lt_status)
+        self.txtL.after(3000, self.setIlt)
     # Rotate LT sensors numbers
     def setIlt(self):
         if self.l_list < 5:
@@ -153,6 +112,10 @@ class Window:
         else:
             self.l_list = 0
             self.setStatLt()
+    def sndPlay(self):
+        mixer.init()
+        mixer.music.load(self.snd)
+        mixer.music.play()
 
 root = Tk()
 root.title("Maintenance")
