@@ -26,7 +26,7 @@
      <x>9</x>
      <y>0</y>
      <width>511</width>
-     <height>109</height>
+     <height>212</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
@@ -58,8 +58,41 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="1">
-     <widget class="QLineEdit" name="lineSND"/>
+    <item row="3" column="1">
+     <widget class="QCheckBox" name="checkBox">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>15</height>
+       </size>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="1">
+     <widget class="QCheckBox" name="repWrite">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>15</height>
+       </size>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QLineEdit" name="lineIRAM">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>15</height>
+       </size>
+      </property>
+     </widget>
     </item>
     <item row="1" column="0">
      <widget class="QLabel" name="label_2">
@@ -77,8 +110,25 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="1">
-     <widget class="QLineEdit" name="lineIRAM"/>
+    <item row="1" column="1">
+     <widget class="QLineEdit" name="lineSND">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>15</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QLineEdit" name="lineFileT">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>15</height>
+       </size>
+      </property>
+     </widget>
     </item>
     <item row="2" column="0">
      <widget class="QLabel" name="label_3">
@@ -96,8 +146,66 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="1">
-     <widget class="QLineEdit" name="lineFileT"/>
+    <item row="5" column="1">
+     <widget class="QCheckBox" name="logWrite">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>15</height>
+       </size>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_4">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0">
+     <widget class="QLabel" name="label_5">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Запись Report файла</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="0">
+     <widget class="QLabel" name="label_6">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Запись LOG файла</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>

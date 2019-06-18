@@ -2,12 +2,16 @@ from datetime import datetime
 from datetime import timedelta
 import os
 class Sens():
-    def __init__(self, iram, lt, cl, wt, dur):
+    def __init__(self, iram, lt, cl, wt, dur, repW, logW):
         self.iram = iram
         self.cl = cl
         self.lt = lt
         self.wt = wt
         self.dur = int(dur)
+        self.repW = int(repW)
+        self.logW = int(logW)
+        self.LOGs = "0"
+        self.tempInit()
     def checkTime(self):
         #Check time and write time difference to dift
         now = datetime.now()
@@ -55,11 +59,12 @@ class Sens():
                     self.lt_status = str(self.lt + ' OK ' + lt_stat)
                     self.lt_error = 0
             if self.lt_error != 0:
-                self.repWrite(self.lt_status, "" )
-        except (FileNotFoundError, PermissionError):
+                self.repWrite(self.lt_status, "", "" )
+        except (FileNotFoundError, PermissionError, ValueError)as e:
             self.lt_status = str(self.lt + " Ошибка чтения файла с данными!!!")
             self.lt_error = 3
             self.lt_val = "ERROR"
+            self.progBug(e)
             pass
     def clInit(self):
         try:
@@ -92,11 +97,12 @@ class Sens():
                     self.cl_status = str(self.cl + ' Внимание!!! СБОЙ!!! ' + cl_stat)
                     self.cl_error = 1
             if self.cl_error != 0:
-                self.repWrite("", self.cl_status)
-        except (FileNotFoundError, PermissionError):
+                self.repWrite("", self.cl_status, "")
+        except (FileNotFoundError, PermissionError, ValueError)as e:
             self.cl_status = str(self.cl + " Ошибка чтения файла !!!")
             self.cl_error = 3
             self.cl_val = "ERROR"
+            self.progBug(e)
             pass
     def wtInit(self):
         try:
@@ -113,23 +119,44 @@ class Sens():
                 tek_f = f.read()
                 f.close()
                 wt_stat = "OK"
-                dd = str(float(tek_f.split()[3][:3]))[:-2]
-                ff = str(float(tek_f.split()[4]))
-                self.wt_val = (dd + " / " + ff)
+                dd = float(tek_f.split()[3][:3])
+                ff = float(tek_f.split()[4])
+                self.wt_val = (str(dd)[:-2] + " / " + str(ff))
             #Проверка ошибок и вывод результата
                 self.wt_status = (self.wt + " " + wt_stat)
                 self.wt_error = 0
-        except (FileNotFoundError, PermissionError):
+            if self.wt_error != 0:
+                self.repWrite("", "", self.wt_status)
+        except (FileNotFoundError, PermissionError, ValueError)as e:
             self.wt_status = str(self.wt + " Ошибка чтения файла с данными!!!")
             self.wt_error = 3
             self.wt_val = "ERROR"
+            self.progBug(e)
             pass
-    def repWrite(self, l, c):
-        t = datetime.strftime(datetime.now(), "%d-%m-%y %H:%M:%S")
-        f_rep = open('maintLog.txt', 'a', encoding='utf-8')
-        f_rep.write(t + " " + l + c + "\n")
-        f_rep.close()
-
+    def tempInit(self):
+        f = open(self.iram + 'INS_DAT.TEK', 'r', encoding='utf-8')
+        self.temp1 = f.read().split()[1]
+        f.close()
+    def repWrite(self, l, c, w):
+        if self.repW != 0:
+            try:
+                t = datetime.strftime(datetime.now(), "%d-%m-%y %H:%M:%S")
+                with open(r'LOGs\\maintLog.txt', 'a', encoding='utf-8') as f_rep:
+                    f_rep.write(t + " " + l + c + w + "\n")
+                    f_rep.close()
+            except FileNotFoundError as e:
+                self.LOGs = str(e)
+                pass
+    def progBug(self, e):
+        if self.logW != 0:
+            try:
+                t = datetime.strftime(datetime.now(), "%d-%m-%y %H:%M:%S")
+                with open(r'LOGs\\bugLog.txt', 'a', encoding='utf-8') as f_bug:
+                    f_bug.write(t + " " + str(e) + "\n")
+                    f_bug.close()
+            except FileNotFoundError as e:
+                self.LOGs = str(e)
+                pass
 #s = Sens('d:\iram\TEK\DAT_SENS\\', 'LT311', 'CL311', 'WIND29', '1')
 #s.clInit()
 #print(s.cl_status + ' ' + s.cl_val)

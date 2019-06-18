@@ -1,4 +1,4 @@
-import Maintenance_main
+#import Maintenance_main
 import subprocess
 from datetime import datetime
 from Maintenance_main import Sens
@@ -17,6 +17,7 @@ class Window(QtWidgets.QMainWindow):
         self.Settings = QtWidgets.QFrame()
         self.ui_s = Ui_Settings()
         self.ui_s.setupUi(self.Settings)
+
         #Привязка датчиков к окнам
         self.CL1 = self.ui.lineCL1
         self.CL2 = self.ui.lineCL2
@@ -50,10 +51,14 @@ class Window(QtWidgets.QMainWindow):
         self.WT4_v = self.ui.labelWT4
         self.WT5_v = self.ui.labelWT5
         self.WT6_v = self.ui.labelWT6
+        self.Temp1 = self.ui.lcdTemp1
+        self.Temp2 = self.ui.lcdTemp2
+        self.Pres1 = self.ui.lcdPres1
+        self.Pres2 = self.ui.lcdPres2
         self.pBar = self.ui.progressBar
         #Привязка виджетов Window
         self.menuSett = self.ui.menu
-        self.iram = self.ui.iram
+        self.menuIram = self.ui.iram
         self.start = self.ui.start
         self.exit = self.ui.exit
         self.btn = self.ui.btn
@@ -78,16 +83,18 @@ class Window(QtWidgets.QMainWindow):
         self.btnWT5 = self.ui.btnWind5
         self.btnWT6 = self.ui.btnWind6
         #Привязка виджетов Settings
-        self.iram_P = self.ui_s.lineIRAM
-        self.snd_P = self.ui_s.lineSND
-        self.FileT = self.ui_s.lineFileT
-        self.btnIRAM = self.ui_s.buttonOK
+        self.iram_Sett = self.ui_s.lineIRAM
+        self.snd_Sett = self.ui_s.lineSND
+        self.FileTSett = self.ui_s.lineFileT
+        self.btnIramSett = self.ui_s.buttonOK
+        self.logWrite = self.ui_s.logWrite
+        self.repWrite = self.ui_s.repWrite
         self.menuSett.menuAction().setStatusTip("Настройки")
         #Привязка кнопок
         self.start.clicked.connect(self.goStart)
         self.exit.clicked.connect(self.close)
         self.term.clicked.connect(lambda: self.putty(""))
-        self.iram.triggered.connect(self.sett)
+        self.menuIram.triggered.connect(self.sett)
         #Настройка таймера
         self.tTimer = 2000
         #Определение цвета
@@ -96,7 +103,7 @@ class Window(QtWidgets.QMainWindow):
         self.yellow = "background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.363636 rgba(219, 219, 0, 255), stop:1 rgba(255, 255, 255, 255));"
         #Привязка датчиков
         try:
-            f_sens = open('sensconf.txt', 'r', encoding = 'utf-8')
+            f_sens = open('sensconf.ini', 'r', encoding = 'utf-8')
             f = f_sens.readline().strip()
             if (not f):
                 self.info.setText('Ошибка привязки датчиков')
@@ -121,38 +128,60 @@ class Window(QtWidgets.QMainWindow):
         except FileNotFoundError:
             self.info.setText('Не найден файл привязки датчиков')
             QTimer().singleShot(3000, self.close)
-        #инициализируем переменные выключения звука и прогресс бара
+        #инициализируем переменные выключения звука, прогресс бара, записи отчета и логов
         self.ml = [0, 0, 0, 0, 0, 0]
         self.mc = [0, 0, 0, 0]
         self.mw = [0, 0, 0, 0, 0, 0]
         self.progress = 0
+        self.pause = False
     def sett(self):
+        if self.pause == False:
+            self.statPause()
         self.settRead()
-        self.iram_P.setText(self.iram)
-        self.snd_P.setText(self.snd)
-        self.FileT.setText(self.dur)
+        self.iram_Sett.setText(self.iram)
+        self.snd_Sett.setText(self.snd)
+        self.FileTSett.setText(self.dur)
+        self.repWrite.setCheckState(self.repW)
+        self.logWrite.setCheckState(self.logW)
         self.Settings.show()
-        self.btnIRAM.accepted.connect(self.settWrite)
-        self.btnIRAM.rejected.connect(lambda: self.Settings.hide())
+        self.btnIramSett.accepted.connect(self.settWrite)
+        self.btnIramSett.rejected.connect(lambda: self.Settings.hide())
     def settRead(self):
-        f_conf = open('config.txt', 'r', encoding = 'utf-8')
-        self.iram = f_conf.readline().strip()
-        self.snd = f_conf.readline().strip()
-        self.dur = f_conf.readline().strip()
-        f_conf.close()
+        try:
+            f_conf = open('config.ini', 'r', encoding = 'utf-8')
+            self.iram = f_conf.readline().strip()
+            self.snd = f_conf.readline().strip()
+            self.dur = f_conf.readline().strip()
+            self.repW = int(f_conf.readline().strip())
+            self.logW = int(f_conf.readline().strip())
+            f_conf.close()
+        except ValueError:
+            self.iram = ""
+            self.snd = ""
+            self.dur = "0"
+            self.repW = "0"
+            self.logW = "0"
+            print("settRead error")
+            pass
     def settWrite(self):
         #Назначение переменных пути, звука, времени обновления файла
-        f_conf = open('config.txt', 'w', encoding = 'utf-8')
-        self.iram = self.iram_P.text()
-        self.snd = self.snd_P.text()
-        self.dur = self.FileT.text()
-        f_conf.write(self.iram + '\n' + self.snd + '\n' + self.dur + '\n')
+        self.iram = self.iram_Sett.text()
+        self.snd = self.snd_Sett.text()
+        self.dur = self.FileTSett.text()
+        self.repW = self.repWrite.checkState()
+        self.logW = self.logWrite.checkState()
+        f_conf = open('config.ini', 'w', encoding = 'utf-8')
+        f_conf.write(self.iram + '\n' + self.snd + '\n' + self.dur + '\n' + str(self.repW) + '\n' + str(self.logW) + '\n')
         f_conf.close()
         self.Settings.hide()
+        if self.pause == True:
+            self.goStart()
     def goStart(self):
         self.settRead()
         self.pause = False
         self.start.setText("Пауза")
+        self.start.setStyleSheet("background-color: ")
+        self.info.setStyleSheet("background-color: ")
         self.start.clicked.disconnect()
         self.start.clicked.connect(self.statPause)
         #Привязка кнопок к putty
@@ -215,14 +244,7 @@ class Window(QtWidgets.QMainWindow):
         self.start.setText("Пуск")
         self.start.setStyleSheet(self.red)
         self.start.clicked.disconnect()
-        self.start.clicked.connect(self.statUnPause)
-    def statUnPause(self):
-        self.pause = False
-        self.start.setText("Пауза")
-        self.start.setStyleSheet("background-color: ")
-        self.start.clicked.disconnect()
-        self.start.clicked.connect(self.statPause)
-        self.goStart()
+        self.start.clicked.connect(self.goStart)
     def statLT(self):
         if self.pause == False:
             l1 = [self.LT1, self.LT2, self.LT3, self.LT4, self.LT5, self.LT6]
@@ -232,7 +254,7 @@ class Window(QtWidgets.QMainWindow):
                 self.LT_l = l1[i]
                 self.lt = l2[i]
                 self.LT_v = l3[i]
-                s = Sens(self.iram, self.lt, "", "", self.dur)
+                s = Sens(self.iram, self.lt, "", "", self.dur, self.repW, self.logW)
                 s.ltInit()
                 self.LT_l.setText(s.lt_status)
                 self.LT_v.setText(s.lt_val)
@@ -254,6 +276,11 @@ class Window(QtWidgets.QMainWindow):
                     self.LT_l.setStyleSheet(self.green)
                     self.LT_v.setStyleSheet(self.green)
                     pass
+                if s.LOGs == "0":
+                    pass
+                else:
+                    self.info.setText(s.LOGs)
+                print(s.temp1)
             QTimer().singleShot(self.tTimer, self.statCL)
         else:
             self.info.setText("Остановлено")
@@ -267,7 +294,7 @@ class Window(QtWidgets.QMainWindow):
                 self.CL_l = l1[i]
                 self.cl = l2[i]
                 self.CL_v = l3[i]
-                s = Sens(self.iram, "", self.cl, "", self.dur)
+                s = Sens(self.iram, "", self.cl, "", self.dur, self.repW, self.logW)
                 s.clInit()
                 self.CL_l.setText(s.cl_status)
                 self.CL_v.setText(s.cl_val)
@@ -289,6 +316,10 @@ class Window(QtWidgets.QMainWindow):
                     self.CL_l.setStyleSheet(self.green)
                     self.CL_v.setStyleSheet(self.green)
                     pass
+                if s.LOGs == "0":
+                    pass
+                else:
+                    self.info.setText(s.LOGs)
             QTimer().singleShot(self.tTimer, self.statWT)
         else:
             self.info.setText("Остановлено")
@@ -302,7 +333,7 @@ class Window(QtWidgets.QMainWindow):
                 self.WT_l = l1[i]
                 self.wt = l2[i]
                 self.WT_v = l3[i]
-                s = Sens(self.iram, "", "", self.wt, self.dur)
+                s = Sens(self.iram, "", "", self.wt, self.dur, self.repW, self.logW)
                 s.wtInit()
                 self.WT_l.setText(s.wt_status)
                 self.WT_v.setText(s.wt_val)
@@ -319,9 +350,14 @@ class Window(QtWidgets.QMainWindow):
                     self.WT_l.setStyleSheet(self.green)
                     self.WT_v.setStyleSheet(self.green)
                     pass
+                if s.LOGs == "0":
+                    pass
+                else:
+                    self.info.setText(s.LOGs)
             QTimer().singleShot(self.tTimer, self.statLT)
         else:
             self.info.setText("Остановлено")
+            self.info.setStyleSheet(self.red)
             pass
     def sndplay(self):
         mixer.init()
@@ -394,8 +430,18 @@ class Window(QtWidgets.QMainWindow):
             self.pBar.setValue(self.progress)
         else:
             self.progress = 0
-        self.bar.showMessage("Рабочий каталог " + self.iram +
-        "                     Время ожидания файла " + self.dur + " мин.")
+        if self.repW == 2 or self.repW == 1:
+            repW = "Вкл"
+        else:
+            repW = "Откл"
+        if self.logW == 2 or self.logW == 1:
+            logW = "Вкл"
+        else:
+            logW ="Откл"
+        self.bar.showMessage("Рабочий каталог: " + self.iram +
+        "                     Время ожидания файла: " + str(self.dur) + " мин."
+        + "     Отчет: " + repW +
+        "       Лог: " + logW)
         self.dtime.setText(t)
         QTimer().singleShot(1000, self.dtimeTick)
     def putty(self, n):
