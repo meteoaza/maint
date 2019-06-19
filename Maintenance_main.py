@@ -21,7 +21,7 @@ class Sens():
     def ltInit(self):
         try:
             #File in DAT_SENS define
-            self.f = (self.iram + self.lt + ".DAT")
+            self.f = (self.iram + "\\TEK\\DAT_SENS\\" + self.lt + ".DAT")
             self.checkTime()
             #Check time of file
             if self.dift > timedelta(minutes=self.dur):
@@ -30,7 +30,7 @@ class Sens():
                 self.lt_val = "ERROR"
             else:
             #Чтение файла и запись данных в переменные
-                f = open(self.f, 'r', encoding='utf-8', errors='ignore')
+                f = open(self.f, 'r', encoding='ANSI', errors='ignore')
                 tek_f = f.read()
                 f.close()
                 lt_stat = tek_f.split()[6]
@@ -69,7 +69,7 @@ class Sens():
     def clInit(self):
         try:
             #File in DAT_SENS define
-            self.f = (self.iram + self.cl + ".DAT")
+            self.f = (self.iram + "\\TEK\\DAT_SENS\\" + self.cl + ".DAT")
             self.checkTime()
             if self.dift > timedelta(minutes=self.dur):
                 self.cl_status = str(self.cl + ' Тревога!!! Нет данных!!!')
@@ -77,7 +77,7 @@ class Sens():
                 self.cl_val = "ERROR"
             else:
             #Чтение файла и запись данных в переменные
-                f = open(self.f, 'r', encoding='utf-8', errors='ignore')
+                f = open(self.f, 'r', encoding='ANSI', errors='ignore')
                 tek_f = f.read()
                 f.close()
                 cl_stat = tek_f.split()[7]
@@ -107,7 +107,7 @@ class Sens():
     def wtInit(self):
         try:
             #File in DAT_SENS define
-            self.f = (self.iram + self.wt + ".DAT")
+            self.f = (self.iram + "\\TEK\\DAT_SENS\\" + self.wt + ".DAT")
             self.checkTime()
             if self.dift > timedelta(minutes=self.dur):
                 self.wt_status = str(self.wt + ' Тревога!!! Нет данных!!!')
@@ -115,12 +115,15 @@ class Sens():
                 self.wt_val = "ERROR"
             else:
             #Чтение файла и запись данных в переменные
-                f = open(self.f, 'r', encoding='utf-8', errors='ignore')
+                f = open(self.f, 'r', encoding='ANSI', errors='ignore')
                 tek_f = f.read()
                 f.close()
                 wt_stat = "OK"
-                dd = float(tek_f.split()[3][:3])
-                ff = float(tek_f.split()[4])
+                dd = tek_f.split()[3][:3]
+                ff = tek_f.split()[4]
+                if dd != '\x01\x00' or dd != '\x00\x00':
+                    dd = float(dd)
+                    ff = float(ff)
                 self.wt_val = (str(dd)[:-2] + " / " + str(ff))
             #Проверка ошибок и вывод результата
                 self.wt_status = (self.wt + " " + wt_stat)
@@ -134,9 +137,26 @@ class Sens():
             self.progBug(e)
             pass
     def tempInit(self):
-        f = open(self.iram + 'INS_DAT.TEK', 'r', encoding='utf-8')
-        self.temp1 = f.read().split()[1]
-        f.close()
+        try:
+            with open(self.iram + "\\TEK\\DAT_AVRG\\TTT45.DAT", 'r', encoding='ANSI') as f_t1, \
+                 open(self.iram + "\\TEK\\DAT_AVRG\\TTT46.DAT", 'r', encoding='ANSI') as f_t2, \
+                 open(self.iram + "\\TEK\\DAT_AVRG\\PPP41.DAT", 'r', encoding='ANSI') as f_p1, \
+                 open(self.iram + "\\TEK\\DAT_AVRG\\PPP42.DAT", 'r', encoding='ANSI') as f_p2:
+                self.temp1 = int(f_t1.readline().split()[3])
+                self.temp1 = float(self.temp1/10)
+                self.temp2 = int(f_t2.readline().split()[3])
+                self.temp2 = float(self.temp2/10)
+                self.pres1 = int(f_p1.readline().split()[3])
+                self.pres1 = float(self.pres1/10)
+                self.pres2 = int(f_p2.readline().split()[3])
+                self.pres2 = float(self.pres2/10)
+        except (FileNotFoundError, PermissionError, ValueError) as e:
+            self.temp1 = "0"
+            self.temp2 = "0"
+            self.pres1 = "0"
+            self.pres2 = "0"
+            self.progBug(e)
+            pass
     def repWrite(self, l, c, w):
         if self.repW != 0:
             try:
@@ -157,8 +177,3 @@ class Sens():
             except FileNotFoundError as e:
                 self.LOGs = str(e)
                 pass
-#s = Sens('d:\iram\TEK\DAT_SENS\\', 'LT311', 'CL311', 'WIND29', '1')
-#s.clInit()
-#print(s.cl_status + ' ' + s.cl_val)
-#s.ltInit()
-#print(s.lt_status + ' ' + s.lt_val)

@@ -7,6 +7,7 @@ from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QTimer, Qt#, QDateTime
 from Maintenance_design import Ui_MainWindow
 from Settings import Ui_Settings
+from About import Ui_AboutFrame
 import sys, os
 
 class Window(QtWidgets.QMainWindow):
@@ -17,6 +18,9 @@ class Window(QtWidgets.QMainWindow):
         self.Settings = QtWidgets.QFrame()
         self.ui_s = Ui_Settings()
         self.ui_s.setupUi(self.Settings)
+        self.About = QtWidgets.QFrame()
+        self.ui_a = Ui_AboutFrame()
+        self.ui_a.setupUi(self.About)
 
         #Привязка датчиков к окнам
         self.CL1 = self.ui.lineCL1
@@ -90,11 +94,13 @@ class Window(QtWidgets.QMainWindow):
         self.logWrite = self.ui_s.logWrite
         self.repWrite = self.ui_s.repWrite
         self.menuSett.menuAction().setStatusTip("Настройки")
+
         #Привязка кнопок
         self.start.clicked.connect(self.goStart)
         self.exit.clicked.connect(self.close)
         self.term.clicked.connect(lambda: self.putty(""))
         self.menuIram.triggered.connect(self.sett)
+        self.About.triggered.connect(self.ui_a.about.show)
         #Настройка таймера
         self.tTimer = 2000
         #Определение цвета
@@ -237,6 +243,7 @@ class Window(QtWidgets.QMainWindow):
         self.btnWT6.setStyleSheet(self.green)
         #заводим часы
         self.dtimeTick()
+        self.statTemp()
         #Запуск процесса
         self.statLT()
     def statPause(self):
@@ -280,10 +287,10 @@ class Window(QtWidgets.QMainWindow):
                     pass
                 else:
                     self.info.setText(s.LOGs)
-                print(s.temp1)
             QTimer().singleShot(self.tTimer, self.statCL)
         else:
             self.info.setText("Остановлено")
+            self.info.setStyleSheet(self.red)
             pass
     def statCL(self):
         if self.pause == False:
@@ -323,6 +330,7 @@ class Window(QtWidgets.QMainWindow):
             QTimer().singleShot(self.tTimer, self.statWT)
         else:
             self.info.setText("Остановлено")
+            self.info.setStyleSheet(self.red)
             pass
     def statWT(self):
         if self.pause == False:
@@ -359,6 +367,18 @@ class Window(QtWidgets.QMainWindow):
             self.info.setText("Остановлено")
             self.info.setStyleSheet(self.red)
             pass
+    def statTemp(self):
+        if self.pause == False:
+            s = Sens(self.iram, "", "", "", self.dur, self.repW, self.logW)
+            s.tempInit()
+            self.Temp1.display(s.temp1)
+            self.Temp2.display(s.temp2)
+            self.Pres1.display(s.pres1)
+            self.Pres2.display(s.pres2)
+            QTimer().singleShot(3000, self.statTemp)
+        else:
+            self.info.setText("Остановлено")
+            self.info.setStyleSheet(self.red)
     def sndplay(self):
         mixer.init()
         mixer.music.load(self.snd)
@@ -424,26 +444,30 @@ class Window(QtWidgets.QMainWindow):
         self.btn.clicked.disconnect()
         self.btn.clicked.connect(self.muteALL)
     def dtimeTick(self):
-        t = datetime.strftime(datetime.now(), " %d-%m-%y  %H:%M:%S")
-        if self.progress != 100:
-            self.progress += 5
-            self.pBar.setValue(self.progress)
+        if self.pause == False:
+            t = datetime.strftime(datetime.now(), " %d-%m-%y  %H:%M:%S")
+            if self.progress != 100:
+                self.progress += 5
+                self.pBar.setValue(self.progress)
+            else:
+                self.progress = 0
+            if self.repW == 2 or self.repW == 1:
+                repW = "Вкл"
+            else:
+                repW = "Откл"
+            if self.logW == 2 or self.logW == 1:
+                logW = "Вкл"
+            else:
+                logW ="Откл"
+            self.bar.showMessage("Рабочий каталог: " + self.iram +
+            "                     Время ожидания файла: " + str(self.dur) + " мин."
+            + "     Отчет: " + repW +
+            "       Лог: " + logW)
+            self.dtime.setText(t)
+            QTimer().singleShot(1000, self.dtimeTick)
         else:
-            self.progress = 0
-        if self.repW == 2 or self.repW == 1:
-            repW = "Вкл"
-        else:
-            repW = "Откл"
-        if self.logW == 2 or self.logW == 1:
-            logW = "Вкл"
-        else:
-            logW ="Откл"
-        self.bar.showMessage("Рабочий каталог: " + self.iram +
-        "                     Время ожидания файла: " + str(self.dur) + " мин."
-        + "     Отчет: " + repW +
-        "       Лог: " + logW)
-        self.dtime.setText(t)
-        QTimer().singleShot(1000, self.dtimeTick)
+            self.dtime.clear()
+            pass
     def putty(self, n):
         subprocess.Popen(['putty.exe', '-load', n])
     def keyPressEvent(self, e):
