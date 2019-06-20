@@ -119,12 +119,12 @@ class Sens():
                 tek_f = f.read()
                 f.close()
                 wt_stat = "OK"
-                dd = tek_f.split()[3][:3]
-                ff = tek_f.split()[4]
-                if dd != '\x01\x00' or dd != '\x00\x00':
-                    dd = float(dd)
-                    ff = float(ff)
-                self.wt_val = (str(dd)[:-2] + " / " + str(ff))
+                self.dd = tek_f.split()[3][:3]
+                self.ff = tek_f.split()[4]
+                if self.ff != '\x01' or self.ff != '\x00':
+                    self.dd = float(self.dd)
+                    self.ff = float(self.ff)
+                self.wt_val = (str(self.dd)[:-2] + " / " + str(self.ff))
             #Проверка ошибок и вывод результата
                 self.wt_status = (self.wt + " " + wt_stat)
                 self.wt_error = 0
@@ -134,6 +134,7 @@ class Sens():
             self.wt_status = str(self.wt + " Ошибка чтения файла с данными!!!")
             self.wt_error = 3
             self.wt_val = "ERROR"
+            print(self.dd + " " + self.ff)
             self.progBug(e)
             pass
     def tempInit(self):

@@ -1,4 +1,3 @@
-#import Maintenance_main
 import subprocess
 from datetime import datetime
 from Maintenance_main import Sens
@@ -63,6 +62,7 @@ class Window(QtWidgets.QMainWindow):
         #Привязка виджетов Window
         self.menuSett = self.ui.menu
         self.menuIram = self.ui.iram
+        self.menuAbout = self.ui.about
         self.start = self.ui.start
         self.exit = self.ui.exit
         self.btn = self.ui.btn
@@ -94,13 +94,29 @@ class Window(QtWidgets.QMainWindow):
         self.logWrite = self.ui_s.logWrite
         self.repWrite = self.ui_s.repWrite
         self.menuSett.menuAction().setStatusTip("Настройки")
-
         #Привязка кнопок
         self.start.clicked.connect(self.goStart)
         self.exit.clicked.connect(self.close)
         self.term.clicked.connect(lambda: self.putty(""))
         self.menuIram.triggered.connect(self.sett)
-        self.About.triggered.connect(self.ui_a.about.show)
+        self.menuAbout.triggered.connect(self.About.show)
+        #Привязка кнопок к putty
+        self.CL1.clicked.connect(lambda: self.putty("CL1"))
+        self.CL2.clicked.connect(lambda: self.putty("CL2"))
+        self.CL3.clicked.connect(lambda: self.putty("CL3"))
+        self.CL4.clicked.connect(lambda: self.putty("CL4"))
+        self.LT1.clicked.connect(lambda: self.putty("LT1"))
+        self.LT2.clicked.connect(lambda: self.putty("LT2"))
+        self.LT3.clicked.connect(lambda: self.putty("LT3"))
+        self.LT4.clicked.connect(lambda: self.putty("LT4"))
+        self.LT5.clicked.connect(lambda: self.putty("LT5"))
+        self.LT6.clicked.connect(lambda: self.putty("LT6"))
+        self.WT1.clicked.connect(lambda: self.putty("WT1"))
+        self.WT2.clicked.connect(lambda: self.putty("WT2"))
+        self.WT3.clicked.connect(lambda: self.putty("WT3"))
+        self.WT4.clicked.connect(lambda: self.putty("WT4"))
+        self.WT5.clicked.connect(lambda: self.putty("WT5"))
+        self.WT6.clicked.connect(lambda: self.putty("WT6"))
         #Настройка таймера
         self.tTimer = 2000
         #Определение цвета
@@ -190,23 +206,6 @@ class Window(QtWidgets.QMainWindow):
         self.info.setStyleSheet("background-color: ")
         self.start.clicked.disconnect()
         self.start.clicked.connect(self.statPause)
-        #Привязка кнопок к putty
-        self.CL1.clicked.connect(lambda: self.putty("CL1"))
-        self.CL2.clicked.connect(lambda: self.putty("CL2"))
-        self.CL3.clicked.connect(lambda: self.putty("CL3"))
-        self.CL4.clicked.connect(lambda: self.putty("CL4"))
-        self.LT1.clicked.connect(lambda: self.putty("LT1"))
-        self.LT2.clicked.connect(lambda: self.putty("LT2"))
-        self.LT3.clicked.connect(lambda: self.putty("LT3"))
-        self.LT4.clicked.connect(lambda: self.putty("LT4"))
-        self.LT5.clicked.connect(lambda: self.putty("LT5"))
-        self.LT6.clicked.connect(lambda: self.putty("LT6"))
-        self.WT1.clicked.connect(lambda: self.putty("WT1"))
-        self.WT2.clicked.connect(lambda: self.putty("WT2"))
-        self.WT3.clicked.connect(lambda: self.putty("WT3"))
-        self.WT4.clicked.connect(lambda: self.putty("WT4"))
-        self.WT5.clicked.connect(lambda: self.putty("WT5"))
-        self.WT6.clicked.connect(lambda: self.putty("WT6"))
         #Привязка кнопок к mute
         self.btn.clicked.connect(self.muteALL)
         self.btnCL1.clicked.connect(lambda: self.muteCL(0))
