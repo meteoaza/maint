@@ -3,8 +3,8 @@ from datetime import datetime
 from Maintenance_main import Sens
 from pygame import mixer
 from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtCore import QTimer, Qt#, QDateTime
-from Maintenance_design import Ui_MainWindow
+from PyQt5.QtCore import QTimer, Qt
+from Maintenance_design_manas import Ui_MainWindow
 from Settings import Ui_Settings
 from About import Ui_AboutFrame
 import sys, os
@@ -20,7 +20,6 @@ class Window(QtWidgets.QMainWindow):
         self.About = QtWidgets.QFrame()
         self.ui_a = Ui_AboutFrame()
         self.ui_a.setupUi(self.About)
-
         #Привязка датчиков к окнам
         self.CL1 = self.ui.lineCL1
         self.CL2 = self.ui.lineCL2
@@ -100,6 +99,13 @@ class Window(QtWidgets.QMainWindow):
         self.term.clicked.connect(lambda: self.putty(""))
         self.menuIram.triggered.connect(self.sett)
         self.menuAbout.triggered.connect(self.About.show)
+        #Определение цвета
+        self.red = "background-color: qconicalgradient(cx:1, cy:0.329773, \
+                    angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));"
+        self.green = "background-color: qconicalgradient(cx:1, cy:0.529, angle:0,\
+                    stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255));"
+        self.yellow = "background-color: qconicalgradient(cx:1, cy:0.329773, \
+                    angle:0, stop:0.363636 rgba(219, 219, 0, 255), stop:1 rgba(255, 255, 255, 255));"
         #Привязка кнопок к putty
         self.CL1.clicked.connect(lambda: self.putty("CL1"))
         self.CL2.clicked.connect(lambda: self.putty("CL2"))
@@ -117,95 +123,6 @@ class Window(QtWidgets.QMainWindow):
         self.WT4.clicked.connect(lambda: self.putty("WT4"))
         self.WT5.clicked.connect(lambda: self.putty("WT5"))
         self.WT6.clicked.connect(lambda: self.putty("WT6"))
-        #Настройка таймера
-        self.tTimer = 2000
-        #Определение цвета
-        self.red = "background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));"
-        self.green = "background-color: qconicalgradient(cx:1, cy:0.529, angle:0, stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255));"
-        self.yellow = "background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.363636 rgba(219, 219, 0, 255), stop:1 rgba(255, 255, 255, 255));"
-        #Привязка датчиков
-        try:
-            f_sens = open('sensconf.ini', 'r', encoding = 'utf-8')
-            f = f_sens.readline().strip()
-            if (not f):
-                self.info.setText('Ошибка привязки датчиков')
-            else:
-                self.c1 = f_sens.readline().strip()[4:]
-                self.c2 = f_sens.readline().strip()[4:]
-                self.c3 = f_sens.readline().strip()[4:]
-                self.c4 = f_sens.readline().strip()[4:]
-                self.l1 = f_sens.readline().strip()[4:]
-                self.l2 = f_sens.readline().strip()[4:]
-                self.l3 = f_sens.readline().strip()[4:]
-                self.l4 = f_sens.readline().strip()[4:]
-                self.l5 = f_sens.readline().strip()[4:]
-                self.l6 = f_sens.readline().strip()[4:]
-                self.w1 = f_sens.readline().strip()[4:]
-                self.w2 = f_sens.readline().strip()[4:]
-                self.w3 = f_sens.readline().strip()[4:]
-                self.w4 = f_sens.readline().strip()[4:]
-                self.w5 = f_sens.readline().strip()[4:]
-                self.w6 = f_sens.readline().strip()[4:]
-            f_sens.close()
-        except FileNotFoundError:
-            self.info.setText('Не найден файл привязки датчиков')
-            QTimer().singleShot(3000, self.close)
-        #инициализируем переменные выключения звука, прогресс бара, записи отчета и логов
-        self.ml = [0, 0, 0, 0, 0, 0]
-        self.mc = [0, 0, 0, 0]
-        self.mw = [0, 0, 0, 0, 0, 0]
-        self.progress = 0
-        self.pause = False
-    def sett(self):
-        if self.pause == False:
-            self.statPause()
-        self.settRead()
-        self.iram_Sett.setText(self.iram)
-        self.snd_Sett.setText(self.snd)
-        self.FileTSett.setText(self.dur)
-        self.repWrite.setCheckState(self.repW)
-        self.logWrite.setCheckState(self.logW)
-        self.Settings.show()
-        self.btnIramSett.accepted.connect(self.settWrite)
-        self.btnIramSett.rejected.connect(lambda: self.Settings.hide())
-    def settRead(self):
-        try:
-            f_conf = open('config.ini', 'r', encoding = 'utf-8')
-            self.iram = f_conf.readline().strip()
-            self.snd = f_conf.readline().strip()
-            self.dur = f_conf.readline().strip()
-            self.repW = int(f_conf.readline().strip())
-            self.logW = int(f_conf.readline().strip())
-            f_conf.close()
-        except ValueError:
-            self.iram = ""
-            self.snd = ""
-            self.dur = "0"
-            self.repW = "0"
-            self.logW = "0"
-            print("settRead error")
-            pass
-    def settWrite(self):
-        #Назначение переменных пути, звука, времени обновления файла
-        self.iram = self.iram_Sett.text()
-        self.snd = self.snd_Sett.text()
-        self.dur = self.FileTSett.text()
-        self.repW = self.repWrite.checkState()
-        self.logW = self.logWrite.checkState()
-        f_conf = open('config.ini', 'w', encoding = 'utf-8')
-        f_conf.write(self.iram + '\n' + self.snd + '\n' + self.dur + '\n' + str(self.repW) + '\n' + str(self.logW) + '\n')
-        f_conf.close()
-        self.Settings.hide()
-        if self.pause == True:
-            self.goStart()
-    def goStart(self):
-        self.settRead()
-        self.pause = False
-        self.start.setText("Пауза")
-        self.start.setStyleSheet("background-color: ")
-        self.info.setStyleSheet("background-color: ")
-        self.start.clicked.disconnect()
-        self.start.clicked.connect(self.statPause)
         #Привязка кнопок к mute
         self.btn.clicked.connect(self.muteALL)
         self.btnCL1.clicked.connect(lambda: self.muteCL(0))
@@ -240,10 +157,92 @@ class Window(QtWidgets.QMainWindow):
         self.btnWT5.setStyleSheet(self.green)
         self.btnWT6.clicked.connect(lambda: self.muteWT(5))
         self.btnWT6.setStyleSheet(self.green)
+        #Настройка таймера
+        self.tTimer = 3000
+        #Привязка датчиков
+        try:
+            with open('sensconf.ini', 'r', encoding = 'utf-8') as f_sens:
+                f_sens.readline().strip()
+                if (not f_sens):
+                    self.info.setText('Ошибка привязки датчиков')
+                else:
+                    self.c1 = f_sens.readline().strip()[4:]
+                    self.c2 = f_sens.readline().strip()[4:]
+                    self.c3 = f_sens.readline().strip()[4:]
+                    self.c4 = f_sens.readline().strip()[4:]
+                    self.l1 = f_sens.readline().strip()[4:]
+                    self.l2 = f_sens.readline().strip()[4:]
+                    self.l3 = f_sens.readline().strip()[4:]
+                    self.l4 = f_sens.readline().strip()[4:]
+                    self.l5 = f_sens.readline().strip()[4:]
+                    self.l6 = f_sens.readline().strip()[4:]
+                    self.w1 = f_sens.readline().strip()[4:]
+                    self.w2 = f_sens.readline().strip()[4:]
+                    self.w3 = f_sens.readline().strip()[4:]
+                    self.w4 = f_sens.readline().strip()[4:]
+                    self.w5 = f_sens.readline().strip()[4:]
+                    self.w6 = f_sens.readline().strip()[4:]
+        except FileNotFoundError:
+            self.info.setText('Не найден файл привязки датчиков')
+            QTimer().singleShot(self.tTimer, self.close)
+        #инициализируем переменные выключения звука, прогресс бара, паузы
+        self.ml = [0, 0, 0, 0, 0, 0]
+        self.mc = [0, 0, 0, 0]
+        self.mw = [0, 0, 0, 0, 0, 0]
+        self.progress = 0
+        self.pause = False
+    def sett(self):
+        if self.pause == False:
+            self.statPause()
+        self.settRead()
+        self.iram_Sett.setText(self.iram)
+        self.snd_Sett.setText(self.snd)
+        self.FileTSett.setText(self.dur)
+        self.repWrite.setCheckState(self.repW)
+        self.logWrite.setCheckState(self.logW)
+        self.Settings.show()
+        self.btnIramSett.accepted.connect(self.settWrite)
+        self.btnIramSett.rejected.connect(lambda: self.Settings.hide())
+    def settRead(self):
+        try:
+            with open('config.ini', 'r', encoding = 'utf-8') as f_conf:
+                self.iram = f_conf.readline().strip()
+                self.snd = f_conf.readline().strip()
+                self.dur = f_conf.readline().strip()
+                self.repW = int(f_conf.readline().strip())
+                self.logW = int(f_conf.readline().strip())
+        except ValueError:
+            self.iram = "d:\\IRAM"
+            self.snd = "sound.wav"
+            self.dur = "0"
+            self.repW = "0"
+            self.logW = "0"
+            pass
+    def settWrite(self):
+        self.iram = self.iram_Sett.text()
+        self.snd = self.snd_Sett.text()
+        self.dur = self.FileTSett.text()
+        self.repW = self.repWrite.checkState()
+        self.logW = self.logWrite.checkState()
+        with open('config.ini', 'w', encoding = 'utf-8') as f_conf:
+            f_conf.write(self.iram + '\n' + self.snd + '\n' + self.dur +
+                        '\n' + str(self.repW) + '\n' + str(self.logW) + '\n')
+        self.Settings.hide()
+        if self.pause == True:
+            self.goStart()
+    def goStart(self):
+        self.settRead()
+        self.pause = False
+        self.start.setText("Пауза")
+        self.start.setStyleSheet("background-color: ")
+        self.info.setStyleSheet("background-color: ")
+        self.start.clicked.disconnect()
+        self.start.clicked.connect(self.statPause)
         #заводим часы
         self.dtimeTick()
+        #заводим температуру и давление
         self.statTemp()
-        #Запуск процесса
+        #Запуск основного процесса
         self.statLT()
     def statPause(self):
         self.pause = True
@@ -264,7 +263,7 @@ class Window(QtWidgets.QMainWindow):
                 s.ltInit()
                 self.LT_l.setText(s.lt_status)
                 self.LT_v.setText(s.lt_val)
-                self.info.setText("Идет процесс... LT31 ")
+                self.info.setText("Идет процесс... LT" )
                 if s.lt_error == 1:
                     self.LT_l.setStyleSheet(self.red)
                     self.LT_v.setStyleSheet(self.red)
@@ -304,7 +303,7 @@ class Window(QtWidgets.QMainWindow):
                 s.clInit()
                 self.CL_l.setText(s.cl_status)
                 self.CL_v.setText(s.cl_val)
-                self.info.setText("Идет процесс... CL31 ")
+                self.info.setText("Идет процесс... CL ")
                 if s.cl_error == 1:
                     self.CL_l.setStyleSheet(self.red)
                     self.CL_v.setStyleSheet(self.red)
@@ -374,7 +373,7 @@ class Window(QtWidgets.QMainWindow):
             self.Temp2.display(s.temp2)
             self.Pres1.display(s.pres1)
             self.Pres2.display(s.pres2)
-            QTimer().singleShot(3000, self.statTemp)
+            QTimer().singleShot(self.tTimer+5000, self.statTemp)
         else:
             self.info.setText("Остановлено")
             self.info.setStyleSheet(self.red)

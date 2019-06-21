@@ -11,7 +11,6 @@ class Sens():
         self.repW = int(repW)
         self.logW = int(logW)
         self.LOGs = "0"
-        self.tempInit()
     def checkTime(self):
         #Check time and write time difference to dift
         now = datetime.now()
@@ -30,14 +29,13 @@ class Sens():
                 self.lt_val = "ERROR"
             else:
             #Чтение файла и запись данных в переменные
-                f = open(self.f, 'r', encoding='ANSI', errors='ignore')
-                tek_f = f.read()
-                f.close()
+                with open(self.f, 'r', encoding='UTF-8', errors='ignore') as f:
+                    tek_f = f.read()
                 lt_stat = tek_f.split()[6]
                 self.lt_val = str(float(tek_f.split()[4][:5]))[:-2]
                 lt_batt = lt_stat[2]
             #Проверка ошибок и вывод результата
-                if lt_batt == '1' and lt_stat[0] == '0' or lt_batt == '2' and lt_stat[0] == '0':
+                if lt_batt == '1' and lt_stat[0] == 'I' or lt_batt == '2' and lt_stat[0] == 'I':
                     self.lt_status = str(self.lt + ' Внимание!!! Работа от батареи!!!')
                     self.lt_error = 2
                 elif lt_stat[0] == 'I':
@@ -77,9 +75,8 @@ class Sens():
                 self.cl_val = "ERROR"
             else:
             #Чтение файла и запись данных в переменные
-                f = open(self.f, 'r', encoding='ANSI', errors='ignore')
-                tek_f = f.read()
-                f.close()
+                with open(self.f, 'r', encoding='UTF-8', errors='ignore') as f:
+                    tek_f = f.read()
                 cl_stat = tek_f.split()[7]
                 self.cl_val = tek_f.split()[4]
                 if self.cl_val != '/////':
@@ -115,16 +112,20 @@ class Sens():
                 self.wt_val = "ERROR"
             else:
             #Чтение файла и запись данных в переменные
-                f = open(self.f, 'r', encoding='ANSI', errors='ignore')
-                tek_f = f.read()
-                f.close()
+                with open(self.f, 'r', encoding='utf-8', errors='ignore') as f:
+                    tek_f = f.read()
                 wt_stat = "OK"
                 self.dd = tek_f.split()[3][:3]
                 self.ff = tek_f.split()[4]
-                if self.ff != '\x01' or self.ff != '\x00':
+                try:
                     self.dd = float(self.dd)
                     self.ff = float(self.ff)
-                self.wt_val = (str(self.dd)[:-2] + " / " + str(self.ff))
+                    self.wt_val = (str(self.dd)[:-2] + " / " + str(self.ff))
+                except ValueError:
+                    self.dd = "----"
+                    self.ff = "----"
+                    self.wt_val = (self.dd + " / " + self.ff)
+                    pass
             #Проверка ошибок и вывод результата
                 self.wt_status = (self.wt + " " + wt_stat)
                 self.wt_error = 0
@@ -134,15 +135,14 @@ class Sens():
             self.wt_status = str(self.wt + " Ошибка чтения файла с данными!!!")
             self.wt_error = 3
             self.wt_val = "ERROR"
-            print(self.dd + " " + self.ff)
             self.progBug(e)
             pass
     def tempInit(self):
         try:
-            with open(self.iram + "\\TEK\\DAT_AVRG\\TTT45.DAT", 'r', encoding='ANSI') as f_t1, \
-                 open(self.iram + "\\TEK\\DAT_AVRG\\TTT46.DAT", 'r', encoding='ANSI') as f_t2, \
-                 open(self.iram + "\\TEK\\DAT_AVRG\\PPP41.DAT", 'r', encoding='ANSI') as f_p1, \
-                 open(self.iram + "\\TEK\\DAT_AVRG\\PPP42.DAT", 'r', encoding='ANSI') as f_p2:
+            with open(self.iram + "\\TEK\\DAT_AVRG\\TTT45.DAT", 'r', encoding='utf-8') as f_t1, \
+                 open(self.iram + "\\TEK\\DAT_AVRG\\TTT46.DAT", 'r', encoding='utf-8') as f_t2, \
+                 open(self.iram + "\\TEK\\DAT_AVRG\\PPP41.DAT", 'r', encoding='utf-8') as f_p1, \
+                 open(self.iram + "\\TEK\\DAT_AVRG\\PPP42.DAT", 'r', encoding='utf-8') as f_p2:
                 self.temp1 = int(f_t1.readline().split()[3])
                 self.temp1 = float(self.temp1/10)
                 self.temp2 = int(f_t2.readline().split()[3])
