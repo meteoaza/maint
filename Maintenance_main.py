@@ -19,87 +19,93 @@ class Sens():
         self.dift = now - t_f
     def ltInit(self):
         try:
-            #File in DAT_SENS define
-            self.f = (self.iram + "\\TEK\\DAT_SENS\\" + self.lt + ".DAT")
-            self.checkTime()
-            #Check time of file
-            if self.dift > timedelta(minutes=self.dur):
-                self.lt_status = str(self.lt + ' Тревога!!! Нет данных!!!')
-                self.lt_error = 1
-                self.lt_val = "ERROR"
-            else:
-            #Чтение файла и запись данных в переменные
-                with open(self.f, 'r', encoding='UTF-8', errors='ignore') as f:
-                    tek_f = f.read()
-                lt_stat = tek_f.split()[6]
-                self.lt_val = str(float(tek_f.split()[4][:5]))[:-2]
-                lt_batt = lt_stat[2]
-            #Проверка ошибок и вывод результата
-                if lt_batt == '1' and lt_stat[0] == 'I' or lt_batt == '2' and lt_stat[0] == 'I':
-                    self.lt_status = str(self.lt + ' Внимание!!! Работа от батареи!!!')
-                    self.lt_error = 2
-                elif lt_stat[0] == 'I':
-                    self.lt_status = str(self.lt + ' Ненормальная ситуация !!! ' + lt_stat)
+            try:
+                #File in DAT_SENS define
+                self.f = (self.iram + "\\TEK\\DAT_SENS\\" + self.lt + ".DAT")
+                self.checkTime()
+                #Check time of file
+                if self.dift > timedelta(minutes=self.dur):
+                    self.lt_status = str(self.lt + ' Тревога!!! Нет данных!!!')
                     self.lt_error = 1
-                elif lt_stat[0] == 'W':
-                    self.lt_status = str(self.lt + ' Предупреждение !!! ' + lt_stat)
-                    self.lt_error = 1
-                elif lt_stat[0] == 'A':
-                    self.lt_status = str(self.lt + ' Авария  !!! ' + lt_stat)
-                    self.lt_error = 1
-                elif lt_stat[0] == 'E':
-                    self.lt_status = str(self.lt + ' Ошибка !!! ' + lt_stat)
-                    self.lt_error = 1
-                elif lt_stat[0] == 'S':
-                    self.lt_status = str(self.lt + ' Открыт интерфейс !!! ' + lt_stat)
-                    self.lt_error = 1
+                    self.lt_val = "ERROR"
                 else:
-                    self.lt_status = str(self.lt + ' OK ' + lt_stat)
-                    self.lt_error = 0
-            if self.lt_error != 0:
-                self.repWrite(self.lt_status, "", "" )
-        except (FileNotFoundError, PermissionError, ValueError)as e:
+                #Чтение файла и запись данных в переменные
+                    with open(self.f, 'r', encoding='UTF-8', errors='ignore') as f:
+                        tek_f = f.read()
+                    lt_stat = tek_f.split()[6]
+                    self.lt_val = str(float(tek_f.split()[4][:5]))[:-2]
+                    lt_batt = lt_stat[2]
+                #Проверка ошибок и вывод результата
+                    if lt_batt == '1' and lt_stat[0] == 'I' or lt_batt == '2' and lt_stat[0] == 'I':
+                        self.lt_status = str(self.lt + ' Внимание!!! Работа от батареи!!!')
+                        self.lt_error = 2
+                    elif lt_stat[0] == 'I':
+                        self.lt_status = str(self.lt + ' Ненормальная ситуация !!! ' + lt_stat)
+                        self.lt_error = 1
+                    elif lt_stat[0] == 'W':
+                        self.lt_status = str(self.lt + ' Предупреждение !!! ' + lt_stat)
+                        self.lt_error = 1
+                    elif lt_stat[0] == 'A':
+                        self.lt_status = str(self.lt + ' Авария  !!! ' + lt_stat)
+                        self.lt_error = 1
+                    elif lt_stat[0] == 'E':
+                        self.lt_status = str(self.lt + ' Ошибка !!! ' + lt_stat)
+                        self.lt_error = 1
+                    elif lt_stat[0] == 'S':
+                        self.lt_status = str(self.lt + ' Открыт интерфейс !!! ' + lt_stat)
+                        self.lt_error = 1
+                    else:
+                        self.lt_status = str(self.lt + ' OK ' + lt_stat)
+                        self.lt_error = 0
+                if self.lt_error != 0:
+                    self.repWrite(self.lt_status, "", "" )
+            except ValueError:
+                self.ltInit()
+        except (FileNotFoundError, PermissionError)as e:
             self.lt_status = str(self.lt + " Ошибка чтения файла с данными!!!")
             self.lt_error = 3
             self.lt_val = "ERROR"
-            self.progBug(e)
+            self.progBug(self.lt + str(e))
             pass
     def clInit(self):
         try:
-            #File in DAT_SENS define
-            self.f = (self.iram + "\\TEK\\DAT_SENS\\" + self.cl + ".DAT")
-            self.checkTime()
-            if self.dift > timedelta(minutes=self.dur):
-                self.cl_status = str(self.cl + ' Тревога!!! Нет данных!!!')
-                self.cl_error = 1
-                self.cl_val = "ERROR"
-            else:
-            #Чтение файла и запись данных в переменные
-                with open(self.f, 'r', encoding='UTF-8', errors='ignore') as f:
-                    tek_f = f.read()
-                cl_stat = tek_f.split()[7]
-                self.cl_val = tek_f.split()[4]
-                if self.cl_val != '/////':
-                    self.cl_val = str(float(self.cl_val))[:-2]
-                cl_batt = cl_stat[5::3]
-                cl_norm = '0000'
-            #Проверка ошибок и вывод результата
-                if cl_batt == '4' and cl_stat[:4] == (cl_norm):
-                    self.cl_status = str(self.cl + ' Внимание!!! Работа от батареи!!!')
-                    self.cl_error = 2
-                elif cl_stat[:4] == (cl_norm):
-                    self.cl_status = str(self.cl + ' OK ' + cl_stat)
-                    self.cl_error = 0
-                else:
-                    self.cl_status = str(self.cl + ' Внимание!!! СБОЙ!!! ' + cl_stat)
+            try:
+                #File in DAT_SENS define
+                self.f = (self.iram + "\\TEK\\DAT_SENS\\" + self.cl + ".DAT")
+                self.checkTime()
+                if self.dift > timedelta(minutes=self.dur):
+                    self.cl_status = str(self.cl + ' Тревога!!! Нет данных!!!')
                     self.cl_error = 1
-            if self.cl_error != 0:
-                self.repWrite("", self.cl_status, "")
-        except (FileNotFoundError, PermissionError, ValueError)as e:
+                    self.cl_val = "ERROR"
+                else:
+                #Чтение файла и запись данных в переменные
+                    with open(self.f, 'r', encoding='UTF-8', errors='ignore') as f:
+                        tek_f = f.read()
+                    cl_stat = tek_f.split()[7]
+                    self.cl_val = tek_f.split()[4]
+                    if self.cl_val != '/////':
+                        self.cl_val = str(float(self.cl_val))[:-2]
+                    cl_batt = cl_stat[5::3]
+                    cl_norm = '0000'
+                #Проверка ошибок и вывод результата
+                    if cl_batt == '4' and cl_stat[:4] == (cl_norm):
+                        self.cl_status = str(self.cl + ' Внимание!!! Работа от батареи!!!')
+                        self.cl_error = 2
+                    elif cl_stat[:4] == (cl_norm):
+                        self.cl_status = str(self.cl + ' OK ' + cl_stat)
+                        self.cl_error = 0
+                    else:
+                        self.cl_status = str(self.cl + ' Внимание!!! СБОЙ!!! ' + cl_stat)
+                        self.cl_error = 1
+                if self.cl_error != 0:
+                    self.repWrite("", self.cl_status, "")
+            except ValueError:
+                self.clInit()
+        except (FileNotFoundError, PermissionError)as e:
             self.cl_status = str(self.cl + " Ошибка чтения файла !!!")
             self.cl_error = 3
             self.cl_val = "ERROR"
-            self.progBug(e)
+            self.progBug(self.cl + str(e))
             pass
     def wtInit(self):
         try:
@@ -112,30 +118,37 @@ class Sens():
                 self.wt_val = "ERROR"
             else:
             #Чтение файла и запись данных в переменные
-                with open(self.f, 'r', encoding='utf-8', errors='ignore') as f:
-                    tek_f = f.read()
-                wt_stat = "OK"
-                self.dd = tek_f.split()[3][:3]
-                self.ff = tek_f.split()[4]
                 try:
-                    self.dd = float(self.dd)
-                    self.ff = float(self.ff)
-                    self.wt_val = (str(self.dd)[:-2] + " / " + str(self.ff))
-                except ValueError:
-                    self.dd = "----"
-                    self.ff = "----"
-                    self.wt_val = (self.dd + " / " + self.ff)
-                    pass
+                    try:
+                        with open(self.f, 'r', encoding='UTF-8', errors='ignore') as f:
+                            tek_f = f.read()
+                        wt_stat = "OK"
+                        self.dd = float(tek_f.split()[3][:3])
+                        self.ff = float(tek_f.split()[4])
+                        self.wt_val = (str(self.dd)[:-2] + " / " + str(self.ff))
+                        f.close()
+                    except (ValueError) as e:
+                        self.progBug(self.wt + str(e))
+                        with open(self.f, 'r', encoding='UTF-8', errors='ignore') as f:
+                            tek_f = f.read()
+                        wt_stat = "OK"
+                        self.dd = float(tek_f.split()[4][:3])
+                        self.ff = float(tek_f.split()[5])
+                        self.wt_val = (str(self.dd)[:-2] + " / " + str(self.ff))
+                        f.close()
+                        pass
+                except  ValueError:
+                    self.wtInit()
             #Проверка ошибок и вывод результата
                 self.wt_status = (self.wt + " " + wt_stat)
                 self.wt_error = 0
             if self.wt_error != 0:
                 self.repWrite("", "", self.wt_status)
-        except (FileNotFoundError, PermissionError, ValueError)as e:
+        except (FileNotFoundError, PermissionError)as e:
             self.wt_status = str(self.wt + " Ошибка чтения файла с данными!!!")
             self.wt_error = 3
             self.wt_val = "ERROR"
-            self.progBug(e)
+            self.progBug(self.wt + str(e))
             pass
     def tempInit(self):
         try:
@@ -152,6 +165,7 @@ class Sens():
                 self.pres2 = int(f_p2.readline().split()[3])
                 self.pres2 = float(self.pres2/10)
         except (FileNotFoundError, PermissionError, ValueError) as e:
+            self.tempInit()
             self.temp1 = "0"
             self.temp2 = "0"
             self.pres1 = "0"
