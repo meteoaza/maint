@@ -35,9 +35,9 @@ class Sens():
                     lt_stat = tek_f.split()[6]
                     self.lt_val = str(float(tek_f.split()[4]))[:-2]
                 except ValueError as e:
-                    lt_stat = tek_f.split()[5]
-                    self.lt_val = str(float(tek_f.split()[3]))[:-2]
-                    self.progBug(self.lt + " ValueError " + str(e))
+                    lt_stat = tek_f.split()[2]
+                    self.lt_val = str(float(tek_f.split()[0]))[:-2]
+                    self.progBug(self.lt + " ValueError " + str(e) + " " + self.lt_val)
                     pass
                 lt_batt = lt_stat[2]
             #Проверка ошибок и вывод результата
@@ -69,11 +69,16 @@ class Sens():
             self.lt_error = 3
             self.lt_val = "ERROR"
             self.progBug(self.lt + str(e))
+        except PermissionError as e:
+            self.lt_status = str(self.lt + " Обработка....")
+            self.lt_error = 0
+            self.lt_val = "-----"
+            self.progBug(self.lt + " Exception " + str(e))
         except Exception as e:
             self.lt_status = str(self.lt + " Ошибка !!!")
             self.lt_error = 0
             self.lt_val = "-----"
-            self.progBug(self.lt + " Exception " + str(e) + self.lt_val)
+            self.progBug(self.lt + " Exception " + str(e) + " " + tek_f)
             pass
     def clInit(self):
         try:
@@ -119,11 +124,16 @@ class Sens():
             self.cl_error = 3
             self.cl_val = "ERROR"
             self.progBug(self.cl + str(e))
+        except PermissionError as e:
+            self.cl_status = str(self.cl + " Обработка....")
+            self.cl_error = 0
+            self.cl_val = "-----"
+            self.progBug(self.cl + " Exception " + str(e))
         except Exception as e:
             self.cl_status = str(self.cl + " Ошибка !!!")
             self.cl_error = 0
             self.cl_val = "-----"
-            self.progBug(self.cl + " Exception " + str(e))
+            self.progBug(self.cl + " Exception " + str(e) + " " + tek_f)
             pass
     def wtInit(self):
         try:
@@ -146,7 +156,7 @@ class Sens():
                     self.dd = float(tek_f.split()[4][:3])
                     self.ff = float(tek_f.split()[5])
                     self.wt_val = (str(self.dd)[:-2] + " / " + str(self.ff))
-                    self.progBug(self.wt + " ValueError " + str(e) + self.wt_val)
+                    self.progBug(self.wt + " ValueError " + str(e) + " " + self.wt_val)
                     pass
                 wt_stat = "OK"
             #Проверка ошибок и вывод результата
@@ -159,11 +169,16 @@ class Sens():
             self.wt_error = 3
             self.wt_val = "ERROR"
             self.progBug(self.wt + str(e))
+        except PermissionError as e:
+            self.wt_status = str(self.wt + " Обработка.... ")
+            self.wt_error = 0
+            self.wt_val = "-----"
+            self.progBug(self.wt + " Exception " + str(e))
         except Exception as e:
             self.wt_status = str(self.wt + " Ошибка !!!")
             self.wt_error = 0
             self.wt_val = "-----"
-            self.progBug(self.wt + " Exception " + str(e))
+            self.progBug(self.wt + " Exception " + str(e) + " " + tek_f)
             pass
     def tempInit(self):
         try:
