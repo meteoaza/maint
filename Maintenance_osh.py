@@ -83,6 +83,7 @@ class Window(QtWidgets.QMainWindow):
         self.iram_Sett = self.ui_s.lineIRAM
         self.snd_Sett = self.ui_s.lineSND
         self.FileTSett = self.ui_s.lineFileT
+        self.TimerSett = self.ui_s.lineTimer
         self.btnIramSett = self.ui_s.buttonOK
         self.logWrite = self.ui_s.logWrite
         self.repWrite = self.ui_s.repWrite
@@ -145,8 +146,6 @@ class Window(QtWidgets.QMainWindow):
         self.btnWT3.setStyleSheet(self.green)
         self.btnWT4.clicked.connect(lambda: self.muteWT(3))
         self.btnWT4.setStyleSheet(self.green)
-        #Настройка таймера
-        self.tTimer = 2000
         #Привязка датчиков
         try:
             with open('sensconf.ini', 'r', encoding = 'utf-8') as f_sens:
@@ -184,8 +183,9 @@ class Window(QtWidgets.QMainWindow):
         self.iram_Sett.setText(self.iram)
         self.snd_Sett.setText(self.snd)
         self.FileTSett.setText(self.dur)
-        self.repWrite.setCheckState(self.repW)
-        self.logWrite.setCheckState(self.logW)
+        self.TimerSett.setText(str(self.tTimer))
+        self.repWrite.setCheckState(int(self.repW))
+        self.logWrite.setCheckState(int(self.logW))
         self.Settings.show()
         self.btnIramSett.accepted.connect(self.settWrite)
         self.btnIramSett.rejected.connect(lambda: self.Settings.hide())
@@ -195,25 +195,31 @@ class Window(QtWidgets.QMainWindow):
                 self.iram = f_conf.readline().strip()
                 self.snd = f_conf.readline().strip()
                 self.dur = f_conf.readline().strip()
+                self.tTimer = int(f_conf.readline().strip())
                 self.repW = int(f_conf.readline().strip())
                 self.logW = int(f_conf.readline().strip())
-        except ValueError:
-            self.iram = "d:\IRAM"
-            self.snd = ""
+        except (ValueError, FileNotFoundError):
+            self.iram = "d:\\IRAM"
+            self.snd = "sound.wav"
             self.dur = "0"
+            self.tTimer = 3000
             self.repW = "0"
             self.logW = "0"
             pass
     def settWrite(self):
-        #Назначение переменных пути, звука, времени обновления файла
         self.iram = self.iram_Sett.text()
         self.snd = self.snd_Sett.text()
         self.dur = self.FileTSett.text()
+        self.tTimer = int(self.TimerSett.text())
         self.repW = self.repWrite.checkState()
         self.logW = self.logWrite.checkState()
         with open('config.ini', 'w', encoding = 'utf-8') as f_conf:
-            f_conf.write(self.iram + '\n' + self.snd + '\n' + self.dur + '\n'
-                        + str(self.repW) + '\n' + str(self.logW) + '\n')
+            f_conf.write(self.iram + '\n'
+                        + self.snd + '\n'
+                        + self.dur + '\n'
+                        + str(self.tTimer) + '\n'
+                        + str(self.repW) + '\n'
+                        + str(self.logW) + '\n')
         self.Settings.hide()
         if self.pause == True:
             self.goStart()
@@ -445,9 +451,10 @@ class Window(QtWidgets.QMainWindow):
             else:
                 logW ="Откл"
             self.bar.showMessage("Рабочий каталог: " + self.iram +
-            "                     Время ожидания файла: " + str(self.dur) + " мин."
-            + "     Отчет: " + repW +
-            "       Лог: " + logW)
+            "          Время ожидания файла:  " + str(self.dur) + " мин."
+            + "     Время обновления:  " + str(self.tTimer)[:1] + " сек."
+            + "       Отчет: " + repW +
+            "     Лог: " + logW)
             self.dtime.setText(t)
             QTimer().singleShot(1000, self.dtimeTick)
         else:

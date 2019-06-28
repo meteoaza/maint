@@ -89,6 +89,7 @@ class Window(QtWidgets.QMainWindow):
         self.iram_Sett = self.ui_s.lineIRAM
         self.snd_Sett = self.ui_s.lineSND
         self.FileTSett = self.ui_s.lineFileT
+        self.TimerSett = self.ui_s.lineTimer
         self.btnIramSett = self.ui_s.buttonOK
         self.logWrite = self.ui_s.logWrite
         self.repWrite = self.ui_s.repWrite
@@ -157,8 +158,6 @@ class Window(QtWidgets.QMainWindow):
         self.btnWT5.setStyleSheet(self.green)
         self.btnWT6.clicked.connect(lambda: self.muteWT(5))
         self.btnWT6.setStyleSheet(self.green)
-        #Настройка таймера
-        self.tTimer = 3000
         #Привязка датчиков
         try:
             with open('sensconf.ini', 'r', encoding = 'utf-8') as f_sens:
@@ -184,7 +183,7 @@ class Window(QtWidgets.QMainWindow):
                     self.w6 = f_sens.readline().strip()[4:]
         except FileNotFoundError:
             self.info.setText('Не найден файл привязки датчиков')
-            QTimer().singleShot(self.tTimer, self.close)
+            QTimer().singleShot(3000, self.close)
         #инициализируем переменные выключения звука, прогресс бара, паузы
         self.ml = [0, 0, 0, 0, 0, 0]
         self.mc = [0, 0, 0, 0]
@@ -198,8 +197,9 @@ class Window(QtWidgets.QMainWindow):
         self.iram_Sett.setText(self.iram)
         self.snd_Sett.setText(self.snd)
         self.FileTSett.setText(self.dur)
-        self.repWrite.setCheckState(self.repW)
-        self.logWrite.setCheckState(self.logW)
+        self.TimerSett.setText(str(self.tTimer))
+        self.repWrite.setCheckState(int(self.repW))
+        self.logWrite.setCheckState(int(self.logW))
         self.Settings.show()
         self.btnIramSett.accepted.connect(self.settWrite)
         self.btnIramSett.rejected.connect(lambda: self.Settings.hide())
@@ -209,12 +209,14 @@ class Window(QtWidgets.QMainWindow):
                 self.iram = f_conf.readline().strip()
                 self.snd = f_conf.readline().strip()
                 self.dur = f_conf.readline().strip()
+                self.tTimer = int(f_conf.readline().strip())
                 self.repW = int(f_conf.readline().strip())
                 self.logW = int(f_conf.readline().strip())
-        except ValueError:
+        except (ValueError, FileNotFoundError):
             self.iram = "d:\\IRAM"
             self.snd = "sound.wav"
             self.dur = "0"
+            self.tTimer = 3000
             self.repW = "0"
             self.logW = "0"
             pass
@@ -222,11 +224,16 @@ class Window(QtWidgets.QMainWindow):
         self.iram = self.iram_Sett.text()
         self.snd = self.snd_Sett.text()
         self.dur = self.FileTSett.text()
+        self.tTimer = int(self.TimerSett.text())
         self.repW = self.repWrite.checkState()
         self.logW = self.logWrite.checkState()
         with open('config.ini', 'w', encoding = 'utf-8') as f_conf:
-            f_conf.write(self.iram + '\n' + self.snd + '\n' + self.dur +
-                        '\n' + str(self.repW) + '\n' + str(self.logW) + '\n')
+            f_conf.write(self.iram + '\n'
+                        + self.snd + '\n'
+                        + self.dur + '\n'
+                        + str(self.tTimer) + '\n'
+                        + str(self.repW) + '\n'
+                        + str(self.logW) + '\n')
         self.Settings.hide()
         if self.pause == True:
             self.goStart()
@@ -373,7 +380,7 @@ class Window(QtWidgets.QMainWindow):
             self.Temp2.display(s.temp2)
             self.Pres1.display(s.pres1)
             self.Pres2.display(s.pres2)
-            QTimer().singleShot(self.tTimer+5000, self.statTemp)
+            QTimer().singleShot(self.tTimer, self.statTemp)
         else:
             self.info.setText("Остановлено")
             self.info.setStyleSheet(self.red)
@@ -458,9 +465,10 @@ class Window(QtWidgets.QMainWindow):
             else:
                 logW ="Откл"
             self.bar.showMessage("Рабочий каталог: " + self.iram +
-            "                     Время ожидания файла: " + str(self.dur) + " мин."
-            + "     Отчет: " + repW +
-            "       Лог: " + logW)
+            "          Время ожидания файла:  " + str(self.dur) + " мин."
+            + "     Время обновления:  " + str(self.tTimer)[:1] + " сек."
+            + "       Отчет: " + repW +
+            "     Лог: " + logW)
             self.dtime.setText(t)
             QTimer().singleShot(1000, self.dtimeTick)
         else:
