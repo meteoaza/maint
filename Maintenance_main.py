@@ -35,8 +35,8 @@ class Sens():
                     lt_stat = tek_f.split()[6]
                     self.lt_val = str(float(tek_f.split()[4]))[:-2]
                 except ValueError as e:
-                    lt_stat = tek_f.split()[2]
-                    self.lt_val = str(float(tek_f.split()[0]))[:-2]
+                    lt_stat = tek_f.split()[6]
+                    self.lt_val = tek_f.split()[4]
                     self.progBug(self.lt + " ValueError " + str(e) + " " + self.lt_val)
                     pass
                 lt_batt = lt_stat[2]
@@ -99,10 +99,8 @@ class Sens():
                     if self.cl_val != '/////':
                         self.cl_val = str(float(self.cl_val))[:-2]
                 except ValueError as e:
-                    cl_stat = tek_f.split()[8]
-                    self.cl_val = tek_f.split()[5]
-                    if self.cl_val != '/////':
-                        self.cl_val = str(float(self.cl_val))[:-2]
+                    cl_stat = tek_f.split()[7]
+                    self.cl_val = tek_f.split()[4]
                     self.progBug(self.cl + " ValueError " + str(e) + self.cl_val)
                     pass
                 cl_batt = cl_stat[5::3]
