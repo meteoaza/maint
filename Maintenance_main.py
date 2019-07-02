@@ -33,7 +33,9 @@ class Sens():
                     tek_f = f.read()
                 try:
                     lt_stat = tek_f.split()[6]
-                    self.lt_val = str(float(tek_f.split()[4]))[:-2]
+                    self.lt_val = tek_f.split()[4]
+                    if self.lt_val != '///////':
+                        self.lt_val = str(float(tek_f.split()[4]))[:-2]
                 except ValueError as e:
                     lt_stat = tek_f.split()[6]
                     self.lt_val = tek_f.split()[4]
@@ -68,12 +70,12 @@ class Sens():
             self.lt_status = str(self.lt + " Не найден файл с данными!!!")
             self.lt_error = 3
             self.lt_val = "ERROR"
-            self.progBug(self.lt + str(e))
+            self.progBug(self.lt + " FileNotFoundError " + str(e))
         except PermissionError as e:
             self.lt_status = str(self.lt + " Обработка....")
             self.lt_error = 0
             self.lt_val = "-----"
-            self.progBug(self.lt + " Exception " + str(e))
+            self.progBug(self.lt + " PermissionError " + str(e))
         except Exception as e:
             self.lt_status = str(self.lt + " Ошибка !!!")
             self.lt_error = 0
@@ -121,12 +123,12 @@ class Sens():
             self.cl_status = str(self.cl + " Не найден файл с данными !!!")
             self.cl_error = 3
             self.cl_val = "ERROR"
-            self.progBug(self.cl + str(e))
+            self.progBug(self.cl + " FileNotFoundError " + str(e))
         except PermissionError as e:
             self.cl_status = str(self.cl + " Обработка....")
             self.cl_error = 0
             self.cl_val = "-----"
-            self.progBug(self.cl + " Exception " + str(e))
+            self.progBug(self.cl + " PermissionError " + str(e))
         except Exception as e:
             self.cl_status = str(self.cl + " Ошибка !!!")
             self.cl_error = 0
@@ -166,12 +168,12 @@ class Sens():
             self.wt_status = str(self.wt + " Не найден файл с данными !!!")
             self.wt_error = 3
             self.wt_val = "ERROR"
-            self.progBug(self.wt + str(e))
+            self.progBug(self.wt + " FileNotFoundError " + str(e))
         except PermissionError as e:
             self.wt_status = str(self.wt + " Обработка.... ")
             self.wt_error = 0
             self.wt_val = "-----"
-            self.progBug(self.wt + " Exception " + str(e))
+            self.progBug(self.wt + " PermissionError " + str(e))
         except Exception as e:
             self.wt_status = str(self.wt + " Ошибка !!!")
             self.wt_error = 0

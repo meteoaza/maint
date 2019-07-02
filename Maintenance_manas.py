@@ -94,6 +94,9 @@ class Window(QtWidgets.QMainWindow):
         self.logWrite = self.ui_s.logWrite
         self.repWrite = self.ui_s.repWrite
         self.menuSett.menuAction().setStatusTip("Настройки")
+        #Привязка виджетов About
+        self.about = self.ui_a.about
+        self.ver = self.ui_a.ver
         #Привязка кнопок
         self.start.clicked.connect(self.goStart)
         self.exit.clicked.connect(self.close)
@@ -190,6 +193,8 @@ class Window(QtWidgets.QMainWindow):
         self.mw = [0, 0, 0, 0, 0, 0]
         self.progress = 0
         self.pause = False
+        #Версия программы
+        self.ver.setText('Version 1.0')
     def sett(self):
         if self.pause == False:
             self.statPause()

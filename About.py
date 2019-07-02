@@ -23,6 +23,12 @@ class Ui_AboutFrame(object):
         self.about.setMaximumSize(QtCore.QSize(371, 200))
         self.about.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.about.setObjectName("about")
+        self.ver = QtWidgets.QLabel(AboutFrame)
+        self.ver.setGeometry(QtCore.QRect(340, 190, 91, 20))
+        self.ver.setStyleSheet("background-color: qconicalgradient(cx:1, cy:0.17, angle:135, stop:0 rgba(0, 169, 255, 182), stop:0.375 rgba(255, 255, 0, 69), stop:0.423533 rgba(251, 255, 0, 145), stop:0.45 rgba(247, 255, 0, 208), stop:0.477581 rgba(255, 244, 71, 130), stop:0.518717 rgba(255, 218, 71, 130), stop:0.55 rgba(255, 255, 0, 255), stop:0.57754 rgba(255, 203, 0, 130), stop:0.625 rgba(255, 255, 0, 69), stop:1 rgba(255, 255, 0, 69));")
+        self.ver.setText("")
+        self.ver.setAlignment(QtCore.Qt.AlignCenter)
+        self.ver.setObjectName("ver")
 
         self.retranslateUi(AboutFrame)
         QtCore.QMetaObject.connectSlotsByName(AboutFrame)
