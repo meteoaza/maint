@@ -11,23 +11,31 @@ class Weather_main(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.cline = self.ui.cl1
-        self.wline = self.ui.wt1
+        self.w1line = self.ui.wt1
+        self.w2line = self.ui.wt2
         self.wSett()
 
     def wSett(self):
         with open('wconf.ini', 'r', encoding='utf-8') as f:
             self.iram = f.readline().strip()[8:]
             self.cl = f.readline().strip()[8:]
-            self.wt = f.readline().strip()[8:]
+            self.wt1 = f.readline().strip()[8:]
+            self.wt2 = f.readline().strip()[8:]
             self.wRun()
 
     def wRun(self):
-        s = Sens(self.iram, "", self.cl, self.wt, '1', '0', '0')
-        s.clInit()
-        s.wtInit()
-        self.cline.setText(s.cl_val)
-        self.wline.setText(s.wt_val)
-        QTimer.singleShot(1000, self.wRun)
+        wt = [self.wt1, self.wt2]
+        wline = [self.w1line, self.w2line]
+        for i in range(0, 2):
+            self.wt = wt[i]
+            self.wline = wline[i]
+            s = Sens(self.iram, "", self.cl, self.wt, '1', '0', '0')
+            s.wtInit()
+            s.clInit()
+            self.wline.setText(s.wt_val)
+            self.cline.setText(s.cl_val)
+        QTimer.singleShot(3000, self.wRun)
+
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
