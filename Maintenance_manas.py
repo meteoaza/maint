@@ -11,7 +11,7 @@ import sys, os
 
 class Window(QtWidgets.QMainWindow):
     def __init__(self):
-        super(Window, self).__init__()
+        super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.Settings = QtWidgets.QFrame()
