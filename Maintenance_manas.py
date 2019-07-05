@@ -2,6 +2,7 @@ import subprocess
 from datetime import datetime
 from Maintenance_main import Sens
 from pygame import mixer
+from winreg import *
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QTimer, Qt
 from Maintenance_design_manas import Ui_MainWindow
@@ -96,7 +97,8 @@ class Window(QtWidgets.QMainWindow):
         self.menuSett.menuAction().setStatusTip("Настройки")
         #Привязка виджетов About
         self.about = self.ui_a.about
-        self.ver = self.ui_a.ver
+        #Версия программы
+        self.ui_a.ver.setText('Version 1.1')
         #Привязка кнопок
         self.start.clicked.connect(self.goStart)
         self.exit.clicked.connect(self.close)
@@ -192,17 +194,16 @@ class Window(QtWidgets.QMainWindow):
         self.mc = [0, 0, 0, 0]
         self.mw = [0, 0, 0, 0, 0, 0]
         self.progress = 0
-        self.pause = False
-        #Версия программы
-        self.ver.setText('Version 1.0')
+        self.pause = True
+
     def sett(self):
+        self.settRead()
         if self.pause == False:
             self.statPause()
-        self.settRead()
         self.iram_Sett.setText(self.iram)
         self.snd_Sett.setText(self.snd)
         self.FileTSett.setText(self.dur)
-        self.TimerSett.setText(str(self.tTimer))
+        self.TimerSett.setText(self.tTimer)
         self.repWrite.setCheckState(int(self.repW))
         self.logWrite.setCheckState(int(self.logW))
         self.Settings.show()
@@ -210,18 +211,27 @@ class Window(QtWidgets.QMainWindow):
         self.btnIramSett.rejected.connect(lambda: self.Settings.hide())
     def settRead(self):
         try:
-            with open('config.ini', 'r', encoding = 'utf-8') as f_conf:
-                self.iram = f_conf.readline().strip()
-                self.snd = f_conf.readline().strip()
-                self.dur = f_conf.readline().strip()
-                self.tTimer = int(f_conf.readline().strip())
-                self.repW = int(f_conf.readline().strip())
-                self.logW = int(f_conf.readline().strip())
+            aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
+            rKey = OpenKey(aReg, r"Software\IRAM\MAINT")
+            self.iram = QueryValueEx(rKey, 'PATH')[0]
+            self.snd = QueryValueEx(rKey, 'SOUND')[0]
+            self.dur = QueryValueEx(rKey, 'DUR')[0]
+            self.tTimer = QueryValueEx(rKey, 'REFRESH')[0]
+            self.repW = QueryValueEx(rKey, 'REP')[0]
+            self.logW = QueryValueEx(rKey, 'LOG')[0]
+            aReg.Close()
+            # with open('config.ini', 'r', encoding = 'utf-8') as f_conf:
+            #     self.iram = f_conf.readline().strip()
+            #     self.snd = f_conf.readline().strip()
+            #     self.dur = f_conf.readline().strip()
+            #     self.tTimer = int(f_conf.readline().strip())
+            #     self.repW = int(f_conf.readline().strip())
+            #     self.logW = int(f_conf.readline().strip())
         except (ValueError, FileNotFoundError):
-            self.iram = "d:\\IRAM"
+            self.iram = r"d:\IRAM"
             self.snd = "sound.wav"
             self.dur = "0"
-            self.tTimer = 3000
+            self.tTimer = "3000"
             self.repW = "0"
             self.logW = "0"
             pass
@@ -229,22 +239,33 @@ class Window(QtWidgets.QMainWindow):
         self.iram = self.iram_Sett.text()
         self.snd = self.snd_Sett.text()
         self.dur = self.FileTSett.text()
-        self.tTimer = int(self.TimerSett.text())
-        self.repW = self.repWrite.checkState()
-        self.logW = self.logWrite.checkState()
-        with open('config.ini', 'w', encoding = 'utf-8') as f_conf:
-            f_conf.write(self.iram + '\n'
-                        + self.snd + '\n'
-                        + self.dur + '\n'
-                        + str(self.tTimer) + '\n'
-                        + str(self.repW) + '\n'
-                        + str(self.logW) + '\n')
+        self.tTimer = self.TimerSett.text()
+        self.repW = str(self.repWrite.checkState())
+        self.logW = str(self.logWrite.checkState())
+        aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
+        nKey = CreateKeyEx(aReg, r'Software\IRAM\MAINT', 0, KEY_ALL_ACCESS)
+        keyval = SetValueEx(nKey, 'PATH', 0, REG_SZ, self.iram)
+        keyval = SetValueEx(nKey, 'SOUND', 0, REG_SZ, self.snd)
+        keyval = SetValueEx(nKey, 'DUR', 0, REG_SZ, self.dur)
+        keyval = SetValueEx(nKey, 'REFRESH', 0, REG_SZ, self.tTimer)
+        keyval = SetValueEx(nKey, 'REP', 0, REG_SZ, self.repW)
+        keyval = SetValueEx(nKey, 'LOG', 0, REG_SZ, self.logW)
+        aReg.Close()
+        # with open('config.ini', 'w', encoding = 'utf-8') as f_conf:
+        #     f_conf.write(self.iram + '\n'
+        #                 + self.snd + '\n'
+        #                 + self.dur + '\n'
+        #                 + str(self.tTimer) + '\n'
+        #                 + str(self.repW) + '\n'
+        #                 + str(self.logW) + '\n')
         self.Settings.hide()
+        self.btnIramSett.accepted.disconnect()
         if self.pause == True:
             self.goStart()
     def goStart(self):
         self.settRead()
         self.pause = False
+        self.tTimer = int(self.tTimer)
         self.start.setText("Пауза")
         self.start.setStyleSheet("background-color: ")
         self.info.setStyleSheet("background-color: ")
@@ -389,6 +410,7 @@ class Window(QtWidgets.QMainWindow):
         else:
             self.info.setText("Остановлено")
             self.info.setStyleSheet(self.red)
+            pass
     def sndplay(self):
         mixer.init()
         mixer.music.load(self.snd)
@@ -484,6 +506,7 @@ class Window(QtWidgets.QMainWindow):
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
             self.close()
+
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)

@@ -20,7 +20,7 @@ class Sens():
     def ltInit(self):
         try:
             #File in DAT_SENS define
-            self.f = (self.iram + "\\TEK\\DAT_SENS\\" + self.lt + ".DAT")
+            self.f = (self.iram + r"TEK\DAT_SENS\\" + self.lt + ".DAT")
             self.checkTime()
             #Check time of file
             if self.dift > timedelta(minutes=self.dur):
@@ -85,7 +85,7 @@ class Sens():
     def clInit(self):
         try:
             #File in DAT_SENS define
-            self.f = (self.iram + "\\TEK\\DAT_SENS\\" + self.cl + ".DAT")
+            self.f = (self.iram + r"TEK\DAT_SENS\\" + self.cl + ".DAT")
             self.checkTime()
             if self.dift > timedelta(minutes=self.dur):
                 self.cl_status = str(self.cl + ' Тревога!!! Нет данных!!!')
@@ -138,7 +138,7 @@ class Sens():
     def wtInit(self):
         try:
             #File in DAT_SENS define
-            self.f = (self.iram + "\\TEK\\DAT_SENS\\" + self.wt + ".DAT")
+            self.f = (self.iram + r"TEK\DAT_SENS\\" + self.wt + ".DAT")
             self.checkTime()
             if self.dift > timedelta(minutes=self.dur):
                 self.wt_status = str(self.wt + ' Тревога!!! Нет данных!!!')
@@ -182,10 +182,10 @@ class Sens():
             pass
     def tempInit(self):
         try:
-            with open(self.iram + "\\TEK\\DAT_AVRG\\TTT45.DAT", 'r', encoding='utf-8') as f_t1, \
-                 open(self.iram + "\\TEK\\DAT_AVRG\\TTT46.DAT", 'r', encoding='utf-8') as f_t2, \
-                 open(self.iram + "\\TEK\\DAT_AVRG\\PPP41.DAT", 'r', encoding='utf-8') as f_p1, \
-                 open(self.iram + "\\TEK\\DAT_AVRG\\PPP42.DAT", 'r', encoding='utf-8') as f_p2:
+            with open(self.iram + r"TEK\\DAT_AVRG\\TTT45.DAT", 'r', encoding='utf-8') as f_t1, \
+                 open(self.iram + r"TEK\\DAT_AVRG\\TTT46.DAT", 'r', encoding='utf-8') as f_t2, \
+                 open(self.iram + r"TEK\\DAT_AVRG\\PPP41.DAT", 'r', encoding='utf-8') as f_p1, \
+                 open(self.iram + r"TEK\\DAT_AVRG\\PPP42.DAT", 'r', encoding='utf-8') as f_p2:
                 self.temp1 = int(f_t1.readline().split()[3])
                 self.temp1 = float(self.temp1/10)
                 self.temp2 = int(f_t2.readline().split()[3])
