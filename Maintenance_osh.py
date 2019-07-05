@@ -85,14 +85,18 @@ class Window(QtWidgets.QMainWindow):
         self.snd_Sett = self.ui_s.lineSND
         self.FileTSett = self.ui_s.lineFileT
         self.TimerSett = self.ui_s.lineTimer
-        self.btnIramSett = self.ui_s.buttonOK
+        self.sensList = self.ui_s.boxSensors
+        self.sensSett = self.ui_s.lineSensors
+        self.sensAdd = self.ui_s.buttSensors
+        self.sensView = self.ui_s.viewSensors
         self.logWrite = self.ui_s.logWrite
         self.repWrite = self.ui_s.repWrite
+        self.btnIramSett = self.ui_s.buttOK
         self.menuSett.menuAction().setStatusTip("Настройки")
         #Привязка виджетов About
         self.about = self.ui_a.about
         #Версия программы
-        self.ui_a.ver.setText('Version 1.1')
+        self.ui_a.ver.setText('Version 1.2')
         #Привязка кнопок
         self.start.clicked.connect(self.goStart)
         self.exit.clicked.connect(self.close)
@@ -151,49 +155,116 @@ class Window(QtWidgets.QMainWindow):
         self.btnWT3.setStyleSheet(self.green)
         self.btnWT4.clicked.connect(lambda: self.muteWT(3))
         self.btnWT4.setStyleSheet(self.green)
-        #Привязка датчиков
-        try:
-            with open('sensconf.ini', 'r', encoding = 'utf-8') as f_sens:
-                f_sens.readline().strip()
-                if (not f_sens):
-                    self.info.setText('Ошибка привязки датчиков')
-                else:
-                    self.c1 = f_sens.readline().strip()[4:]
-                    self.c2 = f_sens.readline().strip()[4:]
-                    self.c3 = f_sens.readline().strip()[4:]
-                    self.c4 = f_sens.readline().strip()[4:]
-                    self.l1 = f_sens.readline().strip()[4:]
-                    self.l2 = f_sens.readline().strip()[4:]
-                    self.l3 = f_sens.readline().strip()[4:]
-                    self.l4 = f_sens.readline().strip()[4:]
-                    self.l5 = f_sens.readline().strip()[4:]
-                    self.l6 = f_sens.readline().strip()[4:]
-                    self.w1 = f_sens.readline().strip()[4:]
-                    self.w2 = f_sens.readline().strip()[4:]
-                    self.w3 = f_sens.readline().strip()[4:]
-                    self.w4 = f_sens.readline().strip()[4:]
-        except FileNotFoundError:
-            self.info.setText('Не найден файл привязки датчиков')
-            QTimer().singleShot(3000, self.close)
+        #Список датчиков в настройках
+        self.sensList.addItems(['None', 'CL1', 'CL2', 'CL3', 'CL4', 'LT1', 'LT2',
+                                'LT3', 'LT4', 'LT5', 'LT6', 'WT1', 'WT2',
+                                'WT3', 'WT4', 'WT5', 'WT6'])
         #инициализируем переменные выключения звука, прогресс бара, паузы
         self.ml = [0, 0, 0, 0, 0, 0]
         self.mc = [0, 0, 0, 0]
         self.mw = [0, 0, 0, 0]
         self.progress = 0
         self.pause = False
+
     def sett(self):
+        self.settRead()
+        self.settSensRead()
         if self.pause == False:
             self.statPause()
-        self.settRead()
         self.iram_Sett.setText(self.iram)
         self.snd_Sett.setText(self.snd)
         self.FileTSett.setText(self.dur)
-        self.TimerSett.setText(str(self.tTimer))
+        self.TimerSett.setText(self.tTimer)
         self.repWrite.setCheckState(int(self.repW))
         self.logWrite.setCheckState(int(self.logW))
         self.Settings.show()
+        self.viewSens()
         self.btnIramSett.accepted.connect(self.settWrite)
         self.btnIramSett.rejected.connect(lambda: self.Settings.hide())
+        self.sensAdd.clicked.connect(self.settSens)
+
+        #Привязка датчиков
+    def settSens(self):
+        text = self.sensList.currentText()
+        if text == 'CL1': self.c1 = self.sensSett.text()
+        elif text == 'CL2': self.c2 = self.sensSett.text()
+        elif text == 'CL3': self.c3 = self.sensSett.text()
+        elif text == 'CL4': self.c4 = self.sensSett.text()
+        elif text == 'LT1': self.l1 = self.sensSett.text()
+        elif text == 'LT2': self.l2 = self.sensSett.text()
+        elif text == 'LT3': self.l3 = self.sensSett.text()
+        elif text == 'LT4': self.l4 = self.sensSett.text()
+        elif text == 'LT5': self.l5 = self.sensSett.text()
+        elif text == 'LT6': self.l6 = self.sensSett.text()
+        elif text == 'WT1': self.w1 = self.sensSett.text()
+        elif text == 'WT2': self.w2 = self.sensSett.text()
+        elif text == 'WT3': self.w3 = self.sensSett.text()
+        elif text == 'WT4': self.w4 = self.sensSett.text()
+        self.viewSens()
+
+    def viewSens(self):
+        self.sensView.setText('CL1 -  ' + self.c1 + '\n' +
+                              'CL2 -  ' + self.c2 + '\n' +
+                              'CL3 -  ' + self.c3 + '\n' +
+                              'CL4 -  ' + self.c4 + '\n' +
+                              'LT1 -  ' + self.l1 + '\n' +
+                              'LT2 -  ' + self.l2 + '\n' +
+                              'LT3 -  ' + self.l3 + '\n' +
+                              'LT4 -  ' + self.l4 + '\n' +
+                              'LT5 -  ' + self.l5 + '\n' +
+                              'LT6 -  ' + self.l6 + '\n' +
+                              'WT1 -  ' + self.w1 + '\n' +
+                              'WT2 -  ' + self.w2 + '\n' +
+                              'WT3 -  ' + self.w3 + '\n' +
+                              'WT4 -  ' + self.w4 + '\n' )
+
+    def settSensWrite(self):
+        try:
+            aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
+            nKey = CreateKeyEx(aReg, r'Software\IRAM\MAINT\SENS', 0, KEY_ALL_ACCESS)
+            keyval = SetValueEx(nKey, 'CL1', 0, REG_SZ, self.c1)
+            keyval = SetValueEx(nKey, 'CL2', 0, REG_SZ, self.c2)
+            keyval = SetValueEx(nKey, 'CL3', 0, REG_SZ, self.c3)
+            keyval = SetValueEx(nKey, 'CL4', 0, REG_SZ, self.c4)
+            keyval = SetValueEx(nKey, 'LT1', 0, REG_SZ, self.l1)
+            keyval = SetValueEx(nKey, 'LT2', 0, REG_SZ, self.l2)
+            keyval = SetValueEx(nKey, 'LT3', 0, REG_SZ, self.l3)
+            keyval = SetValueEx(nKey, 'LT4', 0, REG_SZ, self.l4)
+            keyval = SetValueEx(nKey, 'LT5', 0, REG_SZ, self.l5)
+            keyval = SetValueEx(nKey, 'LT6', 0, REG_SZ, self.l6)
+            keyval = SetValueEx(nKey, 'WT1', 0, REG_SZ, self.w1)
+            keyval = SetValueEx(nKey, 'WT2', 0, REG_SZ, self.w2)
+            keyval = SetValueEx(nKey, 'WT3', 0, REG_SZ, self.w3)
+            keyval = SetValueEx(nKey, 'WT4', 0, REG_SZ, self.w4)
+            aReg.Close()
+        except:
+            pass
+
+    def settSensRead(self):
+        try:
+            aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
+            rKey = OpenKey(aReg, r"Software\IRAM\MAINT\SENS")
+            self.c1 = QueryValueEx(rKey, 'CL1')[0]
+            self.c2 = QueryValueEx(rKey, 'CL2')[0]
+            self.c3 = QueryValueEx(rKey, 'CL3')[0]
+            self.c4 = QueryValueEx(rKey, 'CL4')[0]
+            self.l1 = QueryValueEx(rKey, 'LT1')[0]
+            self.l2 = QueryValueEx(rKey, 'LT2')[0]
+            self.l3 = QueryValueEx(rKey, 'LT3')[0]
+            self.l4 = QueryValueEx(rKey, 'LT4')[0]
+            self.l5 = QueryValueEx(rKey, 'LT5')[0]
+            self.l6 = QueryValueEx(rKey, 'LT6')[0]
+            self.w1 = QueryValueEx(rKey, 'WT1')[0]
+            self.w2 = QueryValueEx(rKey, 'WT2')[0]
+            self.w3 = QueryValueEx(rKey, 'WT3')[0]
+            self.w4 = QueryValueEx(rKey, 'WT4')[0]
+            aReg.Close()
+        except:
+            self.c1 = self.c2 = self.c3 = self.c4 = 'None'
+            self.l1 = self.l2 = self.l3 = self.l4 = self.l5 = self.l6 = 'None'
+            self.w1 = self.w2 = self.w3 = self.w4 = 'None'
+            pass
+
     def settRead(self):
         try:
             aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
@@ -205,13 +276,6 @@ class Window(QtWidgets.QMainWindow):
             self.repW = QueryValueEx(rKey, 'REP')[0]
             self.logW = QueryValueEx(rKey, 'LOG')[0]
             aReg.Close()
-            # with open('config.ini', 'r', encoding = 'utf-8') as f_conf:
-            #     self.iram = f_conf.readline().strip()
-            #     self.snd = f_conf.readline().strip()
-            #     self.dur = f_conf.readline().strip()
-            #     self.tTimer = int(f_conf.readline().strip())
-            #     self.repW = int(f_conf.readline().strip())
-            #     self.logW = int(f_conf.readline().strip())
         except (ValueError, FileNotFoundError):
             self.iram = r"d:\IRAM"
             self.snd = "sound.wav"
@@ -228,7 +292,7 @@ class Window(QtWidgets.QMainWindow):
         self.repW = str(self.repWrite.checkState())
         self.logW = str(self.logWrite.checkState())
         aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
-        nKey = CreateKeyEx(aReg, r'Software\IRAM\MAINT', 0, KEY_ALL_ACCESS)
+        nKey = CreateKeyEx(aReg, r'Software\IRAM\MAINT\SETT', 0, KEY_ALL_ACCESS)
         keyval = SetValueEx(nKey, 'PATH', 0, REG_SZ, self.iram)
         keyval = SetValueEx(nKey, 'SOUND', 0, REG_SZ, self.snd)
         keyval = SetValueEx(nKey, 'DUR', 0, REG_SZ, self.dur)
@@ -236,19 +300,15 @@ class Window(QtWidgets.QMainWindow):
         keyval = SetValueEx(nKey, 'REP', 0, REG_SZ, self.repW)
         keyval = SetValueEx(nKey, 'LOG', 0, REG_SZ, self.logW)
         aReg.Close()
-        # with open('config.ini', 'w', encoding = 'utf-8') as f_conf:
-        #     f_conf.write(self.iram + '\n'
-        #                 + self.snd + '\n'
-        #                 + self.dur + '\n'
-        #                 + str(self.tTimer) + '\n'
-        #                 + str(self.repW) + '\n'
-        #                 + str(self.logW) + '\n')
         self.Settings.hide()
+        self.settSensWrite()
         self.btnIramSett.accepted.disconnect()
+        self.sensAdd.clicked.disconnect()
         if self.pause == True:
             self.goStart()
     def goStart(self):
         self.settRead()
+        self.settSensRead()
         self.pause = False
         self.tTimer = int(self.tTimer)
         self.start.setText("Пауза")
