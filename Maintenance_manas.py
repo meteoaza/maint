@@ -491,7 +491,7 @@ class Window(QtWidgets.QMainWindow):
                 logW = "Вкл"
             else:
                 logW ="Откл"
-            self.bar.showMessage("Рабочий каталог: " + self.iram +
+            self.bar.showMessage("Рабочий каталог:  " + self.iram +
             "          Время ожидания файла:  " + str(self.dur) + " мин."
             + "     Время обновления:  " + str(self.tTimer)[:1] + " сек."
             + "       Отчет: " + repW +
