@@ -240,6 +240,29 @@ class Window(QtWidgets.QMainWindow):
         except:
             pass
 
+    def settWrite(self):
+        self.iram = self.iram_Sett.text()
+        self.snd = self.snd_Sett.text()
+        self.dur = self.FileTSett.text()
+        self.tTimer = self.TimerSett.text()
+        self.repW = str(self.repWrite.checkState())
+        self.logW = str(self.logWrite.checkState())
+        aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
+        nKey = CreateKeyEx(aReg, r'Software\IRAM\MAINT\SETT', 0, KEY_ALL_ACCESS)
+        keyval = SetValueEx(nKey, 'PATH', 0, REG_SZ, self.iram)
+        keyval = SetValueEx(nKey, 'SOUND', 0, REG_SZ, self.snd)
+        keyval = SetValueEx(nKey, 'DUR', 0, REG_SZ, self.dur)
+        keyval = SetValueEx(nKey, 'REFRESH', 0, REG_SZ, self.tTimer)
+        keyval = SetValueEx(nKey, 'REP', 0, REG_SZ, self.repW)
+        keyval = SetValueEx(nKey, 'LOG', 0, REG_SZ, self.logW)
+        aReg.Close()
+        self.Settings.hide()
+        self.settSensWrite()
+        self.btnIramSett.accepted.disconnect()
+        self.sensAdd.clicked.disconnect()
+        if self.pause == True:
+            self.goSettStart()
+
     def settSensRead(self):
         try:
             aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
@@ -284,31 +307,13 @@ class Window(QtWidgets.QMainWindow):
             self.repW = "0"
             self.logW = "0"
             pass
-    def settWrite(self):
-        self.iram = self.iram_Sett.text()
-        self.snd = self.snd_Sett.text()
-        self.dur = self.FileTSett.text()
-        self.tTimer = self.TimerSett.text()
-        self.repW = str(self.repWrite.checkState())
-        self.logW = str(self.logWrite.checkState())
-        aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
-        nKey = CreateKeyEx(aReg, r'Software\IRAM\MAINT\SETT', 0, KEY_ALL_ACCESS)
-        keyval = SetValueEx(nKey, 'PATH', 0, REG_SZ, self.iram)
-        keyval = SetValueEx(nKey, 'SOUND', 0, REG_SZ, self.snd)
-        keyval = SetValueEx(nKey, 'DUR', 0, REG_SZ, self.dur)
-        keyval = SetValueEx(nKey, 'REFRESH', 0, REG_SZ, self.tTimer)
-        keyval = SetValueEx(nKey, 'REP', 0, REG_SZ, self.repW)
-        keyval = SetValueEx(nKey, 'LOG', 0, REG_SZ, self.logW)
-        aReg.Close()
-        self.Settings.hide()
-        self.settSensWrite()
-        self.btnIramSett.accepted.disconnect()
-        self.sensAdd.clicked.disconnect()
-        if self.pause == True:
-            self.goStart()
+
     def goStart(self):
         self.settRead()
         self.settSensRead()
+        self.goSettStart()
+
+    def goSettStart(self):
         self.pause = False
         self.tTimer = int(self.tTimer)
         self.start.setText("Пауза")
