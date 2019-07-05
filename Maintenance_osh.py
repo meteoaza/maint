@@ -467,11 +467,11 @@ class Window(QtWidgets.QMainWindow):
                 self.pBar.setValue(self.progress)
             else:
                 self.progress = 0
-            if self.repW == 2 or self.repW == 1:
+            if self.repW == '2' or self.repW == '1':
                 repW = "Вкл"
             else:
                 repW = "Откл"
-            if self.logW == 2 or self.logW == 1:
+            if self.logW == '2' or self.logW == '1':
                 logW = "Вкл"
             else:
                 logW ="Откл"
