@@ -92,6 +92,9 @@
         <height>15</height>
        </size>
       </property>
+      <property name="focusPolicy">
+       <enum>Qt::StrongFocus</enum>
+      </property>
      </widget>
     </item>
     <item row="1" column="0">
@@ -147,6 +150,9 @@
         <height>15</height>
        </size>
       </property>
+      <property name="focusPolicy">
+       <enum>Qt::StrongFocus</enum>
+      </property>
      </widget>
     </item>
     <item row="2" column="0">
@@ -173,6 +179,9 @@
         <height>15</height>
        </size>
       </property>
+      <property name="focusPolicy">
+       <enum>Qt::StrongFocus</enum>
+      </property>
      </widget>
     </item>
     <item row="3" column="1">
@@ -182,6 +191,9 @@
         <width>0</width>
         <height>15</height>
        </size>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::StrongFocus</enum>
       </property>
      </widget>
     </item>
@@ -294,11 +306,30 @@
      <height>23</height>
     </rect>
    </property>
+   <property name="focusPolicy">
+    <enum>Qt::TabFocus</enum>
+   </property>
    <property name="standardButtons">
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
    </property>
+   <property name="centerButtons">
+    <bool>false</bool>
+   </property>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>buttOK</tabstop>
+  <tabstop>lineIRAM</tabstop>
+  <tabstop>lineSND</tabstop>
+  <tabstop>lineFileT</tabstop>
+  <tabstop>lineTimer</tabstop>
+  <tabstop>checkRepW</tabstop>
+  <tabstop>checkLogW</tabstop>
+  <tabstop>boxSensors</tabstop>
+  <tabstop>lineSensors</tabstop>
+  <tabstop>buttSensors</tabstop>
+  <tabstop>viewSensors</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -2250,6 +2250,44 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>start</tabstop>
+  <tabstop>exit</tabstop>
+  <tabstop>btn</tabstop>
+  <tabstop>terminal</tabstop>
+  <tabstop>lineWT1</tabstop>
+  <tabstop>lineWT2</tabstop>
+  <tabstop>lineWT3</tabstop>
+  <tabstop>lineWT4</tabstop>
+  <tabstop>lineWT5</tabstop>
+  <tabstop>lineWT6</tabstop>
+  <tabstop>lineCL1</tabstop>
+  <tabstop>lineCL2</tabstop>
+  <tabstop>lineCL3</tabstop>
+  <tabstop>lineCL4</tabstop>
+  <tabstop>lineLT1</tabstop>
+  <tabstop>lineLT2</tabstop>
+  <tabstop>lineLT3</tabstop>
+  <tabstop>lineLT4</tabstop>
+  <tabstop>lineLT5</tabstop>
+  <tabstop>lineLT6</tabstop>
+  <tabstop>btnWind1</tabstop>
+  <tabstop>btnWind2</tabstop>
+  <tabstop>btnWind3</tabstop>
+  <tabstop>btnWind4</tabstop>
+  <tabstop>btnWind5</tabstop>
+  <tabstop>btnWind6</tabstop>
+  <tabstop>btnCL1</tabstop>
+  <tabstop>btnCL2</tabstop>
+  <tabstop>btnCL3</tabstop>
+  <tabstop>btnCL4</tabstop>
+  <tabstop>btnLT1</tabstop>
+  <tabstop>btnLT2</tabstop>
+  <tabstop>btnLT3</tabstop>
+  <tabstop>btnLT4</tabstop>
+  <tabstop>btnLT5</tabstop>
+  <tabstop>btnLT6</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

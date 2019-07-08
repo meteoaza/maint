@@ -108,6 +108,13 @@ class Window(QtWidgets.QMainWindow):
         self.start.clicked.connect(self.goStart)
         self.exit.clicked.connect(self.close)
         self.term.clicked.connect(lambda: self.putty(""))
+        #Активируем Shortcuts
+        self.settShct = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+S"), self)
+        self.settShct.activated.connect(self.sett)
+        self.repShct = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+R"), self)
+        self.repShct.activated.connect(self.openRep)
+        self.logShct = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+L"), self)
+        self.logShct.activated.connect(self.openLog)
         #Определение цвета
         self.red = "background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, \
                 stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));"
