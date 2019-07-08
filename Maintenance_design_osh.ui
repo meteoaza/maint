@@ -2022,9 +2022,23 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
    </property>
    <widget class="QMenu" name="menu">
     <property name="title">
-     <string>Настройки</string>
+     <string>Меню</string>
     </property>
-    <addaction name="iram"/>
+    <widget class="QMenu" name="menuSett">
+     <property name="title">
+      <string>Настройки</string>
+     </property>
+     <addaction name="iram"/>
+    </widget>
+    <widget class="QMenu" name="menuLOGS">
+     <property name="title">
+      <string>LOGS</string>
+     </property>
+     <addaction name="report"/>
+     <addaction name="log"/>
+    </widget>
+    <addaction name="menuSett"/>
+    <addaction name="menuLOGS"/>
     <addaction name="about"/>
    </widget>
    <addaction name="menu"/>
@@ -2041,6 +2055,16 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
   <action name="about">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="report">
+   <property name="text">
+    <string>Report</string>
+   </property>
+  </action>
+  <action name="log">
+   <property name="text">
+    <string>Log</string>
    </property>
   </action>
  </widget>

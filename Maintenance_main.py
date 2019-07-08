@@ -39,7 +39,7 @@ class Sens():
                 except ValueError as e:
                     lt_stat = tek_f.split()[6]
                     self.lt_val = tek_f.split()[4]
-                    self.progBug(self.lt + " ValueError " + str(e) + " " + self.lt_val)
+                    self.logWrite(self.lt + " ValueError " + str(e) + " " + self.lt_val)
                     pass
                 lt_batt = lt_stat[2]
             #Проверка ошибок и вывод результата
@@ -70,17 +70,17 @@ class Sens():
             self.lt_status = str(self.lt + " Не найден файл с данными!!!")
             self.lt_error = 3
             self.lt_val = "ERROR"
-            self.progBug(self.lt + " FileNotFoundError " + str(e))
+            self.logWrite(self.lt + " FileNotFoundError " + str(e))
         except PermissionError as e:
             self.lt_status = str(self.lt + " Обработка....")
             self.lt_error = 0
             self.lt_val = "-----"
-            self.progBug(self.lt + " PermissionError " + str(e))
+            self.logWrite(self.lt + " PermissionError " + str(e))
         except Exception as e:
             self.lt_status = str(self.lt + " Ошибка !!!")
             self.lt_error = 0
             self.lt_val = "-----"
-            self.progBug(self.lt + " Exception " + str(e) + " " + tek_f)
+            self.logWrite(self.lt + " Exception " + str(e) + " " + tek_f)
             pass
     def clInit(self):
         try:
@@ -103,7 +103,7 @@ class Sens():
                 except ValueError as e:
                     cl_stat = tek_f.split()[7]
                     self.cl_val = tek_f.split()[4]
-                    self.progBug(self.cl + " ValueError " + str(e) + self.cl_val)
+                    self.logWrite(self.cl + " ValueError " + str(e) + self.cl_val)
                     pass
                 cl_batt = cl_stat[5::3]
                 cl_norm = '0000'
@@ -123,17 +123,17 @@ class Sens():
             self.cl_status = str(self.cl + " Не найден файл с данными !!!")
             self.cl_error = 3
             self.cl_val = "ERROR"
-            self.progBug(self.cl + " FileNotFoundError " + str(e))
+            self.logWrite(self.cl + " FileNotFoundError " + str(e))
         except PermissionError as e:
             self.cl_status = str(self.cl + " Обработка....")
             self.cl_error = 0
             self.cl_val = "-----"
-            self.progBug(self.cl + " PermissionError " + str(e))
+            self.logWrite(self.cl + " PermissionError " + str(e))
         except Exception as e:
             self.cl_status = str(self.cl + " Ошибка !!!")
             self.cl_error = 0
             self.cl_val = "-----"
-            self.progBug(self.cl + " Exception " + str(e) + " " + tek_f)
+            self.logWrite(self.cl + " Exception " + str(e) + " " + tek_f)
             pass
     def wtInit(self):
         try:
@@ -156,7 +156,7 @@ class Sens():
                     self.dd = float(tek_f.split()[4][:3])
                     self.ff = float(tek_f.split()[5])
                     self.wt_val = (str(self.dd)[:-2] + " / " + str(self.ff))
-                    self.progBug(self.wt + " ValueError " + str(e) + " " + self.wt_val)
+                    self.logWrite(self.wt + " ValueError " + str(e) + " " + self.wt_val)
                     pass
                 wt_stat = "OK"
             #Проверка ошибок и вывод результата
@@ -168,17 +168,17 @@ class Sens():
             self.wt_status = str(self.wt + " Не найден файл с данными !!!")
             self.wt_error = 3
             self.wt_val = "ERROR"
-            self.progBug(self.wt + " FileNotFoundError " + str(e))
+            self.logWrite(self.wt + " FileNotFoundError " + str(e))
         except PermissionError as e:
             self.wt_status = str(self.wt + " Обработка.... ")
             self.wt_error = 0
             self.wt_val = "-----"
-            self.progBug(self.wt + " PermissionError " + str(e))
+            self.logWrite(self.wt + " PermissionError " + str(e))
         except Exception as e:
             self.wt_status = str(self.wt + " Ошибка !!!")
             self.wt_error = 0
             self.wt_val = "-----"
-            self.progBug(self.wt + " Exception " + str(e) + " " + tek_f)
+            self.logWrite(self.wt + " Exception " + str(e) + " " + tek_f)
             pass
     def tempInit(self):
         try:
@@ -199,22 +199,24 @@ class Sens():
             self.temp2 = "0"
             self.pres1 = "0"
             self.pres2 = "0"
-            self.progBug(e)
+            self.logWrite(e)
             pass
+
     def repWrite(self, l, c, w):
         if self.repW != 0:
             try:
                 t = datetime.strftime(datetime.now(), "%d-%m-%y %H:%M:%S")
-                with open(r'LOGs\\maintLog.txt', 'a', encoding='utf-8') as f_rep:
+                with open(r'LOGs\maintReport.txt', 'a', encoding='utf-8') as f_rep:
                     f_rep.write(t + " " + l + c + w + "\n")
             except FileNotFoundError as e:
                 self.LOGs = str(e)
                 pass
-    def progBug(self, e):
+
+    def logWrite(self, e):
         if self.logW != 0:
             try:
                 t = datetime.strftime(datetime.now(), "%d-%m-%y %H:%M:%S")
-                with open(r'LOGs\\bugLog.txt', 'a', encoding='utf-8') as f_bug:
+                with open(r'LOGs\maintLog.txt', 'a', encoding='utf-8') as f_bug:
                     f_bug.write(t + " " + str(e) + "\n")
             except FileNotFoundError as e:
                 self.LOGs = str(e)

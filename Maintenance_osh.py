@@ -1,4 +1,4 @@
-import subprocess
+import subprocess, sys, os
 from datetime import datetime
 from Maintenance_main import Sens
 from pygame import mixer
@@ -8,7 +8,7 @@ from PyQt5.QtCore import QTimer, Qt#, QDateTime
 from Maintenance_design_osh import Ui_MainWindow
 from Settings import Ui_Settings
 from About import Ui_AboutFrame
-import sys, os
+
 
 class Window(QtWidgets.QMainWindow):
     def __init__(self):
@@ -58,6 +58,8 @@ class Window(QtWidgets.QMainWindow):
         #Привязка виджетов Window
         self.menuSett = self.ui.menu
         self.menuIram = self.ui.iram
+        self.menuReport = self.ui.report
+        self.menuLog = self.ui.log
         self.menuAbout = self.ui.about
         self.start = self.ui.start
         self.exit = self.ui.exit
@@ -89,20 +91,23 @@ class Window(QtWidgets.QMainWindow):
         self.sensSett = self.ui_s.lineSensors
         self.sensAdd = self.ui_s.buttSensors
         self.sensView = self.ui_s.viewSensors
-        self.logWrite = self.ui_s.logWrite
-        self.repWrite = self.ui_s.repWrite
+        self.checkLogW = self.ui_s.checkLogW
+        self.checkRepW = self.ui_s.checkRepW
         self.btnIramSett = self.ui_s.buttOK
         self.menuSett.menuAction().setStatusTip("Настройки")
         #Привязка виджетов About
         self.about = self.ui_a.about
         #Версия программы
-        self.ui_a.ver.setText('Version 1.2')
+        self.ui_a.ver.setText('Version 1.3')
+        #Привязка элементов МЕНЮ
+        self.menuIram.triggered.connect(self.sett)
+        self.menuReport.triggered.connect(self.openRep)
+        self.menuLog.triggered.connect(self.openLog)
+        self.menuAbout.triggered.connect(self.About.show)
         #Привязка кнопок
         self.start.clicked.connect(self.goStart)
         self.exit.clicked.connect(self.close)
         self.term.clicked.connect(lambda: self.putty(""))
-        self.menuIram.triggered.connect(self.sett)
-        self.menuAbout.triggered.connect(self.About.show)
         #Определение цвета
         self.red = "background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, \
                 stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));"
@@ -175,8 +180,8 @@ class Window(QtWidgets.QMainWindow):
         self.snd_Sett.setText(self.snd)
         self.FileTSett.setText(self.dur)
         self.TimerSett.setText(self.tTimer)
-        self.repWrite.setCheckState(int(self.repW))
-        self.logWrite.setCheckState(int(self.logW))
+        self.checkRepW.setCheckState(int(self.repW))
+        self.checkLogW.setCheckState(int(self.logW))
         self.Settings.show()
         self.viewSens()
         self.btnIramSett.accepted.connect(self.settWrite)
@@ -245,8 +250,9 @@ class Window(QtWidgets.QMainWindow):
         self.snd = self.snd_Sett.text()
         self.dur = self.FileTSett.text()
         self.tTimer = self.TimerSett.text()
-        self.repW = str(self.repWrite.checkState())
-        self.logW = str(self.logWrite.checkState())
+        self.repW = str(self.checkRepW.checkState())
+        self.logW = str(self.checkLogW.checkState())
+        self.Settings.hide()
         aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
         nKey = CreateKeyEx(aReg, r'Software\IRAM\MAINT\SETT', 0, KEY_ALL_ACCESS)
         keyval = SetValueEx(nKey, 'PATH', 0, REG_SZ, self.iram)
@@ -256,7 +262,6 @@ class Window(QtWidgets.QMainWindow):
         keyval = SetValueEx(nKey, 'REP', 0, REG_SZ, self.repW)
         keyval = SetValueEx(nKey, 'LOG', 0, REG_SZ, self.logW)
         aReg.Close()
-        self.Settings.hide()
         self.settSensWrite()
         self.btnIramSett.accepted.disconnect()
         self.sensAdd.clicked.disconnect()
@@ -291,7 +296,7 @@ class Window(QtWidgets.QMainWindow):
     def settRead(self):
         try:
             aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
-            rKey = OpenKey(aReg, r"Software\IRAM\MAINT")
+            rKey = OpenKey(aReg, r"Software\IRAM\MAINT\SETT")
             self.iram = QueryValueEx(rKey, 'PATH')[0]
             self.snd = QueryValueEx(rKey, 'SOUND')[0]
             self.dur = QueryValueEx(rKey, 'DUR')[0]
@@ -550,8 +555,16 @@ class Window(QtWidgets.QMainWindow):
         else:
             self.dtime.clear()
             pass
+
     def putty(self, n):
         subprocess.Popen(['putty.exe', '-load', n])
+
+    def openRep(self):
+        subprocess.Popen(['notepad.exe', r'LOGs\maintReport.txt'])
+
+    def openLog(self):
+        subprocess.Popen(['notepad.exe', r'LOGs\maintLog.txt'])
+
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
             self.close()

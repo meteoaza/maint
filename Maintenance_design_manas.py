@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'Maintenance_design.ui'
+# Form implementation generated from reading ui file 'Maintenance_design_manas.ui'
 #
 # Created by: PyQt5 UI code generator 5.12.2
 #
@@ -1023,6 +1023,10 @@ class Ui_MainWindow(object):
         self.menuBar.setObjectName("menuBar")
         self.menu = QtWidgets.QMenu(self.menuBar)
         self.menu.setObjectName("menu")
+        self.menuLOGS = QtWidgets.QMenu(self.menu)
+        self.menuLOGS.setObjectName("menuLOGS")
+        self.menuSett = QtWidgets.QMenu(self.menu)
+        self.menuSett.setObjectName("menuSett")
         MainWindow.setMenuBar(self.menuBar)
         self.iram = QtWidgets.QAction(MainWindow)
         icon1 = QtGui.QIcon()
@@ -1031,7 +1035,15 @@ class Ui_MainWindow(object):
         self.iram.setObjectName("iram")
         self.about = QtWidgets.QAction(MainWindow)
         self.about.setObjectName("about")
-        self.menu.addAction(self.iram)
+        self.report = QtWidgets.QAction(MainWindow)
+        self.report.setObjectName("report")
+        self.log = QtWidgets.QAction(MainWindow)
+        self.log.setObjectName("log")
+        self.menuLOGS.addAction(self.report)
+        self.menuLOGS.addAction(self.log)
+        self.menuSett.addAction(self.iram)
+        self.menu.addAction(self.menuSett.menuAction())
+        self.menu.addAction(self.menuLOGS.menuAction())
         self.menu.addAction(self.about)
         self.menuBar.addAction(self.menu.menuAction())
 
@@ -1063,8 +1075,12 @@ class Ui_MainWindow(object):
         self.btnLT4.setText(_translate("MainWindow", "M"))
         self.btnWind2.setText(_translate("MainWindow", "M"))
         self.btnWind3.setText(_translate("MainWindow", "M"))
-        self.menu.setTitle(_translate("MainWindow", "Настройки"))
+        self.menu.setTitle(_translate("MainWindow", "Меню"))
+        self.menuLOGS.setTitle(_translate("MainWindow", "LOGS"))
+        self.menuSett.setTitle(_translate("MainWindow", "Настройки"))
         self.iram.setText(_translate("MainWindow", "IRAM"))
         self.about.setText(_translate("MainWindow", "About"))
+        self.report.setText(_translate("MainWindow", "Report"))
+        self.log.setText(_translate("MainWindow", "Log"))
 
 
