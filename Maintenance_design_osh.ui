@@ -1077,7 +1077,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
         <property name="minimumSize">
          <size>
           <width>100</width>
-          <height>30</height>
+          <height>40</height>
          </size>
         </property>
         <property name="font">
@@ -1109,7 +1109,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
         <property name="minimumSize">
          <size>
           <width>100</width>
-          <height>30</height>
+          <height>40</height>
          </size>
         </property>
         <property name="font">
@@ -1141,7 +1141,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
         <property name="minimumSize">
          <size>
           <width>100</width>
-          <height>30</height>
+          <height>40</height>
          </size>
         </property>
         <property name="font">
@@ -1176,7 +1176,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
         <property name="minimumSize">
          <size>
           <width>100</width>
-          <height>30</height>
+          <height>40</height>
          </size>
         </property>
         <property name="font">

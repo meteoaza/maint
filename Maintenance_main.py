@@ -2,11 +2,12 @@ from datetime import datetime
 from datetime import timedelta
 import os
 class Sens():
-    def __init__(self, iram, lt, cl, wt, dur, repW, logW):
+    def __init__(self, iram, lt, cl, wt, dur, repW, logW, tm):
         self.iram = iram
         self.cl = cl
         self.lt = lt
         self.wt = wt
+        self.tm = tm
         self.dur = int(dur)
         self.repW = int(repW)
         self.logW = int(logW)
@@ -182,23 +183,11 @@ class Sens():
             pass
     def tempInit(self):
         try:
-            with open(self.iram + r"TEK\\DAT_AVRG\\TTT45.DAT", 'r', encoding='utf-8') as f_t1, \
-                 open(self.iram + r"TEK\\DAT_AVRG\\TTT46.DAT", 'r', encoding='utf-8') as f_t2, \
-                 open(self.iram + r"TEK\\DAT_AVRG\\PPP41.DAT", 'r', encoding='utf-8') as f_p1, \
-                 open(self.iram + r"TEK\\DAT_AVRG\\PPP42.DAT", 'r', encoding='utf-8') as f_p2:
-                self.temp1 = int(f_t1.readline().split()[3])
-                self.temp1 = float(self.temp1/10)
-                self.temp2 = int(f_t2.readline().split()[3])
-                self.temp2 = float(self.temp2/10)
-                self.pres1 = int(f_p1.readline().split()[3])
-                self.pres1 = float(self.pres1/10)
-                self.pres2 = int(f_p2.readline().split()[3])
-                self.pres2 = float(self.pres2/10)
+            with open(self.iram + r"TEK\\DAT_AVRG\\" + self.tm + ".DAT", 'r', encoding='utf-8') as f:
+                self.tm_val = int(f.readline().split()[3])
+                self.tm_val = float(self.tm_val/10)
         except Exception as e:
-            self.temp1 = "0"
-            self.temp2 = "0"
-            self.pres1 = "0"
-            self.pres2 = "0"
+            self.tm_val = "0"
             self.logWrite(e)
             pass
 
