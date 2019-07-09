@@ -53,24 +53,26 @@ class SettingsInit(QtWidgets.QFrame):
             self.repW = QueryValueEx(rKey, 'REP')[0]
             self.logW = QueryValueEx(rKey, 'LOG')[0]
         except (ValueError, FileNotFoundError):
-            self.station = 'UCFM'
-            self.iram = r"d:\IRAM"
-            self.snd = "sound.wav"
-            self.dur = "0"
+            self.iram = r"d:\IRAM\\"
+            self.snd = r"d:\IRAM\KRAMS_DAT\WAV\Srok1M.WAV"
+            self.dur = "1"
             self.tTimer = "3"
             self.repW = "0"
             self.logW = "0"
             pass
         #Список датчиков в настройках
-        if self.station == 'UCFM':
-            self.s = (['None', 'CL1', 'CL2', 'CL3', 'CL4', 'LT1', 'LT2',
-                       'LT3', 'LT4', 'LT5', 'LT6', 'WT1', 'WT2',
-                       'WT3', 'WT4', 'WT5', 'WT6', 'TEMP1', 'TEMP2', 'PRES1', 'PRES2'])
-        else:
-            self.s = (['None', 'CL1', 'CL2', 'CL3', 'CL4', 'LT1', 'LT2',
-                       'LT3', 'LT4', 'LT5', 'LT6', 'WT1', 'WT2',
-                       'WT3', 'WT4', 'TEMP1', 'TEMP2', 'PRES1', 'PRES2'])
-        self.sensList.addItems(self.s)
+        try:
+            if self.station == 'UCFM':
+                self.s = (['None', 'CL1', 'CL2', 'CL3', 'CL4', 'LT1', 'LT2',
+                           'LT3', 'LT4', 'LT5', 'LT6', 'WT1', 'WT2',
+                           'WT3', 'WT4', 'WT5', 'WT6', 'TEMP1', 'TEMP2', 'PRES1', 'PRES2'])
+            elif self.station == 'UCFO':
+                self.s = (['None', 'CL1', 'CL2', 'CL3', 'CL4', 'LT1', 'LT2',
+                           'LT3', 'LT4', 'LT5', 'LT6', 'WT1', 'WT2',
+                           'WT3', 'WT4', 'TEMP1', 'TEMP2', 'PRES1', 'PRES2'])
+            self.sensList.addItems(self.s)
+        except:
+            self.station = '----'
         #Читаем настройки датчиков
         try:
             rKey = OpenKey(aReg, r"Software\IRAM\MAINT\SENS")
@@ -224,8 +226,9 @@ class SettingsInit(QtWidgets.QFrame):
             keyval = SetValueEx(nKey, 'WT2', 0, REG_SZ, self.w2)
             keyval = SetValueEx(nKey, 'WT3', 0, REG_SZ, self.w3)
             keyval = SetValueEx(nKey, 'WT4', 0, REG_SZ, self.w4)
-            keyval = SetValueEx(nKey, 'WT5', 0, REG_SZ, self.w5)
-            keyval = SetValueEx(nKey, 'WT6', 0, REG_SZ, self.w6)
+            if self.station == 'UCFM':
+                keyval = SetValueEx(nKey, 'WT5', 0, REG_SZ, self.w5)
+                keyval = SetValueEx(nKey, 'WT6', 0, REG_SZ, self.w6)
             keyval = SetValueEx(nKey, 'TEMP1', 0, REG_SZ, self.t1)
             keyval = SetValueEx(nKey, 'TEMP2', 0, REG_SZ, self.t2)
             keyval = SetValueEx(nKey, 'PRES1', 0, REG_SZ, self.p1)
@@ -241,7 +244,6 @@ class SettingsInit(QtWidgets.QFrame):
 
     def stChange(self):
         self.station = self.stationSett.currentText()
-        self.stInd.setText(self.station)
         self.stationSett.activated[str].disconnect()
         aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
         nKey = CreateKeyEx(aReg, r'Software\IRAM\MAINT\SETT', 0, KEY_ALL_ACCESS)
@@ -277,201 +279,206 @@ class Window(QtWidgets.QMainWindow):
             self.ui = MainWindowManas()
         elif self.set.station == 'UCFO':
             self.ui =MainWindowOsh()
-        self.ui.setupUi(self)
-        self.show()
-        self.About = QtWidgets.QFrame()
-        self.ui_a = Ui_AboutFrame()
-        self.ui_a.setupUi(self.About)
-        #Привязка датчиков к окнам
-        self.CL1 = self.ui.lineCL1
-        self.CL2 = self.ui.lineCL2
-        self.CL3 = self.ui.lineCL3
-        self.CL4 = self.ui.lineCL4
-        self.LT1 = self.ui.lineLT1
-        self.LT2 = self.ui.lineLT2
-        self.LT3 = self.ui.lineLT3
-        self.LT4 = self.ui.lineLT4
-        self.LT5 = self.ui.lineLT5
-        self.LT6 = self.ui.lineLT6
-        self.WT1 = self.ui.lineWT1
-        self.WT2 = self.ui.lineWT2
-        self.WT3 = self.ui.lineWT3
-        self.WT4 = self.ui.lineWT4
-        if self.set.station == 'UCFM':
-            self.WT5 = self.ui.lineWT5
-            self.WT6 = self.ui.lineWT6
-        self.CL1_v = self.ui.labelCL1
-        self.CL2_v = self.ui.labelCL2
-        self.CL3_v = self.ui.labelCL3
-        self.CL4_v = self.ui.labelCL4
-        self.LT1_v = self.ui.labelLT1
-        self.LT2_v = self.ui.labelLT2
-        self.LT3_v = self.ui.labelLT3
-        self.LT4_v = self.ui.labelLT4
-        self.LT5_v = self.ui.labelLT5
-        self.LT6_v = self.ui.labelLT6
-        self.WT1_v = self.ui.labelWT1
-        self.WT2_v = self.ui.labelWT2
-        self.WT3_v = self.ui.labelWT3
-        self.WT4_v = self.ui.labelWT4
-        if self.set.station == 'UCFM':
-            self.WT5_v = self.ui.labelWT5
-            self.WT6_v = self.ui.labelWT6
-        self.Temp1_v = self.ui.lcdTemp1
-        self.Temp2_v = self.ui.lcdTemp2
-        self.Pres1_v = self.ui.lcdPres1
-        self.Pres2_v = self.ui.lcdPres2
-        self.pBar = self.ui.progressBar
-        #Привязка виджетов Window
-        self.menuSett = self.ui.menu
-        self.menuIram = self.ui.iram
-        self.menuReport = self.ui.report
-        self.menuLog = self.ui.log
-        self.menuAbout = self.ui.about
-        self.start = self.ui.start
-        self.exit = self.ui.exit
-        self.btn = self.ui.btn
-        self.info = self.ui.lineInfo
-        self.dtime = self.ui.timedate
-        self.bar = self.ui.statusBar
-        self.term = self.ui.terminal
-        self.btnCL1 = self.ui.btnCL1
-        self.btnCL2 = self.ui.btnCL2
-        self.btnCL3 = self.ui.btnCL3
-        self.btnCL4 = self.ui.btnCL4
-        self.btnLT1 = self.ui.btnLT1
-        self.btnLT2 = self.ui.btnLT2
-        self.btnLT3 = self.ui.btnLT3
-        self.btnLT4 = self.ui.btnLT4
-        self.btnLT5 = self.ui.btnLT5
-        self.btnLT6 = self.ui.btnLT6
-        self.btnWT1 = self.ui.btnWind1
-        self.btnWT2 = self.ui.btnWind2
-        self.btnWT3 = self.ui.btnWind3
-        self.btnWT4 = self.ui.btnWind4
-        if self.set.station == 'UCFM':
-            self.btnWT5 = self.ui.btnWind5
-            self.btnWT6 = self.ui.btnWind6
-        self.menuSett.menuAction().setStatusTip("Настройки")
-        #Привязка виджетов About
-        self.about = self.ui_a.about
-        #Версия программы
-        self.ui_a.ver.setText('Version' + ver)
-        #Привязка элементов МЕНЮ
-        self.menuIram.triggered.connect(self.goSett)
-        self.menuReport.triggered.connect(self.openRep)
-        self.menuLog.triggered.connect(self.openLog)
-        self.menuAbout.triggered.connect(self.About.show)
-        #Привязка кнопок
-        self.start.clicked.connect(self.goStart)
-        self.exit.clicked.connect(self.close)
-        self.term.clicked.connect(lambda: self.putty(""))
-        #Активируем Shortcuts
-        self.settShct = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+S"), self)
-        self.settShct.activated.connect(self.goSett)
-        self.repShct = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+R"), self)
-        self.repShct.activated.connect(self.openRep)
-        self.logShct = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+L"), self)
-        self.logShct.activated.connect(self.openLog)
-        #Определение цвета
-        self.red = "background-color: qconicalgradient(cx:1, cy:0.329773, \
-                    angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));"
-        self.green = "background-color: qconicalgradient(cx:1, cy:0.529, angle:0,\
-                    stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255));"
-        self.yellow = "background-color: qconicalgradient(cx:1, cy:0.329773, \
-                    angle:0, stop:0.363636 rgba(219, 219, 0, 255), stop:1 rgba(255, 255, 255, 255));"
-        #Привязка кнопок к putty
-        self.CL1.clicked.connect(lambda: self.putty("CL1"))
-        self.CL2.clicked.connect(lambda: self.putty("CL2"))
-        self.CL3.clicked.connect(lambda: self.putty("CL3"))
-        self.CL4.clicked.connect(lambda: self.putty("CL4"))
-        self.LT1.clicked.connect(lambda: self.putty("LT1"))
-        self.LT2.clicked.connect(lambda: self.putty("LT2"))
-        self.LT3.clicked.connect(lambda: self.putty("LT3"))
-        self.LT4.clicked.connect(lambda: self.putty("LT4"))
-        self.LT5.clicked.connect(lambda: self.putty("LT5"))
-        self.LT6.clicked.connect(lambda: self.putty("LT6"))
-        self.WT1.clicked.connect(lambda: self.putty("WT1"))
-        self.WT2.clicked.connect(lambda: self.putty("WT2"))
-        self.WT3.clicked.connect(lambda: self.putty("WT3"))
-        self.WT4.clicked.connect(lambda: self.putty("WT4"))
-        if self.set.station == 'UCFM':
-            self.WT5.clicked.connect(lambda: self.putty("WT5"))
-            self.WT6.clicked.connect(lambda: self.putty("WT6"))
-        #Привязка кнопок к mute
-        self.btn.clicked.connect(self.muteALL)
-        self.btnCL1.clicked.connect(lambda: self.muteCL(0))
-        self.btnCL1.setStyleSheet(self.green)
-        self.btnCL2.clicked.connect(lambda: self.muteCL(1))
-        self.btnCL2.setStyleSheet(self.green)
-        self.btnCL3.clicked.connect(lambda: self.muteCL(2))
-        self.btnCL3.setStyleSheet(self.green)
-        self.btnCL4.clicked.connect(lambda: self.muteCL(3))
-        self.btnCL4.setStyleSheet(self.green)
-        self.btnLT1.clicked.connect(lambda: self.muteLT(0))
-        self.btnLT1.setStyleSheet(self.green)
-        self.btnLT2.clicked.connect(lambda: self.muteLT(1))
-        self.btnLT2.setStyleSheet(self.green)
-        self.btnLT3.clicked.connect(lambda: self.muteLT(2))
-        self.btnLT3.setStyleSheet(self.green)
-        self.btnLT4.clicked.connect(lambda: self.muteLT(3))
-        self.btnLT4.setStyleSheet(self.green)
-        self.btnLT5.clicked.connect(lambda: self.muteLT(4))
-        self.btnLT5.setStyleSheet(self.green)
-        self.btnLT6.clicked.connect(lambda: self.muteLT(5))
-        self.btnLT6.setStyleSheet(self.green)
-        self.btnWT1.clicked.connect(lambda: self.muteWT(0))
-        self.btnWT1.setStyleSheet(self.green)
-        self.btnWT2.clicked.connect(lambda: self.muteWT(1))
-        self.btnWT2.setStyleSheet(self.green)
-        self.btnWT3.clicked.connect(lambda: self.muteWT(2))
-        self.btnWT3.setStyleSheet(self.green)
-        self.btnWT4.clicked.connect(lambda: self.muteWT(3))
-        self.btnWT4.setStyleSheet(self.green)
-        if self.set.station == 'UCFM':
-            self.btnWT5.clicked.connect(lambda: self.muteWT(4))
-            self.btnWT5.setStyleSheet(self.green)
-            self.btnWT6.clicked.connect(lambda: self.muteWT(5))
-            self.btnWT6.setStyleSheet(self.green)
-        #инициализируем переменные выключения звука, прогресс бара, паузы
-        self.ml = [0, 0, 0, 0, 0, 0]
-        self.mc = [0, 0, 0, 0]
-        self.mw = [0, 0, 0, 0, 0, 0]
-        self.progress = 0
-        self.pause = True
-        #Привязка переменных из класса SettingsInit
-        self.station = self.set.station
-        self.iram = self.set.iram
-        self.snd = self.set.snd
-        self.dur = self.set.dur
-        self.tTimer = self.set.tTimer
-        self.repW = self.set.repW
-        self.logW = self.set.logW
-        self.c1 = self.set.c1
-        self.c2 = self.set.c2
-        self.c3 = self.set.c3
-        self.c4 = self.set.c4
-        self.l1 = self.set.l1
-        self.l2 = self.set.l2
-        self.l3 = self.set.l3
-        self.l4 = self.set.l4
-        self.l5 = self.set.l5
-        self.l6 = self.set.l6
-        self.w1 = self.set.w1
-        self.w2 = self.set.w2
-        self.w3 = self.set.w3
-        self.w4 = self.set.w4
-        if self.set.station == 'UCFM':
-            self.w5 = self.set.w5
-            self.w6 = self.set.w6
-        self.t1 = self.set.t1
-        self.t2 = self.set.t2
-        self.p1 = self.set.p1
-        self.p2 = self.set.p2
+        else:
+            SettingsInit().show()
+        try:
+            self.ui.setupUi(self)
+            self.show()
+            self.About = QtWidgets.QFrame()
+            self.ui_a = Ui_AboutFrame()
+            self.ui_a.setupUi(self.About)
+            #Привязка датчиков к окнам
+            self.CL1 = self.ui.lineCL1
+            self.CL2 = self.ui.lineCL2
+            self.CL3 = self.ui.lineCL3
+            self.CL4 = self.ui.lineCL4
+            self.LT1 = self.ui.lineLT1
+            self.LT2 = self.ui.lineLT2
+            self.LT3 = self.ui.lineLT3
+            self.LT4 = self.ui.lineLT4
+            self.LT5 = self.ui.lineLT5
+            self.LT6 = self.ui.lineLT6
+            self.WT1 = self.ui.lineWT1
+            self.WT2 = self.ui.lineWT2
+            self.WT3 = self.ui.lineWT3
+            self.WT4 = self.ui.lineWT4
+            if self.set.station == 'UCFM':
+                self.WT5 = self.ui.lineWT5
+                self.WT6 = self.ui.lineWT6
+            self.CL1_v = self.ui.labelCL1
+            self.CL2_v = self.ui.labelCL2
+            self.CL3_v = self.ui.labelCL3
+            self.CL4_v = self.ui.labelCL4
+            self.LT1_v = self.ui.labelLT1
+            self.LT2_v = self.ui.labelLT2
+            self.LT3_v = self.ui.labelLT3
+            self.LT4_v = self.ui.labelLT4
+            self.LT5_v = self.ui.labelLT5
+            self.LT6_v = self.ui.labelLT6
+            self.WT1_v = self.ui.labelWT1
+            self.WT2_v = self.ui.labelWT2
+            self.WT3_v = self.ui.labelWT3
+            self.WT4_v = self.ui.labelWT4
+            if self.set.station == 'UCFM':
+                self.WT5_v = self.ui.labelWT5
+                self.WT6_v = self.ui.labelWT6
+            self.Temp1_v = self.ui.lcdTemp1
+            self.Temp2_v = self.ui.lcdTemp2
+            self.Pres1_v = self.ui.lcdPres1
+            self.Pres2_v = self.ui.lcdPres2
+            self.pBar = self.ui.progressBar
+            #Привязка виджетов Window
+            self.menuSett = self.ui.menu
+            self.menuIram = self.ui.iram
+            self.menuReport = self.ui.report
+            self.menuLog = self.ui.log
+            self.menuAbout = self.ui.about
+            self.start = self.ui.start
+            self.exit = self.ui.exit
+            self.btn = self.ui.btn
+            self.info = self.ui.lineInfo
+            self.dtime = self.ui.timedate
+            self.bar = self.ui.statusBar
+            self.term = self.ui.terminal
+            self.btnCL1 = self.ui.btnCL1
+            self.btnCL2 = self.ui.btnCL2
+            self.btnCL3 = self.ui.btnCL3
+            self.btnCL4 = self.ui.btnCL4
+            self.btnLT1 = self.ui.btnLT1
+            self.btnLT2 = self.ui.btnLT2
+            self.btnLT3 = self.ui.btnLT3
+            self.btnLT4 = self.ui.btnLT4
+            self.btnLT5 = self.ui.btnLT5
+            self.btnLT6 = self.ui.btnLT6
+            self.btnWT1 = self.ui.btnWind1
+            self.btnWT2 = self.ui.btnWind2
+            self.btnWT3 = self.ui.btnWind3
+            self.btnWT4 = self.ui.btnWind4
+            if self.set.station == 'UCFM':
+                self.btnWT5 = self.ui.btnWind5
+                self.btnWT6 = self.ui.btnWind6
+            self.menuSett.menuAction().setStatusTip("Настройки")
+            #Привязка виджетов About
+            self.about = self.ui_a.about
+            #Версия программы
+            self.ui_a.ver.setText('Version' + ver)
+            #Привязка элементов МЕНЮ
+            self.menuIram.triggered.connect(self.goSett)
+            self.menuReport.triggered.connect(self.openRep)
+            self.menuLog.triggered.connect(self.openLog)
+            self.menuAbout.triggered.connect(self.About.show)
+            #Привязка кнопок
+            self.start.clicked.connect(self.goStart)
+            self.exit.clicked.connect(self.close)
+            self.term.clicked.connect(lambda: self.putty(""))
+            #Активируем Shortcuts
+            self.settShct = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+S"), self)
+            self.settShct.activated.connect(self.goSett)
+            self.repShct = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+R"), self)
+            self.repShct.activated.connect(self.openRep)
+            self.logShct = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+L"), self)
+            self.logShct.activated.connect(self.openLog)
+            #Определение цвета
+            self.red = "background-color: qconicalgradient(cx:1, cy:0.329773, \
+                        angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));"
+            self.green = "background-color: qconicalgradient(cx:1, cy:0.529, angle:0,\
+                        stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255));"
+            self.yellow = "background-color: qconicalgradient(cx:1, cy:0.329773, \
+                        angle:0, stop:0.363636 rgba(219, 219, 0, 255), stop:1 rgba(255, 255, 255, 255));"
+            #Привязка кнопок к putty
+            self.CL1.clicked.connect(lambda: self.putty("CL1"))
+            self.CL2.clicked.connect(lambda: self.putty("CL2"))
+            self.CL3.clicked.connect(lambda: self.putty("CL3"))
+            self.CL4.clicked.connect(lambda: self.putty("CL4"))
+            self.LT1.clicked.connect(lambda: self.putty("LT1"))
+            self.LT2.clicked.connect(lambda: self.putty("LT2"))
+            self.LT3.clicked.connect(lambda: self.putty("LT3"))
+            self.LT4.clicked.connect(lambda: self.putty("LT4"))
+            self.LT5.clicked.connect(lambda: self.putty("LT5"))
+            self.LT6.clicked.connect(lambda: self.putty("LT6"))
+            self.WT1.clicked.connect(lambda: self.putty("WT1"))
+            self.WT2.clicked.connect(lambda: self.putty("WT2"))
+            self.WT3.clicked.connect(lambda: self.putty("WT3"))
+            self.WT4.clicked.connect(lambda: self.putty("WT4"))
+            if self.set.station == 'UCFM':
+                self.WT5.clicked.connect(lambda: self.putty("WT5"))
+                self.WT6.clicked.connect(lambda: self.putty("WT6"))
+            #Привязка кнопок к mute
+            self.btn.clicked.connect(self.muteALL)
+            self.btnCL1.clicked.connect(lambda: self.muteCL(0))
+            self.btnCL1.setStyleSheet(self.green)
+            self.btnCL2.clicked.connect(lambda: self.muteCL(1))
+            self.btnCL2.setStyleSheet(self.green)
+            self.btnCL3.clicked.connect(lambda: self.muteCL(2))
+            self.btnCL3.setStyleSheet(self.green)
+            self.btnCL4.clicked.connect(lambda: self.muteCL(3))
+            self.btnCL4.setStyleSheet(self.green)
+            self.btnLT1.clicked.connect(lambda: self.muteLT(0))
+            self.btnLT1.setStyleSheet(self.green)
+            self.btnLT2.clicked.connect(lambda: self.muteLT(1))
+            self.btnLT2.setStyleSheet(self.green)
+            self.btnLT3.clicked.connect(lambda: self.muteLT(2))
+            self.btnLT3.setStyleSheet(self.green)
+            self.btnLT4.clicked.connect(lambda: self.muteLT(3))
+            self.btnLT4.setStyleSheet(self.green)
+            self.btnLT5.clicked.connect(lambda: self.muteLT(4))
+            self.btnLT5.setStyleSheet(self.green)
+            self.btnLT6.clicked.connect(lambda: self.muteLT(5))
+            self.btnLT6.setStyleSheet(self.green)
+            self.btnWT1.clicked.connect(lambda: self.muteWT(0))
+            self.btnWT1.setStyleSheet(self.green)
+            self.btnWT2.clicked.connect(lambda: self.muteWT(1))
+            self.btnWT2.setStyleSheet(self.green)
+            self.btnWT3.clicked.connect(lambda: self.muteWT(2))
+            self.btnWT3.setStyleSheet(self.green)
+            self.btnWT4.clicked.connect(lambda: self.muteWT(3))
+            self.btnWT4.setStyleSheet(self.green)
+            if self.set.station == 'UCFM':
+                self.btnWT5.clicked.connect(lambda: self.muteWT(4))
+                self.btnWT5.setStyleSheet(self.green)
+                self.btnWT6.clicked.connect(lambda: self.muteWT(5))
+                self.btnWT6.setStyleSheet(self.green)
+            #инициализируем переменные выключения звука, прогресс бара, паузы
+            self.ml = [0, 0, 0, 0, 0, 0]
+            self.mc = [0, 0, 0, 0]
+            self.mw = [0, 0, 0, 0, 0, 0]
+            self.progress = 0
+            self.pause = True
+            #Привязка переменных из класса SettingsInit
+            self.station = self.set.station
+            self.iram = self.set.iram
+            self.snd = self.set.snd
+            self.dur = self.set.dur
+            self.tTimer = self.set.tTimer
+            self.tTimer = int(self.tTimer)*1000
+            self.repW = self.set.repW
+            self.logW = self.set.logW
+            self.c1 = self.set.c1
+            self.c2 = self.set.c2
+            self.c3 = self.set.c3
+            self.c4 = self.set.c4
+            self.l1 = self.set.l1
+            self.l2 = self.set.l2
+            self.l3 = self.set.l3
+            self.l4 = self.set.l4
+            self.l5 = self.set.l5
+            self.l6 = self.set.l6
+            self.w1 = self.set.w1
+            self.w2 = self.set.w2
+            self.w3 = self.set.w3
+            self.w4 = self.set.w4
+            if self.set.station == 'UCFM':
+                self.w5 = self.set.w5
+                self.w6 = self.set.w6
+            self.t1 = self.set.t1
+            self.t2 = self.set.t2
+            self.p1 = self.set.p1
+            self.p2 = self.set.p2
+        except:
+            pass
 
     def goStart(self):
         self.pause = False
-        self.tTimer = int(self.tTimer)*1000
         self.start.setText("Пауза")
         self.start.setStyleSheet("background-color: ")
         self.info.setStyleSheet("background-color: ")
@@ -718,7 +725,7 @@ class Window(QtWidgets.QMainWindow):
                 logW ="Откл"
             self.bar.showMessage("Рабочий каталог:  " + self.iram +
             "          Время ожидания файла:  " + str(self.dur) + " мин."
-            + "     Время обновления:  " + str(self.tTimer)[:1] + " сек."
+            + "     Время обновления:  " + str(self.tTimer)[:-3] + " сек."
             + "       Отчет: " + repW +
             "     Лог: " + logW)
             self.dtime.setText(t)
