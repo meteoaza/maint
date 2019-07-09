@@ -46,7 +46,7 @@
    <enum>Qt::NoFocus</enum>
   </property>
   <property name="windowTitle">
-   <string>Maintenance</string>
+   <string extracomment="ManasUCFM">Maintenance  UCFM</string>
   </property>
   <property name="windowIcon">
    <iconset>
@@ -320,6 +320,9 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>LT5</string>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
@@ -327,7 +330,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string/>
+         <string>LT5</string>
         </property>
         <property name="textFormat">
          <enum>Qt::AutoText</enum>
@@ -362,6 +365,21 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>WT1</string>
+        </property>
+        <property name="statusTip">
+         <string/>
+        </property>
+        <property name="whatsThis">
+         <string/>
+        </property>
+        <property name="accessibleName">
+         <string/>
+        </property>
+        <property name="accessibleDescription">
+         <string/>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
@@ -369,7 +387,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string/>
+         <string>WT1</string>
         </property>
         <property name="textFormat">
          <enum>Qt::AutoText</enum>
@@ -404,6 +422,9 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>WT3</string>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
@@ -411,7 +432,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string/>
+         <string>WT3</string>
         </property>
         <property name="textFormat">
          <enum>Qt::AutoText</enum>
@@ -446,6 +467,9 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>LT3</string>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
@@ -453,7 +477,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string/>
+         <string>LT3</string>
         </property>
         <property name="textFormat">
          <enum>Qt::AutoText</enum>
@@ -488,6 +512,9 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>WT5</string>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
@@ -495,7 +522,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string/>
+         <string>WT5</string>
         </property>
         <property name="textFormat">
          <enum>Qt::AutoText</enum>
@@ -530,6 +557,9 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>WT2</string>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
@@ -537,7 +567,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string/>
+         <string>WT2</string>
         </property>
         <property name="textFormat">
          <enum>Qt::AutoText</enum>
@@ -572,6 +602,9 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>LT4</string>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
@@ -579,7 +612,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string/>
+         <string>LT4</string>
         </property>
         <property name="textFormat">
          <enum>Qt::AutoText</enum>
@@ -614,6 +647,9 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>LT1</string>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
@@ -621,7 +657,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string/>
+         <string>LT1</string>
         </property>
         <property name="textFormat">
          <enum>Qt::AutoText</enum>
@@ -695,6 +731,9 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>CL2</string>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
@@ -702,7 +741,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string/>
+         <string>CL2</string>
         </property>
         <property name="textFormat">
          <enum>Qt::AutoText</enum>
@@ -775,6 +814,9 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>CL3</string>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
@@ -782,7 +824,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string/>
+         <string>CL3</string>
         </property>
         <property name="textFormat">
          <enum>Qt::AutoText</enum>
@@ -830,6 +872,9 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>LT2</string>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
@@ -837,7 +882,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string/>
+         <string>LT2</string>
         </property>
         <property name="textFormat">
          <enum>Qt::AutoText</enum>
@@ -872,6 +917,9 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>CL4</string>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
@@ -879,7 +927,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string/>
+         <string>CL4</string>
         </property>
         <property name="textFormat">
          <enum>Qt::AutoText</enum>
@@ -914,6 +962,9 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>WT4</string>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
@@ -921,7 +972,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string/>
+         <string>WT4</string>
         </property>
         <property name="textFormat">
          <enum>Qt::AutoText</enum>
@@ -956,6 +1007,9 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>LT6</string>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
@@ -963,7 +1017,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string/>
+         <string>LT6</string>
         </property>
         <property name="textFormat">
          <enum>Qt::AutoText</enum>
@@ -1034,6 +1088,9 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>WT6</string>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
@@ -1041,7 +1098,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string/>
+         <string>WT6</string>
         </property>
         <property name="textFormat">
          <enum>Qt::AutoText</enum>
@@ -1124,6 +1181,9 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>CL1</string>
+        </property>
         <property name="autoFillBackground">
          <bool>false</bool>
         </property>
@@ -1137,7 +1197,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string/>
+         <string>CL1</string>
         </property>
         <property name="textFormat">
          <enum>Qt::AutoText</enum>
@@ -1171,6 +1231,9 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>TEMP1</string>
+        </property>
         <property name="frameShape">
          <enum>QFrame::WinPanel</enum>
         </property>
@@ -1203,6 +1266,9 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>PRES1</string>
+        </property>
         <property name="frameShape">
          <enum>QFrame::WinPanel</enum>
         </property>
@@ -1234,6 +1300,9 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
           <weight>75</weight>
           <bold>true</bold>
          </font>
+        </property>
+        <property name="toolTip">
+         <string>TEMP2</string>
         </property>
         <property name="frameShape">
          <enum>QFrame::WinPanel</enum>
@@ -1269,6 +1338,9 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
           <weight>75</weight>
           <bold>true</bold>
          </font>
+        </property>
+        <property name="toolTip">
+         <string>PRES2</string>
         </property>
         <property name="frameShape">
          <enum>QFrame::WinPanel</enum>
