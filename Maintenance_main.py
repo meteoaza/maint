@@ -1,6 +1,8 @@
+from shutil import copyfile as cp
 from datetime import datetime
 from datetime import timedelta
 import os
+
 class Sens():
     def __init__(self, iram, lt, cl, wt, dur, repW, logW, tm):
         self.iram = iram
@@ -9,8 +11,8 @@ class Sens():
         self.wt = wt
         self.tm = tm
         self.dur = int(dur)
-        self.repW = int(repW)
-        self.logW = int(logW)
+        self.repW = repW
+        self.logW = logW
         self.LOGs = "0"
     def checkTime(self):
         #Check time and write time difference to dift
@@ -21,7 +23,7 @@ class Sens():
     def ltInit(self):
         try:
             #File in DAT_SENS define
-            self.f = (self.iram + r"TEK\DAT_SENS\\" + self.lt + ".DAT")
+            self.f = (self.iram + r"\TEK\DAT_SENS\\" + self.lt + ".DAT")
             self.checkTime()
             #Check time of file
             if self.dift > timedelta(minutes=self.dur):
@@ -86,7 +88,7 @@ class Sens():
     def clInit(self):
         try:
             #File in DAT_SENS define
-            self.f = (self.iram + r"TEK\DAT_SENS\\" + self.cl + ".DAT")
+            self.f = (self.iram + r"\TEK\DAT_SENS\\" + self.cl + ".DAT")
             self.checkTime()
             if self.dift > timedelta(minutes=self.dur):
                 self.cl_status = str(self.cl + ' Тревога!!! Нет данных!!!')
@@ -139,7 +141,7 @@ class Sens():
     def wtInit(self):
         try:
             #File in DAT_SENS define
-            self.f = (self.iram + r"TEK\DAT_SENS\\" + self.wt + ".DAT")
+            self.f = (self.iram + r"\TEK\DAT_SENS\\" + self.wt + ".DAT")
             self.checkTime()
             if self.dift > timedelta(minutes=self.dur):
                 self.wt_status = str(self.wt + ' Тревога!!! Нет данных!!!')
@@ -183,7 +185,7 @@ class Sens():
             pass
     def tempInit(self):
         try:
-            with open(self.iram + r"TEK\\DAT_AVRG\\" + self.tm + ".DAT", 'r', encoding='utf-8') as f:
+            with open(self.iram + r"\TEK\\DAT_AVRG\\" + self.tm + ".DAT", 'r', encoding='utf-8') as f:
                 self.tm_val = int(f.readline().split()[3])
                 self.tm_val = float(self.tm_val/10)
         except Exception as e:
@@ -192,7 +194,7 @@ class Sens():
             pass
 
     def repWrite(self, l, c, w):
-        if self.repW != 0:
+        if self.repW != "0":
             try:
                 t = datetime.strftime(datetime.now(), "%d-%m-%y %H:%M:%S")
                 with open(r'LOGs\maintReport.txt', 'a', encoding='utf-8') as f_rep:
@@ -202,7 +204,7 @@ class Sens():
                 pass
 
     def logWrite(self, e):
-        if self.logW != 0:
+        if self.logW != "0":
             try:
                 t = datetime.strftime(datetime.now(), "%d-%m-%y %H:%M:%S")
                 with open(r'LOGs\maintLog.txt', 'a', encoding='utf-8') as f_bug:
@@ -210,3 +212,43 @@ class Sens():
             except FileNotFoundError as e:
                 self.LOGs = str(e)
                 pass
+class Av6():
+
+    def __init__(self, arh, av6W):
+        self.arh = arh
+        self.av6W = av6W
+        if self.av6W != "0":
+            self.arhDirDef()
+
+
+    def arhDirDef(self):
+        t = datetime.strftime(datetime.now(), "%d %m %Y %H%M")
+        t = t.split(' ')
+        self.day = ('D' + t[0])
+        self.month = ('M' + t[1])
+        self.year = ('G' + t[2])
+        self.hour = t[3]
+        self.arh_src_dir = self.arh + '\\ARX__AB6' + '\\' + self.year + '\\' + self.month + '\\' + self.day
+        self.arh_dst_dir = 'AV6_ARH' + '\\' + self.year + '\\' + self.month + '\\' + self.day
+        self.arhCopy()
+
+    def mkDir(self):
+        try:
+            if not os.path.exists(self.arh_dst_dir):
+                os.makedirs(self.arh_dst_dir)
+        except Exception as e:
+            Sens.logWrite(self, e)
+            pass
+
+    def arhCopy(self):
+        if os.path.exists(self.arh_src_dir):
+            self.mkDir()
+            self.arh_src = self.arh_src_dir + '\\' + 'AB6.DAT'
+            self.arh_dst = self.arh_dst_dir + '\\' + 'AB6_' + self.hour + '.DAT'
+            try:
+                cp(self.arh_src, self.arh_dst)
+                self.av6_rep = self.hour + ' Файл АВ-6 успешно записан!'
+            except Exception as e:
+                Sens.logWrite(self, e)
+                pass
+        else: self.av6_rep = self.hour + ' Файл АВ-6 не записан!'

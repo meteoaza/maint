@@ -1,6 +1,6 @@
 import subprocess, sys, os
 from datetime import datetime
-from Maintenance_main import Sens
+from Maintenance_main import Sens, Av6
 from pygame import mixer
 from winreg import *
 from PyQt5 import QtWidgets, QtGui
@@ -12,7 +12,7 @@ from About import Ui_AboutFrame
 
 
 global ver
-ver = '1.5'
+ver = '1.6'
 
 class SettingsInit(QtWidgets.QFrame):
 
@@ -26,18 +26,21 @@ class SettingsInit(QtWidgets.QFrame):
         self.snd_Sett = self.ui.lineSND
         self.FileTSett = self.ui.lineFileT
         self.TimerSett = self.ui.lineTimer
+        self.av_Sett = self.ui.lineAV6
         self.sensList = self.ui.boxSensors
         self.sensSett = self.ui.lineSensors
         self.sensAdd = self.ui.buttSensors
         self.sensView = self.ui.viewSensors
         self.checkLogW = self.ui.checkLogW
         self.checkRepW = self.ui.checkRepW
+        self.checkAv6 = self.ui.checkAv6
+        self.av_Time1 = self.ui.lineAVtime1
+        self.av_Time2 = self.ui.lineAVtime2
         self.btnIramSett = self.ui.buttOK
         self.btnHelp = self.ui.buttHelp
         #Список станций в настройках
         self.stationSett.addItems([' ', 'UCFM', 'UCFO'])
         self.settRead()
-
     #Настройки чтение
     def settRead(self):
         self.stationSett.activated[str].connect(self.stChange)
@@ -50,15 +53,23 @@ class SettingsInit(QtWidgets.QFrame):
             self.snd = QueryValueEx(rKey, 'SOUND')[0]
             self.dur = QueryValueEx(rKey, 'DUR')[0]
             self.tTimer = QueryValueEx(rKey, 'REFRESH')[0]
+            self.av_path = QueryValueEx(rKey, 'AV_P')[0]
             self.repW = QueryValueEx(rKey, 'REP')[0]
             self.logW = QueryValueEx(rKey, 'LOG')[0]
+            self.av6W = QueryValueEx(rKey, 'AV_W')[0]
+            self.av_time1 = QueryValueEx(rKey, 'AV_T1')[0]
+            self.av_time2 = QueryValueEx(rKey, 'AV_T2')[0]
         except (ValueError, FileNotFoundError):
-            self.iram = r"d:\IRAM\\"
+            self.iram = r"d:\IRAM"
             self.snd = r"d:\IRAM\KRAMS_DAT\WAV\Srok1M.WAV"
             self.dur = "1"
             self.tTimer = "3"
+            self.av_path = r'd:\IRAM'
             self.repW = "0"
             self.logW = "0"
+            self.av6W = "0"
+            self.av_time1 = "00"
+            self.av_time2 = "30"
             pass
         #Список датчиков в настройках
         try:
@@ -71,7 +82,7 @@ class SettingsInit(QtWidgets.QFrame):
                            'LT3', 'LT4', 'LT5', 'LT6', 'WT1', 'WT2',
                            'WT3', 'WT4', 'TEMP1', 'TEMP2', 'PRES1', 'PRES2'])
             self.sensList.addItems(self.s)
-        except:
+        except Exception:
             self.station = '----'
         #Читаем настройки датчиков
         try:
@@ -97,7 +108,8 @@ class SettingsInit(QtWidgets.QFrame):
             self.t2 = QueryValueEx(rKey, 'TEMP2')[0]
             self.p1 = QueryValueEx(rKey, 'PRES1')[0]
             self.p2 = QueryValueEx(rKey, 'PRES2')[0]
-        except:
+        except Exception as e:
+            Sens.logWrite(self, e)
             self.c1 = self.c2 = self.c3 = self.c4 = 'None'
             self.l1 = self.l2 = self.l3 = self.l4 = self.l5 = self.l6 = 'None'
             self.w1 = self.w2 = self.w3 = self.w4 = 'None'
@@ -111,8 +123,12 @@ class SettingsInit(QtWidgets.QFrame):
         self.snd_Sett.setText(self.snd)
         self.FileTSett.setText(self.dur)
         self.TimerSett.setText(self.tTimer)
+        self.av_Sett.setText(self.av_path)
         self.checkRepW.setCheckState(int(self.repW))
         self.checkLogW.setCheckState(int(self.logW))
+        self.checkAv6.setCheckState(int(self.av6W))
+        self.av_Time1.setText(self.av_time1)
+        self.av_Time2.setText(self.av_time2)
         self.btnIramSett.accepted.connect(self.settWrite)
         self.btnIramSett.rejected.connect(lambda: self.close())
         self.btnHelp.clicked.connect(self.help)
@@ -193,8 +209,12 @@ class SettingsInit(QtWidgets.QFrame):
         self.snd = self.snd_Sett.text()
         self.dur = self.FileTSett.text()
         self.tTimer = self.TimerSett.text()
+        self.av_path = self.av_Sett.text()
         self.repW = str(self.checkRepW.checkState())
         self.logW = str(self.checkLogW.checkState())
+        self.av6W = str(self.checkAv6.checkState())
+        self.av_time1 = self.av_Time1.text()
+        self.av_time2 = self.av_Time2.text()
         #Пишем настройки программы в реестр
         aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
         try:
@@ -204,9 +224,14 @@ class SettingsInit(QtWidgets.QFrame):
             keyval = SetValueEx(nKey, 'SOUND', 0, REG_SZ, self.snd)
             keyval = SetValueEx(nKey, 'DUR', 0, REG_SZ, self.dur)
             keyval = SetValueEx(nKey, 'REFRESH', 0, REG_SZ, self.tTimer)
+            keyval = SetValueEx(nKey, 'AV_P', 0, REG_SZ, self.av_path)
             keyval = SetValueEx(nKey, 'REP', 0, REG_SZ, self.repW)
             keyval = SetValueEx(nKey, 'LOG', 0, REG_SZ, self.logW)
-        except:
+            keyval = SetValueEx(nKey, 'AV_W', 0, REG_SZ, self.av6W)
+            keyval = SetValueEx(nKey, 'AV_T1', 0, REG_SZ, self.av_time1)
+            keyval = SetValueEx(nKey, 'AV_T2', 0, REG_SZ, self.av_time2)
+        except Exception as e:
+            Sens.logWrite(self, e)
             pass
         #Пишем настройки датчиков в реестр
         try:
@@ -233,7 +258,8 @@ class SettingsInit(QtWidgets.QFrame):
             keyval = SetValueEx(nKey, 'TEMP2', 0, REG_SZ, self.t2)
             keyval = SetValueEx(nKey, 'PRES1', 0, REG_SZ, self.p1)
             keyval = SetValueEx(nKey, 'PRES2', 0, REG_SZ, self.p2)
-        except:
+        except Exception as e:
+            Sens.logWrite(self, e)
             pass
         aReg.Close()
         self.goWindow()
@@ -326,7 +352,6 @@ class Window(QtWidgets.QMainWindow):
             self.Temp2_v = self.ui.lcdTemp2
             self.Pres1_v = self.ui.lcdPres1
             self.Pres2_v = self.ui.lcdPres2
-            self.pBar = self.ui.progressBar
             #Привязка виджетов Window
             self.menuSett = self.ui.menu
             self.menuIram = self.ui.iram
@@ -337,6 +362,7 @@ class Window(QtWidgets.QMainWindow):
             self.exit = self.ui.exit
             self.btn = self.ui.btn
             self.info = self.ui.lineInfo
+            self.info2 = self.ui.lineInfo2
             self.dtime = self.ui.timedate
             self.bar = self.ui.statusBar
             self.term = self.ui.terminal
@@ -451,8 +477,12 @@ class Window(QtWidgets.QMainWindow):
             self.dur = self.set.dur
             self.tTimer = self.set.tTimer
             self.tTimer = int(self.tTimer)*1000
+            self.av_path = self.set.av_path
             self.repW = self.set.repW
             self.logW = self.set.logW
+            self.av6W = self.set.av6W
+            self.av_time1 = self.set.av_time1 + '00'
+            self.av_time2 = self.set.av_time2 + '00'
             self.c1 = self.set.c1
             self.c2 = self.set.c2
             self.c3 = self.set.c3
@@ -474,7 +504,8 @@ class Window(QtWidgets.QMainWindow):
             self.t2 = self.set.t2
             self.p1 = self.set.p1
             self.p2 = self.set.p2
-        except:
+        except Exception as e:
+            print(str(e))
             pass
 
     def goStart(self):
@@ -710,11 +741,9 @@ class Window(QtWidgets.QMainWindow):
     def dtimeTick(self):
         if self.pause == False:
             t = datetime.strftime(datetime.now(), " %d-%m-%y  %H:%M:%S")
-            if self.progress != 100:
-                self.progress += 5
-                self.pBar.setValue(self.progress)
-            else:
-                self.progress = 0
+            self.av_time = t.split()[1].split(':')[1] + t.split()[1].split(':')[2]
+            if self.av_time == self.av_time1 or self.av_time == self.av_time2:
+                self.copyAB6()
             if self.repW == '2' or self.repW == '1':
                 repW = "Вкл"
             else:
@@ -723,11 +752,15 @@ class Window(QtWidgets.QMainWindow):
                 logW = "Вкл"
             else:
                 logW ="Откл"
+            if self.av6W == '2' or self.av6W == '1':
+                av6W = "Вкл"
+            else:
+                av6W ="Откл"
             self.bar.showMessage("Рабочий каталог:  " + self.iram +
             "          Время ожидания файла:  " + str(self.dur) + " мин."
             + "     Время обновления:  " + str(self.tTimer)[:-3] + " сек."
             + "       Отчет: " + repW +
-            "     Лог: " + logW)
+            "     Лог: " + logW + "             AB6:  " + av6W)
             self.dtime.setText(t)
             QTimer().singleShot(1000, self.dtimeTick)
         else:
@@ -742,6 +775,10 @@ class Window(QtWidgets.QMainWindow):
 
     def openLog(self):
         subprocess.Popen(['notepad.exe', r'LOGs\maintLog.txt'])
+
+    def copyAB6(self):
+        av = Av6(self.av_path, self.av6W)
+        self.info2.setText(av.av6_rep)
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
