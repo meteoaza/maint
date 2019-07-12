@@ -513,6 +513,7 @@ class Window(QtWidgets.QMainWindow):
         self.start.setText("Пауза")
         self.start.setStyleSheet("background-color: ")
         self.info.setStyleSheet("background-color: ")
+        self.info2.setStyleSheet("background-color: ")
         self.start.clicked.disconnect()
         self.start.clicked.connect(self.statPause)
         #заводим часы
@@ -540,7 +541,7 @@ class Window(QtWidgets.QMainWindow):
                 s.ltInit()
                 self.LT_l.setText(s.lt_status)
                 self.LT_v.setText(s.lt_val)
-                self.info.setText("Идет процесс... LT" )
+                self.info2.setText("Идет процесс... LT" )
                 if s.lt_error == 1:
                     self.LT_l.setStyleSheet(self.red)
                     self.LT_v.setStyleSheet(self.red)
@@ -564,8 +565,8 @@ class Window(QtWidgets.QMainWindow):
                     self.info.setText(s.LOGs)
             QTimer().singleShot(self.tTimer, self.statCL)
         else:
-            self.info.setText("Остановлено")
-            self.info.setStyleSheet(self.red)
+            self.info2.setText("Остановлено")
+            self.info2.setStyleSheet(self.red)
             pass
     def statCL(self):
         if self.pause == False:
@@ -580,7 +581,7 @@ class Window(QtWidgets.QMainWindow):
                 s.clInit()
                 self.CL_l.setText(s.cl_status)
                 self.CL_v.setText(s.cl_val)
-                self.info.setText("Идет процесс... CL ")
+                self.info2.setText("Идет процесс... CL ")
                 if s.cl_error == 1:
                     self.CL_l.setStyleSheet(self.red)
                     self.CL_v.setStyleSheet(self.red)
@@ -604,8 +605,8 @@ class Window(QtWidgets.QMainWindow):
                     self.info.setText(s.LOGs)
             QTimer().singleShot(self.tTimer, self.statWT)
         else:
-            self.info.setText("Остановлено")
-            self.info.setStyleSheet(self.red)
+            self.info2.setText("Остановлено")
+            self.info2.setStyleSheet(self.red)
             pass
     def statWT(self):
         if self.pause == False:
@@ -627,7 +628,7 @@ class Window(QtWidgets.QMainWindow):
                 s.wtInit()
                 self.WT_l.setText(s.wt_status)
                 self.WT_v.setText(s.wt_val)
-                self.info.setText("Идет процесс... WIND")
+                self.info2.setText("Идет процесс... WIND")
                 if s.wt_error == 1:
                     self.WT_l.setStyleSheet(self.red)
                     self.WT_v.setStyleSheet(self.red)
@@ -646,8 +647,8 @@ class Window(QtWidgets.QMainWindow):
                     self.info.setText(s.LOGs)
             QTimer().singleShot(self.tTimer, self.statLT)
         else:
-            self.info.setText("Остановлено")
-            self.info.setStyleSheet(self.red)
+            self.info2.setText("Остановлено")
+            self.info2.setStyleSheet(self.red)
             pass
     def statTemp(self):
         if self.pause == False:
@@ -661,8 +662,8 @@ class Window(QtWidgets.QMainWindow):
                 self.tm_v.display(s.tm_val)
             QTimer().singleShot(self.tTimer, self.statTemp)
         else:
-            self.info.setText("Остановлено")
-            self.info.setStyleSheet(self.red)
+            self.info2.setText("Остановлено")
+            self.info2.setStyleSheet(self.red)
             pass
     def sndplay(self):
         mixer.init()
@@ -778,7 +779,7 @@ class Window(QtWidgets.QMainWindow):
 
     def copyAB6(self):
         av = Av6(self.av_path, self.av6W)
-        self.info2.setText(av.av6_rep)
+        self.info.setText(av.av6_rep)
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:

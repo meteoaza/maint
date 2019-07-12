@@ -589,7 +589,7 @@ class Ui_MainWindow(object):
         self.lineInfo2 = QtWidgets.QLabel(self.centralwidget)
         self.lineInfo2.setMinimumSize(QtCore.QSize(0, 30))
         font = QtGui.QFont()
-        font.setPointSize(14)
+        font.setPointSize(20)
         font.setBold(True)
         font.setWeight(75)
         self.lineInfo2.setFont(font)

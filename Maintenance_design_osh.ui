@@ -13,7 +13,7 @@
     <x>0</x>
     <y>0</y>
     <width>1106</width>
-    <height>771</height>
+    <height>730</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -1236,7 +1236,7 @@ background-color: qconicalgradient(cx:1, cy:0.329773, angle:0, stop:0.164773 rgb
         </property>
         <property name="font">
          <font>
-          <pointsize>14</pointsize>
+          <pointsize>20</pointsize>
           <weight>75</weight>
           <bold>true</bold>
          </font>
