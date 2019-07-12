@@ -222,12 +222,13 @@ class Av6():
         self.arh = arh
         self.av6W = av6W
         if self.av6W != "0":
+            self.repW = self.logW = self.av6W
             self.arhDirDef()
 
 
     def arhDirDef(self):
-        t = datetime.strftime(datetime.now(), "%d %m %Y %H%M")
-        t = t.split(' ')
+        self.t = datetime.strftime(datetime.now(), "%d %m %Y %H%M")
+        t = self.t.split(' ')
         self.day = ('D' + t[0])
         self.month = ('M' + t[1])
         self.year = ('G' + t[2])
@@ -251,8 +252,12 @@ class Av6():
             self.arh_dst = self.arh_dst_dir + '\\' + 'AB6_' + self.hour + '.DAT'
             try:
                 cp(self.arh_src, self.arh_dst)
-                self.av6_rep = self.hour + ' Файл АВ-6 успешно записан!'
+                self.av6_rep = self.hour[:2] + ':' + self.hour[2:] + ' Файл АВ-6 успешно записан!'
+                Sens.repWrite(self, " Файл АВ-6 успешно записан!", "", "")
             except Exception as e:
+                self.av6_rep = self.hour[:2] + ':' + self.hour[2:] + ' Файл АВ-6 не записан!'
                 Sens.logWrite(self, e)
                 pass
-        else: self.av6_rep = self.hour + ' Файл АВ-6 не записан!'
+        else:
+            self.av6_rep = self.hour[:2] + ':' + self.hour[2:] + ' Файл АВ-6 не записан!'
+            Sens.repWrite(self, " Файл АВ-6 не записан!", "", "")

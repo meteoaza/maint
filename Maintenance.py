@@ -411,6 +411,8 @@ class Window(QtWidgets.QMainWindow):
                         stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255));"
             self.yellow = "background-color: qconicalgradient(cx:1, cy:0.329773, \
                         angle:0, stop:0.363636 rgba(219, 219, 0, 255), stop:1 rgba(255, 255, 255, 255));"
+            self.blue = "background-color: qconicalgradient(cx:1, cy:0.529, angle:0,\
+                        stop:0.215909 rgba(100, 200, 250, 200), stop:1 rgba(255, 255, 255, 255));"
             #Привязка кнопок к putty
             self.CL1.clicked.connect(lambda: self.putty("CL1"))
             self.CL2.clicked.connect(lambda: self.putty("CL2"))
@@ -542,6 +544,7 @@ class Window(QtWidgets.QMainWindow):
                 self.LT_l.setText(s.lt_status)
                 self.LT_v.setText(s.lt_val)
                 self.info2.setText("Идет процесс... LT" )
+                self.info2.setStyleSheet(self.blue)
                 if s.lt_error == 1:
                     self.LT_l.setStyleSheet(self.red)
                     self.LT_v.setStyleSheet(self.red)
@@ -582,6 +585,7 @@ class Window(QtWidgets.QMainWindow):
                 self.CL_l.setText(s.cl_status)
                 self.CL_v.setText(s.cl_val)
                 self.info2.setText("Идет процесс... CL ")
+                self.info2.setStyleSheet(self.blue)
                 if s.cl_error == 1:
                     self.CL_l.setStyleSheet(self.red)
                     self.CL_v.setStyleSheet(self.red)
@@ -629,6 +633,7 @@ class Window(QtWidgets.QMainWindow):
                 self.WT_l.setText(s.wt_status)
                 self.WT_v.setText(s.wt_val)
                 self.info2.setText("Идет процесс... WIND")
+                self.info2.setStyleSheet(self.blue)
                 if s.wt_error == 1:
                     self.WT_l.setStyleSheet(self.red)
                     self.WT_v.setStyleSheet(self.red)
@@ -755,13 +760,16 @@ class Window(QtWidgets.QMainWindow):
                 logW ="Откл"
             if self.av6W == '2' or self.av6W == '1':
                 av6W = "Вкл"
+                av_info = ("  ( " + self.av_path + "      " + self.av_time1[:2]
+                         + " , "  + self.av_time2[:2] + " мин )")
             else:
                 av6W ="Откл"
+                av_info = "              "
             self.bar.showMessage("Рабочий каталог:  " + self.iram +
             "          Время ожидания файла:  " + str(self.dur) + " мин."
             + "     Время обновления:  " + str(self.tTimer)[:-3] + " сек."
-            + "       Отчет: " + repW +
-            "     Лог: " + logW + "             AB6:  " + av6W)
+            + "       Отчет: " + repW + "      Лог: " + logW
+            + "               AB6:  " + av6W + av_info)
             self.dtime.setText(t)
             QTimer().singleShot(1000, self.dtimeTick)
         else:
