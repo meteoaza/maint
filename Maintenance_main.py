@@ -196,6 +196,8 @@ class Sens():
     def repWrite(self, l, c, w):
         if self.repW != "0":
             try:
+                if not os.path.exists(r'\LOGs'):
+                    os.makedirs(r'LOGs')
                 t = datetime.strftime(datetime.now(), "%d-%m-%y %H:%M:%S")
                 with open(r'LOGs\maintReport.txt', 'a', encoding='utf-8') as f_rep:
                     f_rep.write(t + " " + l + c + w + "\n")
@@ -206,6 +208,8 @@ class Sens():
     def logWrite(self, e):
         if self.logW != "0":
             try:
+                if not os.path.exists(r'\LOGs'):
+                    os.makedirs(r'LOGs')
                 t = datetime.strftime(datetime.now(), "%d-%m-%y %H:%M:%S")
                 with open(r'LOGs\maintLog.txt', 'a', encoding='utf-8') as f_bug:
                     f_bug.write(t + " " + str(e) + "\n")
