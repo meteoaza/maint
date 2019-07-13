@@ -539,7 +539,7 @@ class Window(QtWidgets.QMainWindow):
                 self.LT_l = l1[i]
                 self.lt = l2[i]
                 self.LT_v = l3[i]
-                s = Sens(self.iram, self.lt, "", "", self.dur, self.repW, self.logW, "")
+                s = Sens(self.iram, self.lt, self.dur, self.repW, self.logW)
                 s.ltInit()
                 self.LT_l.setText(s.lt_status)
                 self.LT_v.setText(s.lt_val)
@@ -580,7 +580,7 @@ class Window(QtWidgets.QMainWindow):
                 self.CL_l = l1[i]
                 self.cl = l2[i]
                 self.CL_v = l3[i]
-                s = Sens(self.iram, "", self.cl, "", self.dur, self.repW, self.logW, "")
+                s = Sens(self.iram, self.cl, self.dur, self.repW, self.logW)
                 s.clInit()
                 self.CL_l.setText(s.cl_status)
                 self.CL_v.setText(s.cl_val)
@@ -628,7 +628,7 @@ class Window(QtWidgets.QMainWindow):
                 self.WT_l = l1[i]
                 self.wt = l2[i]
                 self.WT_v = l3[i]
-                s = Sens(self.iram, "", "", self.wt, self.dur, self.repW, self.logW, "")
+                s = Sens(self.iram, self.wt, self.dur, self.repW, self.logW)
                 s.wtInit()
                 self.WT_l.setText(s.wt_status)
                 self.WT_v.setText(s.wt_val)
@@ -662,7 +662,7 @@ class Window(QtWidgets.QMainWindow):
             for i in range(4):
                 self.tm = l1[i]
                 self.tm_v = l2[i]
-                s = Sens(self.iram, "", "", "", self.dur, self.repW, self.logW, self.tm)
+                s = Sens(self.iram, self.tm, self.dur, self.repW, self.logW)
                 s.tempInit()
                 self.tm_v.display(s.tm_val)
             QTimer().singleShot(self.tTimer, self.statTemp)
