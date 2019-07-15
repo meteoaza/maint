@@ -12,7 +12,7 @@ from About import Ui_AboutFrame
 
 
 global ver
-ver = '1.6'
+ver = '1.7'
 
 class SettingsInit(QtWidgets.QFrame):
 
@@ -535,6 +535,7 @@ class Window(QtWidgets.QMainWindow):
             l1 = [self.LT1, self.LT2, self.LT3, self.LT4, self.LT5, self.LT6]
             l2 = [self.l1, self.l2, self.l3, self.l4, self.l5, self.l6]
             l3 = [self.LT1_v, self.LT2_v, self.LT3_v, self.LT4_v, self.LT5_v, self.LT6_v]
+            self.web = list()
             for i in range(6):
                 self.LT_l = l1[i]
                 self.lt = l2[i]
@@ -562,6 +563,7 @@ class Window(QtWidgets.QMainWindow):
                     self.LT_l.setStyleSheet(self.green)
                     self.LT_v.setStyleSheet(self.green)
                     pass
+                self.web.append(s.lt_status + ' ' + s.lt_val)
                 if s.LOGs == "0":
                     pass
                 else:
@@ -603,6 +605,7 @@ class Window(QtWidgets.QMainWindow):
                     self.CL_l.setStyleSheet(self.green)
                     self.CL_v.setStyleSheet(self.green)
                     pass
+                self.web.append(s.cl_status + ' ' + s.cl_val)
                 if s.LOGs == "0":
                     pass
                 else:
@@ -646,10 +649,12 @@ class Window(QtWidgets.QMainWindow):
                     self.WT_l.setStyleSheet(self.green)
                     self.WT_v.setStyleSheet(self.green)
                     pass
+                self.web.append(s.wt_status + ' ' + s.wt_val)
                 if s.LOGs == "0":
                     pass
                 else:
                     self.info.setText(s.LOGs)
+            self.sensWrite(self.web)
             QTimer().singleShot(self.tTimer, self.statLT)
         else:
             self.info2.setText("Остановлено")
@@ -788,6 +793,16 @@ class Window(QtWidgets.QMainWindow):
     def copyAB6(self):
         av = Av6(self.av_path, self.av6W)
         self.info.setText(av.av6_rep)
+
+    def sensWrite(self, sens):
+        try:
+            if not os.path.exists('Sens'):
+                os.mkdir('Sens')
+            with open(r'Sens\Sens.dat', 'w', encoding='utf-8') as f_sens:
+                f_sens.write(str(sens))
+        except Exception as e:
+            self.LOGs = str(e)
+            pass
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:

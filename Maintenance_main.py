@@ -188,7 +188,7 @@ class Sens():
 
     def tempInit(self):
         try:
-            with open(self.iram + r"\TEK\\DAT_AVRG\\" + self.sens + ".DAT", 'r', encoding='utf-8') as f:
+            with open(self.iram + r"\TEK\DAT_AVRG\\" + self.sens + ".DAT", 'r', encoding='utf-8') as f:
                 self.tm_val = int(f.readline().split()[3])
                 self.tm_val = float(self.tm_val/10)
         except Exception as e:
@@ -219,6 +219,7 @@ class Sens():
             except Exception as e:
                 self.LOGs = str(e)
                 pass
+
 class Av6():
 
     def __init__(self, arh, av6W):
