@@ -12,7 +12,7 @@ from About import Ui_AboutFrame
 
 
 global ver
-ver = '1.7'
+ver = '1.8'
 
 class SettingsInit(QtWidgets.QFrame):
 
@@ -31,6 +31,7 @@ class SettingsInit(QtWidgets.QFrame):
         self.sensSett = self.ui.lineSensors
         self.sensAdd = self.ui.buttSensors
         self.sensView = self.ui.viewSensors
+        self.checkSensW = self.ui.checkSensW
         self.checkLogW = self.ui.checkLogW
         self.checkRepW = self.ui.checkRepW
         self.checkAv6 = self.ui.checkAv6
@@ -54,6 +55,7 @@ class SettingsInit(QtWidgets.QFrame):
             self.dur = QueryValueEx(rKey, 'DUR')[0]
             self.tTimer = QueryValueEx(rKey, 'REFRESH')[0]
             self.av_path = QueryValueEx(rKey, 'AV_P')[0]
+            self.sensW = QueryValueEx(rKey, 'SENS_W')[0]
             self.repW = QueryValueEx(rKey, 'REP')[0]
             self.logW = QueryValueEx(rKey, 'LOG')[0]
             self.av6W = QueryValueEx(rKey, 'AV_W')[0]
@@ -65,6 +67,7 @@ class SettingsInit(QtWidgets.QFrame):
             self.dur = "1"
             self.tTimer = "3"
             self.av_path = r'd:\IRAM'
+            self.sensW = "0"
             self.repW = "0"
             self.logW = "0"
             self.av6W = "0"
@@ -124,6 +127,7 @@ class SettingsInit(QtWidgets.QFrame):
         self.FileTSett.setText(self.dur)
         self.TimerSett.setText(self.tTimer)
         self.av_Sett.setText(self.av_path)
+        self.checkSensW.setCheckState(int(self.sensW))
         self.checkRepW.setCheckState(int(self.repW))
         self.checkLogW.setCheckState(int(self.logW))
         self.checkAv6.setCheckState(int(self.av6W))
@@ -210,6 +214,7 @@ class SettingsInit(QtWidgets.QFrame):
         self.dur = self.FileTSett.text()
         self.tTimer = self.TimerSett.text()
         self.av_path = self.av_Sett.text()
+        self.sensW =str(self.checkSensW.checkState())
         self.repW = str(self.checkRepW.checkState())
         self.logW = str(self.checkLogW.checkState())
         self.av6W = str(self.checkAv6.checkState())
@@ -225,6 +230,7 @@ class SettingsInit(QtWidgets.QFrame):
             keyval = SetValueEx(nKey, 'DUR', 0, REG_SZ, self.dur)
             keyval = SetValueEx(nKey, 'REFRESH', 0, REG_SZ, self.tTimer)
             keyval = SetValueEx(nKey, 'AV_P', 0, REG_SZ, self.av_path)
+            keyval = SetValueEx(nKey, 'SENS_W', 0, REG_SZ, self.sensW)
             keyval = SetValueEx(nKey, 'REP', 0, REG_SZ, self.repW)
             keyval = SetValueEx(nKey, 'LOG', 0, REG_SZ, self.logW)
             keyval = SetValueEx(nKey, 'AV_W', 0, REG_SZ, self.av6W)
@@ -480,6 +486,7 @@ class Window(QtWidgets.QMainWindow):
             self.tTimer = self.set.tTimer
             self.tTimer = int(self.tTimer)*1000
             self.av_path = self.set.av_path
+            self.sensW = self.set.sensW
             self.repW = self.set.repW
             self.logW = self.set.logW
             self.av6W = self.set.av6W
@@ -520,8 +527,6 @@ class Window(QtWidgets.QMainWindow):
         self.start.clicked.connect(self.statPause)
         #заводим часы
         self.dtimeTick()
-        #заводим температуру и давление
-        self.statTemp()
         #Запуск основного процесса
         self.statLT()
     def statPause(self):
@@ -531,11 +536,12 @@ class Window(QtWidgets.QMainWindow):
         self.start.clicked.disconnect()
         self.start.clicked.connect(self.goStart)
     def statLT(self):
+        self.s_list = list()
         if self.pause == False:
             l1 = [self.LT1, self.LT2, self.LT3, self.LT4, self.LT5, self.LT6]
             l2 = [self.l1, self.l2, self.l3, self.l4, self.l5, self.l6]
             l3 = [self.LT1_v, self.LT2_v, self.LT3_v, self.LT4_v, self.LT5_v, self.LT6_v]
-            self.web = list()
+            # self.s_list = list()
             for i in range(6):
                 self.LT_l = l1[i]
                 self.lt = l2[i]
@@ -563,7 +569,7 @@ class Window(QtWidgets.QMainWindow):
                     self.LT_l.setStyleSheet(self.green)
                     self.LT_v.setStyleSheet(self.green)
                     pass
-                self.web.append(s.lt_status + ' ' + s.lt_val)
+                self.s_list.append(s.lt_status + ' ' + s.lt_val)
                 if s.LOGs == "0":
                     pass
                 else:
@@ -605,7 +611,7 @@ class Window(QtWidgets.QMainWindow):
                     self.CL_l.setStyleSheet(self.green)
                     self.CL_v.setStyleSheet(self.green)
                     pass
-                self.web.append(s.cl_status + ' ' + s.cl_val)
+                self.s_list.append(s.cl_status + ' ' + s.cl_val)
                 if s.LOGs == "0":
                     pass
                 else:
@@ -649,13 +655,12 @@ class Window(QtWidgets.QMainWindow):
                     self.WT_l.setStyleSheet(self.green)
                     self.WT_v.setStyleSheet(self.green)
                     pass
-                self.web.append(s.wt_status + ' ' + s.wt_val)
+                self.s_list.append(s.wt_status + ' ' + s.wt_val)
                 if s.LOGs == "0":
                     pass
                 else:
                     self.info.setText(s.LOGs)
-            self.sensWrite(self.web)
-            QTimer().singleShot(self.tTimer, self.statLT)
+            QTimer().singleShot(self.tTimer, self.statTemp)
         else:
             self.info2.setText("Остановлено")
             self.info2.setStyleSheet(self.red)
@@ -670,7 +675,10 @@ class Window(QtWidgets.QMainWindow):
                 s = Sens(self.iram, self.tm, self.dur, self.repW, self.logW)
                 s.tempInit()
                 self.tm_v.display(s.tm_val)
-            QTimer().singleShot(self.tTimer, self.statTemp)
+                self.info2.setText("Идет процесс... TEMP")
+                self.s_list.append(str(self.tm) + ' ' + str(s.tm_val))
+            self.sensWrite(self.s_list)
+            QTimer().singleShot(self.tTimer, self.statLT)
         else:
             self.info2.setText("Остановлено")
             self.info2.setStyleSheet(self.red)
@@ -751,10 +759,14 @@ class Window(QtWidgets.QMainWindow):
         self.btn.clicked.connect(self.muteALL)
     def dtimeTick(self):
         if self.pause == False:
-            t = datetime.strftime(datetime.now(), " %d-%m-%y  %H:%M:%S")
-            self.av_time = t.split()[1].split(':')[1] + t.split()[1].split(':')[2]
+            self.t = datetime.strftime(datetime.now(), "%d-%m-%y  %H:%M:%S")
+            self.av_time = self.t.split()[1].split(':')[1] + self.t.split()[1].split(':')[2]
             if self.av_time == self.av_time1 or self.av_time == self.av_time2:
                 self.copyAB6()
+            if self.sensW == '2' or self.sensW == '1':
+                sensW = "Вкл"
+            else:
+                sensW = "Откл"
             if self.repW == '2' or self.repW == '1':
                 repW = "Вкл"
             else:
@@ -773,9 +785,9 @@ class Window(QtWidgets.QMainWindow):
             self.bar.showMessage("Рабочий каталог:  " + self.iram +
             "          Время ожидания файла:  " + str(self.dur) + " мин."
             + "     Время обновления:  " + str(self.tTimer)[:-3] + " сек."
-            + "       Отчет: " + repW + "      Лог: " + logW
+            + "       Отчет: " + repW + "      Лог: " + logW + "      Sens: " + sensW
             + "               AB6:  " + av6W + av_info)
-            self.dtime.setText(t)
+            self.dtime.setText(self.t)
             QTimer().singleShot(1000, self.dtimeTick)
         else:
             self.dtime.clear()
@@ -795,20 +807,24 @@ class Window(QtWidgets.QMainWindow):
         self.info.setText(av.av6_rep)
 
     def sensWrite(self, sens):
-        try:
-            if not os.path.exists('Sens'):
-                os.mkdir('Sens')
-            with open(r'Sens\Sens.dat', 'w', encoding='utf-8') as f_sens:
-                f_sens.write(str(sens))
-        except Exception as e:
-            self.LOGs = str(e)
-            pass
+        if self.sensW != '0':
+            try:
+                if not os.path.exists('Sens'):
+                    os.mkdir('Sens')
+                with open(r'Sens\Sens.dat', 'w', encoding='utf-8') as f_sens:
+                    f_sens.write(self.t + '\n')
+                    for s in sens:
+                        f_sens.write("%s\n" % s)
+            except Exception as e:
+                self.LOGs = str(e)
+                pass
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
             self.close()
 
     def goSett(self):
+        self.statPause()
         self.close()
         SettingsInit().show()
 
