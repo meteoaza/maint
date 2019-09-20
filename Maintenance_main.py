@@ -2,6 +2,7 @@ from shutil import copyfile as cp
 from datetime import datetime
 from datetime import timedelta
 import os
+import serial
 
 class Sens():
 
@@ -200,15 +201,22 @@ class Sens():
     def tempInit(self):
         if self.sens != 'OFF':
             try:
-                with open(self.iram + r"\TEK\DAT_AVRG\\" + self.sens + ".DAT", 'r', encoding='utf-8') as f:
-                    self.tm_val = int(f.readline().split()[3])
-                    self.tm_val = float(self.tm_val/10)
+                #File in DAT_SENS define
+                self.f = (self.iram + r"\TEK\DAT_AVRG\\" + self.sens + ".DAT")
+                #Check time of file
+                self.checkTime(self.f)
+                if self.dift > timedelta(minutes=self.dur):
+                    self.tm_val = "ERROR"
+                else:
+                    with open(self.f, 'r', encoding='utf-8') as f:
+                        self.tm_val = int(f.readline().split()[3])
+                        self.tm_val = float(self.tm_val/10)
             except Exception as e:
-                self.tm_val = "0"
+                self.tm_val = "ERROR"
                 self.logWrite(self.sens + " Exception" + str(e))
                 pass
         else:
-            self.tm_val = 'OFF'
+            self.tm_val = "OFF"
 
     def repWrite(self, r):
         if self.repW != "0":
@@ -223,16 +231,16 @@ class Sens():
                 pass
 
     def logWrite(self, e):
-        if self.logW != "0":
-            try:
-                if not os.path.exists('LOGs'):
-                    os.mkdir('LOGs')
-                t = datetime.strftime(datetime.now(), "%d-%m-%y %H:%M:%S")
-                with open(r'LOGs\maintLog.txt', 'a', encoding='utf-8') as f_bug:
-                    f_bug.write(t + " " + str(e) + "\n")
-            except Exception as e:
-                self.LOGs = str(e)
-                pass
+        try:
+            if not os.path.exists('LOGs'):
+                os.mkdir('LOGs')
+            t = datetime.strftime(datetime.now(), "%d-%m-%y %H:%M:%S")
+            with open(r'LOGs\maintLog.txt', 'a', encoding='utf-8') as f_bug:
+                f_bug.write(t + " " + str(e) + "\n")
+        except Exception as e:
+            self.LOGs = str(e)
+            pass
+
 
 class Av6():
 
@@ -278,3 +286,34 @@ class Av6():
         else:
             self.av6_rep = self.hour[:2] + ':' + self.hour[2:] + ' Файл АВ-6 не записан!'
             Sens.repWrite(self, " Файл АВ-6 не записан!")
+
+class Serial():
+    def __init__(self, sens, port, baud):
+        self.s = sens
+        self.p = port
+        self.b = baud
+        if self.p != 'None': self.serRead()
+
+    def serRead(self):
+        #configure the serial connections (the parameters differs on the device you are connecting to)
+        ser = serial.Serial(
+            port=self.p,
+            baudrate=self.b,
+            parity=serial.PARITY_EVEN,
+            stopbits=serial.STOPBITS_ONE,
+            bytesize=serial.SEVENBITS,
+        )
+        self.ser = ser.readline()
+        print(self.ser)
+        ser.close()
+        self.sensWrite()
+
+    def sensWrite(self):
+        try:
+            if not os.path.exists('Serial'):
+                os.mkdir('Serial')
+            with open('Serial\\' + self.s + '.dat', 'w', encoding='utf-8') as f_sens:
+                f_sens.write(str(self.ser))
+        except Exception as e:
+            print(e)
+            pass

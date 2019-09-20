@@ -1,4 +1,4 @@
-import subprocess, sys, os
+import subprocess, sys, os, time
 from datetime import datetime
 from Maintenance_main import Sens, Av6
 from pygame import mixer
@@ -12,7 +12,7 @@ from About import Ui_AboutFrame
 
 
 global ver
-ver = '1.8'
+ver = '1.9'
 
 class SettingsInit(QtWidgets.QFrame):
 
@@ -28,8 +28,11 @@ class SettingsInit(QtWidgets.QFrame):
         self.TimerSett = self.ui.lineTimer
         self.av_Sett = self.ui.lineAV6
         self.sensList = self.ui.boxSensors
+        self.comList = self.ui.boxCom
+        self.baudList = self.ui.boxBaud
         self.sensSett = self.ui.lineSensors
         self.sensAdd = self.ui.buttSensors
+        self.serRun = self.ui.buttSerial
         self.sensView = self.ui.viewSensors
         self.checkSensW = self.ui.checkSensW
         self.checkLogW = self.ui.checkLogW
@@ -61,7 +64,8 @@ class SettingsInit(QtWidgets.QFrame):
             self.av6W = QueryValueEx(rKey, 'AV_W')[0]
             self.av_time1 = QueryValueEx(rKey, 'AV_T1')[0]
             self.av_time2 = QueryValueEx(rKey, 'AV_T2')[0]
-        except (ValueError, FileNotFoundError):
+        except (ValueError, FileNotFoundError)as e:
+            Sens.logWrite(self, e)
             self.iram = r"d:\IRAM"
             self.snd = r"d:\IRAM\KRAMS_DAT\WAV\Srok1M.WAV"
             self.dur = "1"
@@ -74,18 +78,42 @@ class SettingsInit(QtWidgets.QFrame):
             self.av_time1 = "00"
             self.av_time2 = "30"
             pass
-        #Список датчиков в настройках
+        #Список датчиков и СОМ портов в настройках
         try:
             if self.station == 'UCFM':
-                self.s = (['None', 'CL1', 'CL2', 'CL3', 'CL4', 'LT1', 'LT2',
-                           'LT3', 'LT4', 'LT5', 'LT6', 'WT1', 'WT2',
-                           'WT3', 'WT4', 'WT5', 'WT6', 'TEMP1', 'TEMP2', 'PRES1', 'PRES2'])
+                self.s_list = [
+                    'None', 'CL1', 'CL2', 'CL3', 'CL4', 'LT1', 'LT2',
+                    'LT3', 'LT4', 'LT5', 'LT6', 'WT1', 'WT2', 'WT3',
+                    'WT4', 'WT5', 'WT6', 'TEMP1', 'TEMP2', 'PRES1', 'PRES2']
+                self.com_list = [
+                    'None', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5',
+                    'COM6', 'COM7', 'COM8', 'COM9', 'COM10', 'COM11',
+                    'COM12', 'COM13', 'COM14', 'COM15', 'COM16', 'COM17',
+                    'COM18', 'COM19', 'COM20', 'COM21', 'COM22', 'COM23',
+                    'COM24', 'COM25', 'COM26', 'COM27', 'COM28', 'COM29',
+                    'COM30', 'COM31', 'COM32']
+                self.baud_list = ['300', '1200', '4800', '9600']
             elif self.station == 'UCFO':
-                self.s = (['None', 'CL1', 'CL2', 'CL3', 'CL4', 'LT1', 'LT2',
+                self.s_list = ['None', 'CL1', 'CL2', 'CL3', 'CL4', 'LT1', 'LT2',
                            'LT3', 'LT4', 'LT5', 'LT6', 'WT1', 'WT2',
-                           'WT3', 'WT4', 'TEMP1', 'TEMP2', 'PRES1', 'PRES2'])
-            self.sensList.addItems(self.s)
-        except Exception:
+                           'WT3', 'WT4', 'TEMP1', 'TEMP2', 'PRES1', 'PRES2']
+                self.com_list = [
+                    'None', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5',
+                    'COM6', 'COM7', 'COM8', 'COM9', 'COM10', 'COM11',
+                    'COM12', 'COM13', 'COM14', 'COM15', 'COM16', 'COM17',
+                    'COM18', 'COM19', 'COM20', 'COM21', 'COM22', 'COM23',
+                    'COM24', 'COM25', 'COM26', 'COM27', 'COM28', 'COM29',
+                    'COM30', 'COM31', 'COM32']
+                self.baud_list = ['300', '1200', '4800', '9600']
+            else:
+                self.s_list = ['None']
+                self.com_list = ['None']
+                self.baud_list = ['None']
+            self.sensList.addItems(self.s_list)
+            self.comList.addItems(self.com_list)
+            self.baudList.addItems(self.baud_list)
+        except Exception as e:
+            Sens.logWrite(self, e)
             self.station = '----'
         #Читаем настройки датчиков
         try:
@@ -120,7 +148,71 @@ class SettingsInit(QtWidgets.QFrame):
                 self.w5 = self.w6 = 'None'
             self.t1 = self.t2 = self.p1 = self.p2 = 'None'
             pass
+        #Читаем настройки СОМ портов
+        try:
+            rKey = OpenKey(aReg, r"Software\IRAM\MAINT\SERIAL")
+            self.port_c1 = QueryValueEx(rKey, 'CL1')[0]
+            self.port_c2 = QueryValueEx(rKey, 'CL2')[0]
+            self.port_c3 = QueryValueEx(rKey, 'CL3')[0]
+            self.port_c4 = QueryValueEx(rKey, 'CL4')[0]
+            self.port_l1 = QueryValueEx(rKey, 'LT1')[0]
+            self.port_l2 = QueryValueEx(rKey, 'LT2')[0]
+            self.port_l3 = QueryValueEx(rKey, 'LT3')[0]
+            self.port_l4 = QueryValueEx(rKey, 'LT4')[0]
+            self.port_l5 = QueryValueEx(rKey, 'LT5')[0]
+            self.port_l6 = QueryValueEx(rKey, 'LT6')[0]
+            self.port_w1 = QueryValueEx(rKey, 'WT1')[0]
+            self.port_w2 = QueryValueEx(rKey, 'WT2')[0]
+            self.port_w3 = QueryValueEx(rKey, 'WT3')[0]
+            self.port_w4 = QueryValueEx(rKey, 'WT4')[0]
+            if self.station == 'UCFM':
+                self.port_w5 = QueryValueEx(rKey, 'WT5')[0]
+                self.port_w6 = QueryValueEx(rKey, 'WT6')[0]
+            self.port_t1 = QueryValueEx(rKey, 'TEMP1')[0]
+            self.port_t2 = QueryValueEx(rKey, 'TEMP2')[0]
+            self.port_p1 = QueryValueEx(rKey, 'PRES1')[0]
+            self.port_p2 = QueryValueEx(rKey, 'PRES2')[0]
+            #Читаем настройки скорости СОМ
+            self.port_c1_b = QueryValueEx(rKey, 'CL1_baud')[0]
+            self.port_c2_b = QueryValueEx(rKey, 'CL2_baud')[0]
+            self.port_c3_b = QueryValueEx(rKey, 'CL3_baud')[0]
+            self.port_c4_b = QueryValueEx(rKey, 'CL4_baud')[0]
+            self.port_l1_b = QueryValueEx(rKey, 'LT1_baud')[0]
+            self.port_l2_b = QueryValueEx(rKey, 'LT2_baud')[0]
+            self.port_l3_b = QueryValueEx(rKey, 'LT3_baud')[0]
+            self.port_l4_b = QueryValueEx(rKey, 'LT4_baud')[0]
+            self.port_l5_b = QueryValueEx(rKey, 'LT5_baud')[0]
+            self.port_l6_b = QueryValueEx(rKey, 'LT6_baud')[0]
+            self.port_w1_b = QueryValueEx(rKey, 'WT1_baud')[0]
+            self.port_w2_b = QueryValueEx(rKey, 'WT2_baud')[0]
+            self.port_w3_b = QueryValueEx(rKey, 'WT3_baud')[0]
+            self.port_w4_b = QueryValueEx(rKey, 'WT4_baud')[0]
+            if self.station == 'UCFM':
+                self.port_w5_b = QueryValueEx(rKey, 'WT5_baud')[0]
+                self.port_w6_b = QueryValueEx(rKey, 'WT6_baud')[0]
+            self.port_t1_b = QueryValueEx(rKey, 'TEMP1_baud')[0]
+            self.port_t2_b = QueryValueEx(rKey, 'TEMP2_baud')[0]
+            self.port_p1_b = QueryValueEx(rKey, 'PRES1_baud')[0]
+            self.port_p2_b = QueryValueEx(rKey, 'PRES2_baud')[0]
+        except Exception as e:
+            Sens.logWrite(self, e)
+            self.port_c1 = self.port_c2 = self.port_c3 = self.port_c4 = 'None'
+            self.port_l1 = self.port_l2 = self.port_l3 = self.port_l4 = 'None'
+            self.port_l5 = self.port_l6 = 'None'
+            self.port_w1 = self.port_w2 = self.port_w3 = self.port_w4 = 'None'
+            if self.station == 'UCFM':
+                self.port_w5 = self.port_w6 = 'None'
+            self.port_t1 = self.port_t2 = self.port_p1 = self.port_p2 = 'None'
+            self.port_c1_b = self.port_c2_b = self.port_c3_b = self.port_c4_b = '300'
+            self.port_l1_b = self.port_l2_b = self.port_l3_b = self.port_l4_b = '300'
+            self.port_l5_b = self.port_l6_b = '300'
+            self.port_w1_b = self.port_w2_b = self.port_w3_b = self.port_w4_b = '300'
+            if self.station == 'UCFM':
+                self.port_w5_b = self.port_w6_b = '300'
+            self.port_t1_b = self.port_t2_b = self.port_p1_b = self.port_p2_b = '300b'
+            pass
         aReg.Close()
+        #Выводим текст настроек в Settings
         self.stInd.setText(self.station)
         self.iram_Sett.setText(self.iram)
         self.snd_Sett.setText(self.snd)
@@ -133,78 +225,86 @@ class SettingsInit(QtWidgets.QFrame):
         self.checkAv6.setCheckState(int(self.av6W))
         self.av_Time1.setText(self.av_time1)
         self.av_Time2.setText(self.av_time2)
+        #Привязка кнопок
         self.btnIramSett.accepted.connect(self.settWrite)
         self.btnIramSett.rejected.connect(lambda: self.close())
         self.btnHelp.clicked.connect(self.help)
         self.sensAdd.clicked.connect(self.settSens)
+        self.serRun.clicked.connect(self.portInit)
         self.viewSens()
     #Привязка датчиков
     def settSens(self):
         text = self.sensList.currentText()
-        if text == 'CL1': self.c1 = self.sensSett.text()
-        elif text == 'CL2': self.c2 = self.sensSett.text()
-        elif text == 'CL3': self.c3 = self.sensSett.text()
-        elif text == 'CL4': self.c4 = self.sensSett.text()
-        elif text == 'LT1': self.l1 = self.sensSett.text()
-        elif text == 'LT2': self.l2 = self.sensSett.text()
-        elif text == 'LT3': self.l3 = self.sensSett.text()
-        elif text == 'LT4': self.l4 = self.sensSett.text()
-        elif text == 'LT5': self.l5 = self.sensSett.text()
-        elif text == 'LT6': self.l6 = self.sensSett.text()
-        elif text == 'WT1': self.w1 = self.sensSett.text()
-        elif text == 'WT2': self.w2 = self.sensSett.text()
-        elif text == 'WT3': self.w3 = self.sensSett.text()
-        elif text == 'WT4': self.w4 = self.sensSett.text()
-        elif text == 'WT5': self.w5 = self.sensSett.text()
-        elif text == 'WT6': self.w6 = self.sensSett.text()
-        elif text == 'TEMP1': self.t1 = self.sensSett.text()
-        elif text == 'TEMP2': self.t2 = self.sensSett.text()
-        elif text == 'PRES1': self.p1 = self.sensSett.text()
-        elif text == 'PRES2': self.p2 = self.sensSett.text()
+        text_port = self.comList.currentText()
+        text_port_b = self.baudList.currentText()
+        if text == 'CL1': self.c1 = self.sensSett.text(); self.port_c1 = text_port; self.port_c1_b = text_port_b
+        elif text == 'CL2': self.c2 = self.sensSett.text(); self.port_c2 = text_port; self.port_c2_b = text_port_b
+        elif text == 'CL3': self.c3 = self.sensSett.text(); self.port_c3 = text_port; self.port_c3_b = text_port_b
+        elif text == 'CL4': self.c4 = self.sensSett.text(); self.port_c4 = text_port; self.port_c4_b = text_port_b
+        elif text == 'LT1': self.l1 = self.sensSett.text(); self.port_l1 = text_port; self.port_l1_b = text_port_b
+        elif text == 'LT2': self.l2 = self.sensSett.text(); self.port_l2 = text_port; self.port_l2_b = text_port_b
+        elif text == 'LT3': self.l3 = self.sensSett.text(); self.port_l3 = text_port; self.port_l3_b = text_port_b
+        elif text == 'LT4': self.l4 = self.sensSett.text(); self.port_l4 = text_port; self.port_l4_b = text_port_b
+        elif text == 'LT5': self.l5 = self.sensSett.text(); self.port_l5 = text_port; self.port_l5_b = text_port_b
+        elif text == 'LT6': self.l6 = self.sensSett.text(); self.port_l6 = text_port; self.port_l6_b = text_port_b
+        elif text == 'WT1': self.w1 = self.sensSett.text(); self.port_w1 = text_port; self.port_w1_b = text_port_b
+        elif text == 'WT2': self.w2 = self.sensSett.text(); self.port_w2 = text_port; self.port_w2_b = text_port_b
+        elif text == 'WT3': self.w3 = self.sensSett.text(); self.port_w3 = text_port; self.port_w3_b = text_port_b
+        elif text == 'WT4': self.w4 = self.sensSett.text(); self.port_w4 = text_port; self.port_w4_b = text_port_b
+        elif text == 'WT5': self.w5 = self.sensSett.text(); self.port_w5 = text_port; self.port_w5_b = text_port_b
+        elif text == 'WT6': self.w6 = self.sensSett.text(); self.port_w6 = text_port; self.port_w6_b = text_port_b
+        elif text == 'TEMP1': self.t1 = self.sensSett.text(); self.port_t1 = text_port; self.port_t1_b = text_port_b
+        elif text == 'TEMP2': self.t2 = self.sensSett.text(); self.port_t2 = text_port; self.port_t2_b = text_port_b
+        elif text == 'PRES1': self.p1 = self.sensSett.text(); self.port_p1 = text_port; self.port_p1_b = text_port_b
+        elif text == 'PRES2': self.p2 = self.sensSett.text(); self.port_p2 = text_port; self.port_p2_b = text_port_b
         elif text == 'None': self.sensSett.setText('')
         self.viewSens()
     #Просмотр привязки датчиков
     def viewSens(self):
         if self.station == 'UCFM':
-            self.sensView.setText('CL1 -  ' + self.c1 + '\n' +
-                                  'CL2 -  ' + self.c2 + '\n' +
-                                  'CL3 -  ' + self.c3 + '\n' +
-                                  'CL4 -  ' + self.c4 + '\n' +
-                                  'LT1 -  ' + self.l1 + '\n' +
-                                  'LT2 -  ' + self.l2 + '\n' +
-                                  'LT3 -  ' + self.l3 + '\n' +
-                                  'LT4 -  ' + self.l4 + '\n' +
-                                  'LT5 -  ' + self.l5 + '\n' +
-                                  'LT6 -  ' + self.l6 + '\n' +
-                                  'WT1 -  ' + self.w1 + '\n' +
-                                  'WT2 -  ' + self.w2 + '\n' +
-                                  'WT3 -  ' + self.w3 + '\n' +
-                                  'WT4 -  ' + self.w4 + '\n' +
-                                  'WT5 -  ' + self.w5 + '\n' +
-                                  'WT6 -  ' + self.w6 + '\n' +
-                                  'TEMP1 - ' + self.t1 + '\n' +
-                                  'TEMP2 - ' + self.t2 + '\n' +
-                                  'PRES1 - ' + self.p1 + '\n' +
-                                  'PRES2 - ' + self.p2 + '\n')
+            self.sensView.setText(
+                'CL1 -  ' + self.port_c1 + ' - ' + self.port_c1_b + ' - ' + self.c1 + '\n' +
+                'CL2 -  ' + self.port_c2 + ' - ' + self.port_c2_b + ' - ' + self.c2 + '\n' +
+                'CL3 -  ' + self.port_c3 + ' - ' + self.port_c3_b + ' - ' + self.c3 + '\n' +
+                'CL4 -  ' + self.port_c4 + ' - ' + self.port_c4_b + ' - ' + self.c4 + '\n' +
+                'LT1 -  ' + self.port_l1 + ' - ' + self.port_l1_b + ' - ' + self.l1 + '\n' +
+                'LT2 -  ' + self.port_l2 + ' - ' + self.port_l2_b + ' - ' + self.l2 + '\n' +
+                'LT3 -  ' + self.port_l3 + ' - ' + self.port_l3_b + ' - ' + self.l3 + '\n' +
+                'LT4 -  ' + self.port_l4 + ' - ' + self.port_l4_b + ' - ' + self.l4 + '\n' +
+                'LT5 -  ' + self.port_l5 + ' - ' + self.port_l5_b + ' - ' + self.l5 + '\n' +
+                'LT6 -  ' + self.port_l6 + ' - ' + self.port_l6_b + ' - ' + self.l6 + '\n' +
+                'WT1 -  ' + self.port_w1 + ' - ' + self.port_w1_b + ' - ' + self.w1 + '\n' +
+                'WT2 -  ' + self.port_w2 + ' - ' + self.port_w2_b + ' - ' + self.w2 + '\n' +
+                'WT3 -  ' + self.port_w3 + ' - ' + self.port_w3_b + ' - ' + self.w3 + '\n' +
+                'WT4 -  ' + self.port_w4 + ' - ' + self.port_w4_b + ' - ' + self.w4 + '\n' +
+                'WT5 -  ' + self.port_w5 + ' - ' + self.port_w5_b + ' - ' + self.w5 + '\n' +
+                'WT6 -  ' + self.port_w6 + ' - ' + self.port_w6_b + ' - ' + self.w6 + '\n' +
+                'TEMP1 - ' + self.port_t1 + ' - ' + self.port_t1_b + ' - ' + self.t1 + '\n' +
+                'TEMP2 - ' + self.port_t2 + ' - ' + self.port_t2_b + ' - ' + self.t2 + '\n' +
+                'PRES1 - ' + self.port_p1 + ' - ' + self.port_p1_b + ' - ' + self.p1 + '\n' +
+                'PRES2 - ' + self.port_p2 + ' - ' + self.port_p2_b + ' - ' + self.p2 + '\n'
+                )
         else:
-            self.sensView.setText('CL1 -  ' + self.c1 + '\n' +
-                                  'CL2 -  ' + self.c2 + '\n' +
-                                  'CL3 -  ' + self.c3 + '\n' +
-                                  'CL4 -  ' + self.c4 + '\n' +
-                                  'LT1 -  ' + self.l1 + '\n' +
-                                  'LT2 -  ' + self.l2 + '\n' +
-                                  'LT3 -  ' + self.l3 + '\n' +
-                                  'LT4 -  ' + self.l4 + '\n' +
-                                  'LT5 -  ' + self.l5 + '\n' +
-                                  'LT6 -  ' + self.l6 + '\n' +
-                                  'WT1 -  ' + self.w1 + '\n' +
-                                  'WT2 -  ' + self.w2 + '\n' +
-                                  'WT3 -  ' + self.w3 + '\n' +
-                                  'WT4 -  ' + self.w4 + '\n' +
-                                  'TEMP1 - ' + self.t1 + '\n' +
-                                  'TEMP2 - ' + self.t2 + '\n' +
-                                  'PRES1 - ' + self.p1 + '\n' +
-                                  'PRES2 - ' + self.p2 + '\n')
+            self.sensView.setText(
+                'CL1 -  ' + self.port_c1 + ' - ' + self.port_c1_b + ' - ' + self.c1 + '\n' +
+                'CL2 -  ' + self.port_c2 + ' - ' + self.port_c2_b + ' - ' + self.c2 + '\n' +
+                'CL3 -  ' + self.port_c3 + ' - ' + self.port_c3_b + ' - ' + self.c3 + '\n' +
+                'CL4 -  ' + self.port_c4 + ' - ' + self.port_c4_b + ' - ' + self.c4 + '\n' +
+                'LT1 -  ' + self.port_l1 + ' - ' + self.port_l1_b + ' - ' + self.l1 + '\n' +
+                'LT2 -  ' + self.port_l2 + ' - ' + self.port_l2_b + ' - ' + self.l2 + '\n' +
+                'LT3 -  ' + self.port_l3 + ' - ' + self.port_l3_b + ' - ' + self.l3 + '\n' +
+                'LT4 -  ' + self.port_l4 + ' - ' + self.port_l4_b + ' - ' + self.l4 + '\n' +
+                'LT5 -  ' + self.port_l5 + ' - ' + self.port_l5_b + ' - ' + self.l5 + '\n' +
+                'LT6 -  ' + self.port_l6 + ' - ' + self.port_l6_b + ' - ' + self.l6 + '\n' +
+                'WT1 -  ' + self.port_w1 + ' - ' + self.port_w1_b + ' - ' + self.w1 + '\n' +
+                'WT2 -  ' + self.port_w2 + ' - ' + self.port_w2_b + ' - ' + self.w2 + '\n' +
+                'WT3 -  ' + self.port_w3 + ' - ' + self.port_w3_b + ' - ' + self.w3 + '\n' +
+                'WT4 -  ' + self.port_w4 + ' - ' + self.port_w4_b + ' - ' + self.w4 + '\n' +
+                'TEMP1 - ' + self.port_t1 + ' - ' + self.port_t1_b + ' - ' + self.t1 + '\n' +
+                'TEMP2 - ' + self.port_t2 + ' - ' + self.port_t2_b + ' - ' + self.t2 + '\n' +
+                'PRES1 - ' + self.port_p1 + ' - ' + self.port_p1_b + ' - ' + self.p1 + '\n' +
+                'PRES2 - ' + self.port_p2 + ' - ' + self.port_p2_b + ' - ' + self.p2 + '\n'
+                                  )
     #Настройки запись
     def settWrite(self):
         #Читаем настройки программы из полей для записи в реестр
@@ -267,12 +367,63 @@ class SettingsInit(QtWidgets.QFrame):
         except Exception as e:
             Sens.logWrite(self, e)
             pass
+        #Пишем настройки COM в реестр
+        try:
+            aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
+            nKey = CreateKeyEx(aReg, r'Software\IRAM\MAINT\SERIAL', 0, KEY_ALL_ACCESS)
+            keyval = SetValueEx(nKey, 'CL1', 0, REG_SZ, self.port_c1)
+            keyval = SetValueEx(nKey, 'CL2', 0, REG_SZ, self.port_c2)
+            keyval = SetValueEx(nKey, 'CL3', 0, REG_SZ, self.port_c3)
+            keyval = SetValueEx(nKey, 'CL4', 0, REG_SZ, self.port_c4)
+            keyval = SetValueEx(nKey, 'LT1', 0, REG_SZ, self.port_l1)
+            keyval = SetValueEx(nKey, 'LT2', 0, REG_SZ, self.port_l2)
+            keyval = SetValueEx(nKey, 'LT3', 0, REG_SZ, self.port_l3)
+            keyval = SetValueEx(nKey, 'LT4', 0, REG_SZ, self.port_l4)
+            keyval = SetValueEx(nKey, 'LT5', 0, REG_SZ, self.port_l5)
+            keyval = SetValueEx(nKey, 'LT6', 0, REG_SZ, self.port_l6)
+            keyval = SetValueEx(nKey, 'WT1', 0, REG_SZ, self.port_w1)
+            keyval = SetValueEx(nKey, 'WT2', 0, REG_SZ, self.port_w2)
+            keyval = SetValueEx(nKey, 'WT3', 0, REG_SZ, self.port_w3)
+            keyval = SetValueEx(nKey, 'WT4', 0, REG_SZ, self.port_w4)
+            if self.station == 'UCFM':
+                keyval = SetValueEx(nKey, 'WT5', 0, REG_SZ, self.port_w5)
+                keyval = SetValueEx(nKey, 'WT6', 0, REG_SZ, self.port_w6)
+            keyval = SetValueEx(nKey, 'TEMP1', 0, REG_SZ, self.port_t1)
+            keyval = SetValueEx(nKey, 'TEMP2', 0, REG_SZ, self.port_t2)
+            keyval = SetValueEx(nKey, 'PRES1', 0, REG_SZ, self.port_p1)
+            keyval = SetValueEx(nKey, 'PRES2', 0, REG_SZ, self.port_p2)
+            #Настройки скорости
+            keyval = SetValueEx(nKey, 'CL1_baud', 0, REG_SZ, self.port_c1_b)
+            keyval = SetValueEx(nKey, 'CL2_baud', 0, REG_SZ, self.port_c2_b)
+            keyval = SetValueEx(nKey, 'CL3_baud', 0, REG_SZ, self.port_c3_b)
+            keyval = SetValueEx(nKey, 'CL4_baud', 0, REG_SZ, self.port_c4_b)
+            keyval = SetValueEx(nKey, 'LT1_baud', 0, REG_SZ, self.port_l1_b)
+            keyval = SetValueEx(nKey, 'LT2_baud', 0, REG_SZ, self.port_l2_b)
+            keyval = SetValueEx(nKey, 'LT3_baud', 0, REG_SZ, self.port_l3_b)
+            keyval = SetValueEx(nKey, 'LT4_baud', 0, REG_SZ, self.port_l4_b)
+            keyval = SetValueEx(nKey, 'LT5_baud', 0, REG_SZ, self.port_l5_b)
+            keyval = SetValueEx(nKey, 'LT6_baud', 0, REG_SZ, self.port_l6_b)
+            keyval = SetValueEx(nKey, 'WT1_baud', 0, REG_SZ, self.port_w1_b)
+            keyval = SetValueEx(nKey, 'WT2_baud', 0, REG_SZ, self.port_w2_b)
+            keyval = SetValueEx(nKey, 'WT3_baud', 0, REG_SZ, self.port_w3_b)
+            keyval = SetValueEx(nKey, 'WT4_baud', 0, REG_SZ, self.port_w4_b)
+            if self.station == 'UCFM':
+                keyval = SetValueEx(nKey, 'WT5_baud', 0, REG_SZ, self.port_w5_b)
+                keyval = SetValueEx(nKey, 'WT6_baud', 0, REG_SZ, self.port_w6_b)
+            keyval = SetValueEx(nKey, 'TEMP1_baud', 0, REG_SZ, self.port_t1_b)
+            keyval = SetValueEx(nKey, 'TEMP2_baud', 0, REG_SZ, self.port_t2_b)
+            keyval = SetValueEx(nKey, 'PRES1_baud', 0, REG_SZ, self.port_p1_b)
+            keyval = SetValueEx(nKey, 'PRES2_baud', 0, REG_SZ, self.port_p2_b)
+        except Exception as e:
+            Sens.logWrite(self, e)
+            pass
         aReg.Close()
         self.goWindow()
         self.stationSett.activated[str].disconnect()
         self.btnIramSett.accepted.disconnect()
         self.btnHelp.clicked.disconnect()
         self.sensAdd.clicked.disconnect()
+        self.serRun.clicked.disconnect()
 
     def stChange(self):
         self.station = self.stationSett.currentText()
@@ -301,6 +452,8 @@ class SettingsInit(QtWidgets.QFrame):
         if e.key() == Qt.Key_Escape:
             self.close()
 
+    def portInit(self):
+        subprocess.Popen(['Mserial.exe'])
 
 class Window(QtWidgets.QMainWindow):
     def __init__(self):
@@ -514,9 +667,8 @@ class Window(QtWidgets.QMainWindow):
             self.p1 = self.set.p1
             self.p2 = self.set.p2
         except Exception as e:
-            print(str(e))
+            Sens.logWrite(self, e)
             pass
-
     def goStart(self):
         self.pause = False
         self.start.setText("Пауза")
@@ -538,10 +690,12 @@ class Window(QtWidgets.QMainWindow):
     def statLT(self):
         self.s_list = list()
         if self.pause == False:
-            l1 = [self.LT1, self.LT2, self.LT3, self.LT4, self.LT5, self.LT6]
-            l2 = [self.l1, self.l2, self.l3, self.l4, self.l5, self.l6]
-            l3 = [self.LT1_v, self.LT2_v, self.LT3_v, self.LT4_v, self.LT5_v, self.LT6_v]
-            # self.s_list = list()
+            l1 = [self.LT1, self.LT2, self.LT3,
+                  self.LT4, self.LT5, self.LT6]
+            l2 = [self.l1, self.l2, self.l3,
+                  self.l4, self.l5, self.l6]
+            l3 = [self.LT1_v, self.LT2_v, self.LT3_v,
+                  self.LT4_v, self.LT5_v, self.LT6_v]
             for i in range(6):
                 self.LT_l = l1[i]
                 self.lt = l2[i]
@@ -624,16 +778,17 @@ class Window(QtWidgets.QMainWindow):
     def statWT(self):
         if self.pause == False:
             if self.set.station == 'UCFM':
-                l1 = [self.WT1, self.WT2, self.WT3, self.WT4, self.WT5, self.WT6]
-                l2 = [self.w1, self.w2, self.w3, self.w4, self.w5, self.w6]
-                l3 = [self.WT1_v, self.WT2_v, self.WT3_v, self.WT4_v, self.WT5_v, self.WT6_v]
-                r = 6
+                l1 = [self.WT1, self.WT2, self.WT3,
+                      self.WT4, self.WT5, self.WT6]
+                l2 = [self.w1, self.w2, self.w3,
+                      self.w4, self.w5, self.w6]
+                l3 = [self.WT1_v, self.WT2_v, self.WT3_v,
+                      self.WT4_v, self.WT5_v, self.WT6_v]
             else:
                 l1 = [self.WT1, self.WT2, self.WT3, self.WT4]
                 l2 = [self.w1, self.w2, self.w3, self.w4]
                 l3 = [self.WT1_v, self.WT2_v, self.WT3_v, self.WT4_v]
-                r = 4
-            for i in range(r):
+            for i in range(len(l2)):
                 self.WT_l = l1[i]
                 self.wt = l2[i]
                 self.WT_v = l3[i]
@@ -771,10 +926,10 @@ class Window(QtWidgets.QMainWindow):
                 repW = "Вкл"
             else:
                 repW = "Откл"
-            if self.logW == '2' or self.logW == '1':
-                logW = "Вкл"
-            else:
-                logW ="Откл"
+            # if self.logW == '2' or self.logW == '1':
+            #     logW = "Вкл"
+            # else:
+            #     logW ="Откл"
             if self.av6W == '2' or self.av6W == '1':
                 av6W = "Вкл"
                 av_info = ("  ( " + self.av_path + "      " + self.av_time1[:2]
@@ -782,11 +937,11 @@ class Window(QtWidgets.QMainWindow):
             else:
                 av6W ="Откл"
                 av_info = "              "
-            self.bar.showMessage("Рабочий каталог:  " + self.iram +
-            "          Время ожидания файла:  " + str(self.dur) + " мин."
-            + "     Время обновления:  " + str(self.tTimer)[:-3] + " сек."
-            + "       Отчет: " + repW + "      Лог: " + logW + "      Sens: " + sensW
-            + "               AB6:  " + av6W + av_info)
+            self.bar.showMessage("Рабочий каталог: " + self.iram
+            + "                                Время ожидания файла:  "
+            + str(self.dur) + " мин." + "      Время обновления:    "
+            + str(self.tTimer)[:-3] + " сек." + "       Отчет: " + repW
+            + "      Sens: " + sensW  + "               AB6:  " + av6W + av_info)
             self.dtime.setText(self.t)
             QTimer().singleShot(1000, self.dtimeTick)
         else:
@@ -816,7 +971,7 @@ class Window(QtWidgets.QMainWindow):
                     for s in sens:
                         f_sens.write("%s\n" % s)
             except Exception as e:
-                self.LOGs = str(e)
+                Sens.logWrite(self, e)
                 pass
 
     def keyPressEvent(self, e):
