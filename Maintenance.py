@@ -529,12 +529,14 @@ class Window(QtWidgets.QMainWindow):
         self.dtimeTick()
         #Запуск основного процесса
         self.statLT()
+
     def statPause(self):
         self.pause = True
         self.start.setText("Пуск")
         self.start.setStyleSheet(self.red)
         self.start.clicked.disconnect()
         self.start.clicked.connect(self.goStart)
+
     def statLT(self):
         self.s_list = list()
         if self.pause == False:
@@ -579,6 +581,7 @@ class Window(QtWidgets.QMainWindow):
             self.info2.setText("Остановлено")
             self.info2.setStyleSheet(self.red)
             pass
+
     def statCL(self):
         if self.pause == False:
             l1 = [self.CL1, self.CL2, self.CL3, self.CL4]
@@ -621,6 +624,7 @@ class Window(QtWidgets.QMainWindow):
             self.info2.setText("Остановлено")
             self.info2.setStyleSheet(self.red)
             pass
+
     def statWT(self):
         if self.pause == False:
             if self.set.station == 'UCFM':
@@ -665,6 +669,7 @@ class Window(QtWidgets.QMainWindow):
             self.info2.setText("Остановлено")
             self.info2.setStyleSheet(self.red)
             pass
+
     def statTemp(self):
         if self.pause == False:
             l1 = [self.t1, self.t2, self.p1, self.p2]
@@ -683,10 +688,12 @@ class Window(QtWidgets.QMainWindow):
             self.info2.setText("Остановлено")
             self.info2.setStyleSheet(self.red)
             pass
+
     def sndplay(self):
         mixer.init()
         mixer.music.load(self.snd)
         mixer.music.play()
+
     def muteLT(self, m):
         b = [self.btnLT1, self.btnLT2, self.btnLT3, self.btnLT4, self.btnLT5, self.btnLT6]
         b = b[m]
@@ -694,6 +701,7 @@ class Window(QtWidgets.QMainWindow):
         b.clicked.disconnect()
         b.clicked.connect(lambda: self.unmuteLT(m))
         self.ml[m] = 1
+
     def unmuteLT(self, m):
         b = [self.btnLT1, self.btnLT2, self.btnLT3, self.btnLT4, self.btnLT5, self.btnLT6]
         b = b[m]
@@ -701,6 +709,7 @@ class Window(QtWidgets.QMainWindow):
         b.clicked.disconnect()
         b.clicked.connect(lambda: self.muteLT(m))
         self.ml[m] = 0
+
     def muteCL(self, m):
         b = [self.btnCL1, self.btnCL2, self.btnCL3, self.btnCL4]
         b = b[m]
@@ -708,6 +717,7 @@ class Window(QtWidgets.QMainWindow):
         b.clicked.disconnect()
         b.clicked.connect(lambda: self.unmuteCL(m))
         self.mc[m] = 1
+
     def unmuteCL(self, m):
         b = [self.btnCL1, self.btnCL2, self.btnCL3, self.btnCL4]
         b = b[m]
@@ -715,6 +725,7 @@ class Window(QtWidgets.QMainWindow):
         b.clicked.disconnect()
         b.clicked.connect(lambda: self.muteCL(m))
         self.mc[m] = 0
+
     def muteWT(self, m):
         if self.set.station == 'UCFM':
             b = [self.btnWT1, self.btnWT2, self.btnWT3, self.btnWT4, self.btnWT5, self.btnWT6]
@@ -724,6 +735,7 @@ class Window(QtWidgets.QMainWindow):
         b.clicked.disconnect()
         b.clicked.connect(lambda: self.unmuteWT(m))
         self.mw[m] = 1
+
     def unmuteWT(self, m):
         if self.set.station == 'UCFM':
             b = [self.btnWT1, self.btnWT2, self.btnWT3, self.btnWT4, self.btnWT5, self.btnWT6]
@@ -733,6 +745,7 @@ class Window(QtWidgets.QMainWindow):
         b.clicked.disconnect()
         b.clicked.connect(lambda: self.muteWT(m))
         self.mw[m] = 0
+
     def muteALL(self):
         for m in range(6):
             self.muteLT(m)
@@ -745,6 +758,7 @@ class Window(QtWidgets.QMainWindow):
             self.muteWT(m)
         self.btn.clicked.disconnect()
         self.btn.clicked.connect(self.unmuteALL)
+
     def unmuteALL(self):
         for m in range(6):
             self.unmuteLT(m)
@@ -757,6 +771,7 @@ class Window(QtWidgets.QMainWindow):
             self.unmuteWT(m)
         self.btn.clicked.disconnect()
         self.btn.clicked.connect(self.muteALL)
+        
     def dtimeTick(self):
         if self.pause == False:
             self.t = datetime.strftime(datetime.now(), "%d-%m-%y  %H:%M:%S")
