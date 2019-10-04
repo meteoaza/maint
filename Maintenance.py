@@ -1,18 +1,19 @@
 import subprocess, sys, os, time
-from datetime import datetime
-from Maintenance_main import Sens, Av6
-from pygame import mixer
 from winreg import *
+from pygame import mixer
+from datetime import datetime
+from datetime import timedelta
+from shutil import copyfile as cp
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QTimer, Qt
 from Maintenance_design_manas import Ui_MainWindow as MainWindowManas
 from Maintenance_design_osh import Ui_MainWindow as MainWindowOsh
-from Settings import Ui_Settings
-from About import Ui_AboutFrame
+from Settings_design import Ui_Settings
+from About_design import Ui_AboutFrame
 
 
 global ver
-ver = '1.9'
+ver = '2.0'
 
 class SettingsInit(QtWidgets.QFrame):
 
@@ -28,8 +29,6 @@ class SettingsInit(QtWidgets.QFrame):
         self.TimerSett = self.ui.lineTimer
         self.av_Sett = self.ui.lineAV6
         self.sensList = self.ui.boxSensors
-        self.comList = self.ui.boxCom
-        self.baudList = self.ui.boxBaud
         self.sensSett = self.ui.lineSensors
         self.sensAdd = self.ui.buttSensors
         self.serRun = self.ui.buttSerial
@@ -44,187 +43,63 @@ class SettingsInit(QtWidgets.QFrame):
         self.btnHelp = self.ui.buttHelp
         #Список станций в настройках
         self.stationSett.addItems([' ', 'UCFM', 'UCFO'])
+        #Запускаем Чтение настроек
         self.settRead()
-    #Настройки чтение
+
     def settRead(self):
         self.stationSett.activated[str].connect(self.stChange)
+        self.set = {
+        'STATION': 'UCFM', 'PATH': 'y:\\tek\\dat_sens\\',
+        'SOUND': 'd:\\IRAM\\KRAMS_DAT\\WAV\\Srok1M.WAV',
+        'DUR': '1', 'REFRESH': '3', 'AV_P': 'Y:\\', 'SENS_W': '0',
+        'REP': '2', 'LOG': '0', 'AV_W': '2', 'AV_T1': '00', 'AV_T2': '30'
+        }
         #Читаем настройки программы
         aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
         try:
             rKey = OpenKey(aReg, r"Software\IRAM\MAINT\SETT")
-            self.station = QueryValueEx(rKey, 'STATION')[0]
-            self.iram = QueryValueEx(rKey, 'PATH')[0]
-            self.snd = QueryValueEx(rKey, 'SOUND')[0]
-            self.dur = QueryValueEx(rKey, 'DUR')[0]
-            self.tTimer = QueryValueEx(rKey, 'REFRESH')[0]
-            self.av_path = QueryValueEx(rKey, 'AV_P')[0]
-            self.sensW = QueryValueEx(rKey, 'SENS_W')[0]
-            self.repW = QueryValueEx(rKey, 'REP')[0]
-            self.logW = QueryValueEx(rKey, 'LOG')[0]
-            self.av6W = QueryValueEx(rKey, 'AV_W')[0]
-            self.av_time1 = QueryValueEx(rKey, 'AV_T1')[0]
-            self.av_time2 = QueryValueEx(rKey, 'AV_T2')[0]
+            for k, v in self.set.items():
+                v = QueryValueEx(rKey, k)[0]
+                self.set[k] = v
         except (ValueError, FileNotFoundError)as e:
             Sens.logWrite(self, e)
-            self.iram = r"d:\IRAM"
-            self.snd = r"d:\IRAM\KRAMS_DAT\WAV\Srok1M.WAV"
-            self.dur = "1"
-            self.tTimer = "3"
-            self.av_path = r'd:\IRAM'
-            self.sensW = "0"
-            self.repW = "0"
-            self.logW = "0"
-            self.av6W = "0"
-            self.av_time1 = "00"
-            self.av_time2 = "30"
+            print(str(e))
             pass
-        #Список датчиков и СОМ портов в настройках
+        self.sens_list = [
+        'LT1', 'LT2', 'LT3', 'LT4', 'LT5', 'LT6', 'CL1', 'CL2', 'CL3', 'CL4',
+        'WT1', 'WT2', 'WT3', 'WT4', 'TEMP1', 'TEMP2', 'PRES1', 'PRES2'
+        ]
+        if  self.set['STATION'] == 'UCFM':
+            self.sens_list.insert(14, 'WT5')
+            self.sens_list.insert(15, 'WT6')
+        self.sens = dict.fromkeys(self.sens_list)
         try:
-            if self.station == 'UCFM':
-                self.s_list = [
-                    'None', 'CL1', 'CL2', 'CL3', 'CL4', 'LT1', 'LT2',
-                    'LT3', 'LT4', 'LT5', 'LT6', 'WT1', 'WT2', 'WT3',
-                    'WT4', 'WT5', 'WT6', 'TEMP1', 'TEMP2', 'PRES1', 'PRES2']
-                self.com_list = [
-                    'None', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5',
-                    'COM6', 'COM7', 'COM8', 'COM9', 'COM10', 'COM11',
-                    'COM12', 'COM13', 'COM14', 'COM15', 'COM16', 'COM17',
-                    'COM18', 'COM19', 'COM20', 'COM21', 'COM22', 'COM23',
-                    'COM24', 'COM25', 'COM26', 'COM27', 'COM28', 'COM29',
-                    'COM30', 'COM31', 'COM32']
-                self.baud_list = ['300', '1200', '4800', '9600']
-            elif self.station == 'UCFO':
-                self.s_list = ['None', 'CL1', 'CL2', 'CL3', 'CL4', 'LT1', 'LT2',
-                           'LT3', 'LT4', 'LT5', 'LT6', 'WT1', 'WT2',
-                           'WT3', 'WT4', 'TEMP1', 'TEMP2', 'PRES1', 'PRES2']
-                self.com_list = [
-                    'None', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5',
-                    'COM6', 'COM7', 'COM8', 'COM9', 'COM10', 'COM11',
-                    'COM12', 'COM13', 'COM14', 'COM15', 'COM16', 'COM17',
-                    'COM18', 'COM19', 'COM20', 'COM21', 'COM22', 'COM23',
-                    'COM24', 'COM25', 'COM26', 'COM27', 'COM28', 'COM29',
-                    'COM30', 'COM31', 'COM32']
-                self.baud_list = ['300', '1200', '4800', '9600']
-            else:
-                self.s_list = ['None']
-                self.com_list = ['None']
-                self.baud_list = ['None']
-            self.sensList.addItems(self.s_list)
-            self.comList.addItems(self.com_list)
-            self.baudList.addItems(self.baud_list)
+            self.sensList.addItems([' ', *self.sens])
         except Exception as e:
             Sens.logWrite(self, e)
-            self.station = '----'
+            self.set['STATION'] = '----'
         #Читаем настройки датчиков
         try:
             rKey = OpenKey(aReg, r"Software\IRAM\MAINT\SENS")
-            self.c1 = QueryValueEx(rKey, 'CL1')[0]
-            self.c2 = QueryValueEx(rKey, 'CL2')[0]
-            self.c3 = QueryValueEx(rKey, 'CL3')[0]
-            self.c4 = QueryValueEx(rKey, 'CL4')[0]
-            self.l1 = QueryValueEx(rKey, 'LT1')[0]
-            self.l2 = QueryValueEx(rKey, 'LT2')[0]
-            self.l3 = QueryValueEx(rKey, 'LT3')[0]
-            self.l4 = QueryValueEx(rKey, 'LT4')[0]
-            self.l5 = QueryValueEx(rKey, 'LT5')[0]
-            self.l6 = QueryValueEx(rKey, 'LT6')[0]
-            self.w1 = QueryValueEx(rKey, 'WT1')[0]
-            self.w2 = QueryValueEx(rKey, 'WT2')[0]
-            self.w3 = QueryValueEx(rKey, 'WT3')[0]
-            self.w4 = QueryValueEx(rKey, 'WT4')[0]
-            if self.station == 'UCFM':
-                self.w5 = QueryValueEx(rKey, 'WT5')[0]
-                self.w6 = QueryValueEx(rKey, 'WT6')[0]
-            self.t1 = QueryValueEx(rKey, 'TEMP1')[0]
-            self.t2 = QueryValueEx(rKey, 'TEMP2')[0]
-            self.p1 = QueryValueEx(rKey, 'PRES1')[0]
-            self.p2 = QueryValueEx(rKey, 'PRES2')[0]
+            for k, v in self.sens.items():
+                v = QueryValueEx(rKey, k)[0]
+                self.sens[k] = v
         except Exception as e:
             Sens.logWrite(self, e)
-            self.c1 = self.c2 = self.c3 = self.c4 = 'None'
-            self.l1 = self.l2 = self.l3 = self.l4 = self.l5 = self.l6 = 'None'
-            self.w1 = self.w2 = self.w3 = self.w4 = 'None'
-            if self.station == 'UCFM':
-                self.w5 = self.w6 = 'None'
-            self.t1 = self.t2 = self.p1 = self.p2 = 'None'
             pass
-        #Читаем настройки СОМ портов
-        try:
-            rKey = OpenKey(aReg, r"Software\IRAM\MAINT\SERIAL")
-            self.port_c1 = QueryValueEx(rKey, 'CL1')[0]
-            self.port_c2 = QueryValueEx(rKey, 'CL2')[0]
-            self.port_c3 = QueryValueEx(rKey, 'CL3')[0]
-            self.port_c4 = QueryValueEx(rKey, 'CL4')[0]
-            self.port_l1 = QueryValueEx(rKey, 'LT1')[0]
-            self.port_l2 = QueryValueEx(rKey, 'LT2')[0]
-            self.port_l3 = QueryValueEx(rKey, 'LT3')[0]
-            self.port_l4 = QueryValueEx(rKey, 'LT4')[0]
-            self.port_l5 = QueryValueEx(rKey, 'LT5')[0]
-            self.port_l6 = QueryValueEx(rKey, 'LT6')[0]
-            self.port_w1 = QueryValueEx(rKey, 'WT1')[0]
-            self.port_w2 = QueryValueEx(rKey, 'WT2')[0]
-            self.port_w3 = QueryValueEx(rKey, 'WT3')[0]
-            self.port_w4 = QueryValueEx(rKey, 'WT4')[0]
-            if self.station == 'UCFM':
-                self.port_w5 = QueryValueEx(rKey, 'WT5')[0]
-                self.port_w6 = QueryValueEx(rKey, 'WT6')[0]
-            self.port_t1 = QueryValueEx(rKey, 'TEMP1')[0]
-            self.port_t2 = QueryValueEx(rKey, 'TEMP2')[0]
-            self.port_p1 = QueryValueEx(rKey, 'PRES1')[0]
-            self.port_p2 = QueryValueEx(rKey, 'PRES2')[0]
-            #Читаем настройки скорости СОМ
-            self.port_c1_b = QueryValueEx(rKey, 'CL1_baud')[0]
-            self.port_c2_b = QueryValueEx(rKey, 'CL2_baud')[0]
-            self.port_c3_b = QueryValueEx(rKey, 'CL3_baud')[0]
-            self.port_c4_b = QueryValueEx(rKey, 'CL4_baud')[0]
-            self.port_l1_b = QueryValueEx(rKey, 'LT1_baud')[0]
-            self.port_l2_b = QueryValueEx(rKey, 'LT2_baud')[0]
-            self.port_l3_b = QueryValueEx(rKey, 'LT3_baud')[0]
-            self.port_l4_b = QueryValueEx(rKey, 'LT4_baud')[0]
-            self.port_l5_b = QueryValueEx(rKey, 'LT5_baud')[0]
-            self.port_l6_b = QueryValueEx(rKey, 'LT6_baud')[0]
-            self.port_w1_b = QueryValueEx(rKey, 'WT1_baud')[0]
-            self.port_w2_b = QueryValueEx(rKey, 'WT2_baud')[0]
-            self.port_w3_b = QueryValueEx(rKey, 'WT3_baud')[0]
-            self.port_w4_b = QueryValueEx(rKey, 'WT4_baud')[0]
-            if self.station == 'UCFM':
-                self.port_w5_b = QueryValueEx(rKey, 'WT5_baud')[0]
-                self.port_w6_b = QueryValueEx(rKey, 'WT6_baud')[0]
-            self.port_t1_b = QueryValueEx(rKey, 'TEMP1_baud')[0]
-            self.port_t2_b = QueryValueEx(rKey, 'TEMP2_baud')[0]
-            self.port_p1_b = QueryValueEx(rKey, 'PRES1_baud')[0]
-            self.port_p2_b = QueryValueEx(rKey, 'PRES2_baud')[0]
-        except Exception as e:
-            Sens.logWrite(self, e)
-            self.port_c1 = self.port_c2 = self.port_c3 = self.port_c4 = 'None'
-            self.port_l1 = self.port_l2 = self.port_l3 = self.port_l4 = 'None'
-            self.port_l5 = self.port_l6 = 'None'
-            self.port_w1 = self.port_w2 = self.port_w3 = self.port_w4 = 'None'
-            if self.station == 'UCFM':
-                self.port_w5 = self.port_w6 = 'None'
-            self.port_t1 = self.port_t2 = self.port_p1 = self.port_p2 = 'None'
-            self.port_c1_b = self.port_c2_b = self.port_c3_b = self.port_c4_b = '300'
-            self.port_l1_b = self.port_l2_b = self.port_l3_b = self.port_l4_b = '300'
-            self.port_l5_b = self.port_l6_b = '300'
-            self.port_w1_b = self.port_w2_b = self.port_w3_b = self.port_w4_b = '300'
-            if self.station == 'UCFM':
-                self.port_w5_b = self.port_w6_b = '300'
-            self.port_t1_b = self.port_t2_b = self.port_p1_b = self.port_p2_b = '300b'
-            pass
-        aReg.Close()
         #Выводим текст настроек в Settings
-        self.stInd.setText(self.station)
-        self.iram_Sett.setText(self.iram)
-        self.snd_Sett.setText(self.snd)
-        self.FileTSett.setText(self.dur)
-        self.TimerSett.setText(self.tTimer)
-        self.av_Sett.setText(self.av_path)
-        self.checkSensW.setCheckState(int(self.sensW))
-        self.checkRepW.setCheckState(int(self.repW))
-        self.checkLogW.setCheckState(int(self.logW))
-        self.checkAv6.setCheckState(int(self.av6W))
-        self.av_Time1.setText(self.av_time1)
-        self.av_Time2.setText(self.av_time2)
+        self.stInd.setText(self.set['STATION'])
+        self.iram_Sett.setText(self.set['PATH'])
+        self.snd_Sett.setText(self.set['SOUND'])
+        self.FileTSett.setText(self.set['DUR'])
+        self.TimerSett.setText(self.set['REFRESH'])
+        self.av_Sett.setText(self.set['AV_P'])
+        self.checkSensW.setCheckState(int(self.set['SENS_W']))
+        self.checkRepW.setCheckState(int(self.set['REP']))
+        self.checkLogW.setCheckState(int(self.set['LOG']))
+        self.checkAv6.setCheckState(int(self.set['AV_W']))
+        self.av_Time1.setText(self.set['AV_T1'])
+        self.av_Time2.setText(self.set['AV_T2'])
         #Привязка кнопок
         self.btnIramSett.accepted.connect(self.settWrite)
         self.btnIramSett.rejected.connect(lambda: self.close())
@@ -235,107 +110,37 @@ class SettingsInit(QtWidgets.QFrame):
     #Привязка датчиков
     def settSens(self):
         text = self.sensList.currentText()
-        text_port = self.comList.currentText()
-        text_port_b = self.baudList.currentText()
-        if text == 'CL1': self.c1 = self.sensSett.text(); self.port_c1 = text_port; self.port_c1_b = text_port_b
-        elif text == 'CL2': self.c2 = self.sensSett.text(); self.port_c2 = text_port; self.port_c2_b = text_port_b
-        elif text == 'CL3': self.c3 = self.sensSett.text(); self.port_c3 = text_port; self.port_c3_b = text_port_b
-        elif text == 'CL4': self.c4 = self.sensSett.text(); self.port_c4 = text_port; self.port_c4_b = text_port_b
-        elif text == 'LT1': self.l1 = self.sensSett.text(); self.port_l1 = text_port; self.port_l1_b = text_port_b
-        elif text == 'LT2': self.l2 = self.sensSett.text(); self.port_l2 = text_port; self.port_l2_b = text_port_b
-        elif text == 'LT3': self.l3 = self.sensSett.text(); self.port_l3 = text_port; self.port_l3_b = text_port_b
-        elif text == 'LT4': self.l4 = self.sensSett.text(); self.port_l4 = text_port; self.port_l4_b = text_port_b
-        elif text == 'LT5': self.l5 = self.sensSett.text(); self.port_l5 = text_port; self.port_l5_b = text_port_b
-        elif text == 'LT6': self.l6 = self.sensSett.text(); self.port_l6 = text_port; self.port_l6_b = text_port_b
-        elif text == 'WT1': self.w1 = self.sensSett.text(); self.port_w1 = text_port; self.port_w1_b = text_port_b
-        elif text == 'WT2': self.w2 = self.sensSett.text(); self.port_w2 = text_port; self.port_w2_b = text_port_b
-        elif text == 'WT3': self.w3 = self.sensSett.text(); self.port_w3 = text_port; self.port_w3_b = text_port_b
-        elif text == 'WT4': self.w4 = self.sensSett.text(); self.port_w4 = text_port; self.port_w4_b = text_port_b
-        elif text == 'WT5': self.w5 = self.sensSett.text(); self.port_w5 = text_port; self.port_w5_b = text_port_b
-        elif text == 'WT6': self.w6 = self.sensSett.text(); self.port_w6 = text_port; self.port_w6_b = text_port_b
-        elif text == 'TEMP1': self.t1 = self.sensSett.text(); self.port_t1 = text_port; self.port_t1_b = text_port_b
-        elif text == 'TEMP2': self.t2 = self.sensSett.text(); self.port_t2 = text_port; self.port_t2_b = text_port_b
-        elif text == 'PRES1': self.p1 = self.sensSett.text(); self.port_p1 = text_port; self.port_p1_b = text_port_b
-        elif text == 'PRES2': self.p2 = self.sensSett.text(); self.port_p2 = text_port; self.port_p2_b = text_port_b
-        elif text == 'None': self.sensSett.setText('')
+        for k, v in self.sens.items():
+            if text == k: v = self.sensSett.text()
+            self.sens[k] = v
         self.viewSens()
     #Просмотр привязки датчиков
     def viewSens(self):
-        if self.station == 'UCFM':
-            self.sensView.setText(
-                'CL1 -  ' + self.port_c1 + ' - ' + self.port_c1_b + ' - ' + self.c1 + '\n' +
-                'CL2 -  ' + self.port_c2 + ' - ' + self.port_c2_b + ' - ' + self.c2 + '\n' +
-                'CL3 -  ' + self.port_c3 + ' - ' + self.port_c3_b + ' - ' + self.c3 + '\n' +
-                'CL4 -  ' + self.port_c4 + ' - ' + self.port_c4_b + ' - ' + self.c4 + '\n' +
-                'LT1 -  ' + self.port_l1 + ' - ' + self.port_l1_b + ' - ' + self.l1 + '\n' +
-                'LT2 -  ' + self.port_l2 + ' - ' + self.port_l2_b + ' - ' + self.l2 + '\n' +
-                'LT3 -  ' + self.port_l3 + ' - ' + self.port_l3_b + ' - ' + self.l3 + '\n' +
-                'LT4 -  ' + self.port_l4 + ' - ' + self.port_l4_b + ' - ' + self.l4 + '\n' +
-                'LT5 -  ' + self.port_l5 + ' - ' + self.port_l5_b + ' - ' + self.l5 + '\n' +
-                'LT6 -  ' + self.port_l6 + ' - ' + self.port_l6_b + ' - ' + self.l6 + '\n' +
-                'WT1 -  ' + self.port_w1 + ' - ' + self.port_w1_b + ' - ' + self.w1 + '\n' +
-                'WT2 -  ' + self.port_w2 + ' - ' + self.port_w2_b + ' - ' + self.w2 + '\n' +
-                'WT3 -  ' + self.port_w3 + ' - ' + self.port_w3_b + ' - ' + self.w3 + '\n' +
-                'WT4 -  ' + self.port_w4 + ' - ' + self.port_w4_b + ' - ' + self.w4 + '\n' +
-                'WT5 -  ' + self.port_w5 + ' - ' + self.port_w5_b + ' - ' + self.w5 + '\n' +
-                'WT6 -  ' + self.port_w6 + ' - ' + self.port_w6_b + ' - ' + self.w6 + '\n' +
-                'TEMP1 - ' + self.port_t1 + ' - ' + self.port_t1_b + ' - ' + self.t1 + '\n' +
-                'TEMP2 - ' + self.port_t2 + ' - ' + self.port_t2_b + ' - ' + self.t2 + '\n' +
-                'PRES1 - ' + self.port_p1 + ' - ' + self.port_p1_b + ' - ' + self.p1 + '\n' +
-                'PRES2 - ' + self.port_p2 + ' - ' + self.port_p2_b + ' - ' + self.p2 + '\n'
-                )
-        else:
-            self.sensView.setText(
-                'CL1 -  ' + self.port_c1 + ' - ' + self.port_c1_b + ' - ' + self.c1 + '\n' +
-                'CL2 -  ' + self.port_c2 + ' - ' + self.port_c2_b + ' - ' + self.c2 + '\n' +
-                'CL3 -  ' + self.port_c3 + ' - ' + self.port_c3_b + ' - ' + self.c3 + '\n' +
-                'CL4 -  ' + self.port_c4 + ' - ' + self.port_c4_b + ' - ' + self.c4 + '\n' +
-                'LT1 -  ' + self.port_l1 + ' - ' + self.port_l1_b + ' - ' + self.l1 + '\n' +
-                'LT2 -  ' + self.port_l2 + ' - ' + self.port_l2_b + ' - ' + self.l2 + '\n' +
-                'LT3 -  ' + self.port_l3 + ' - ' + self.port_l3_b + ' - ' + self.l3 + '\n' +
-                'LT4 -  ' + self.port_l4 + ' - ' + self.port_l4_b + ' - ' + self.l4 + '\n' +
-                'LT5 -  ' + self.port_l5 + ' - ' + self.port_l5_b + ' - ' + self.l5 + '\n' +
-                'LT6 -  ' + self.port_l6 + ' - ' + self.port_l6_b + ' - ' + self.l6 + '\n' +
-                'WT1 -  ' + self.port_w1 + ' - ' + self.port_w1_b + ' - ' + self.w1 + '\n' +
-                'WT2 -  ' + self.port_w2 + ' - ' + self.port_w2_b + ' - ' + self.w2 + '\n' +
-                'WT3 -  ' + self.port_w3 + ' - ' + self.port_w3_b + ' - ' + self.w3 + '\n' +
-                'WT4 -  ' + self.port_w4 + ' - ' + self.port_w4_b + ' - ' + self.w4 + '\n' +
-                'TEMP1 - ' + self.port_t1 + ' - ' + self.port_t1_b + ' - ' + self.t1 + '\n' +
-                'TEMP2 - ' + self.port_t2 + ' - ' + self.port_t2_b + ' - ' + self.t2 + '\n' +
-                'PRES1 - ' + self.port_p1 + ' - ' + self.port_p1_b + ' - ' + self.p1 + '\n' +
-                'PRES2 - ' + self.port_p2 + ' - ' + self.port_p2_b + ' - ' + self.p2 + '\n'
-                                  )
-    #Настройки запись
+        self.sensView.setText('')
+        for k, v in self.sens.items():
+            self.sensView.append(str(k) + '\t ---- \t '  + str(v))
+    #Запись настроек в реестр
     def settWrite(self):
         #Читаем настройки программы из полей для записи в реестр
-        self.station = self.stInd.text()
-        self.iram = self.iram_Sett.text()
-        self.snd = self.snd_Sett.text()
-        self.dur = self.FileTSett.text()
-        self.tTimer = self.TimerSett.text()
-        self.av_path = self.av_Sett.text()
-        self.sensW =str(self.checkSensW.checkState())
-        self.repW = str(self.checkRepW.checkState())
-        self.logW = str(self.checkLogW.checkState())
-        self.av6W = str(self.checkAv6.checkState())
-        self.av_time1 = self.av_Time1.text()
-        self.av_time2 = self.av_Time2.text()
+        self.set['STATION'] = self.stInd.text()
+        self.set['PATH'] = self.iram_Sett.text()
+        self.set['SOUND'] = self.snd_Sett.text()
+        self.set['DUR'] = self.FileTSett.text()
+        self.set['REFRESH'] = self.TimerSett.text()
+        self.set['AV_P'] = self.av_Sett.text()
+        self.set['SENS_W'] =str(self.checkSensW.checkState())
+        self.set['REP'] = str(self.checkRepW.checkState())
+        self.set['LOG'] = str(self.checkLogW.checkState())
+        self.set['AV_W'] = str(self.checkAv6.checkState())
+        self.set['AV_T1'] = self.av_Time1.text()
+        self.set['AV_T2'] = self.av_Time2.text()
         #Пишем настройки программы в реестр
         aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
         try:
             nKey = CreateKeyEx(aReg, r'Software\IRAM\MAINT\SETT', 0, KEY_ALL_ACCESS)
-            keyval = SetValueEx(nKey, 'STATION', 0, REG_SZ, self.station)
-            keyval = SetValueEx(nKey, 'PATH', 0, REG_SZ, self.iram)
-            keyval = SetValueEx(nKey, 'SOUND', 0, REG_SZ, self.snd)
-            keyval = SetValueEx(nKey, 'DUR', 0, REG_SZ, self.dur)
-            keyval = SetValueEx(nKey, 'REFRESH', 0, REG_SZ, self.tTimer)
-            keyval = SetValueEx(nKey, 'AV_P', 0, REG_SZ, self.av_path)
-            keyval = SetValueEx(nKey, 'SENS_W', 0, REG_SZ, self.sensW)
-            keyval = SetValueEx(nKey, 'REP', 0, REG_SZ, self.repW)
-            keyval = SetValueEx(nKey, 'LOG', 0, REG_SZ, self.logW)
-            keyval = SetValueEx(nKey, 'AV_W', 0, REG_SZ, self.av6W)
-            keyval = SetValueEx(nKey, 'AV_T1', 0, REG_SZ, self.av_time1)
-            keyval = SetValueEx(nKey, 'AV_T2', 0, REG_SZ, self.av_time2)
+            for k, v in self.set.items():
+                keyval = SetValueEx(nKey, k, 0, REG_SZ, v)
+                self.set[k] = v
         except Exception as e:
             Sens.logWrite(self, e)
             pass
@@ -343,77 +148,11 @@ class SettingsInit(QtWidgets.QFrame):
         try:
             aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
             nKey = CreateKeyEx(aReg, r'Software\IRAM\MAINT\SENS', 0, KEY_ALL_ACCESS)
-            keyval = SetValueEx(nKey, 'CL1', 0, REG_SZ, self.c1)
-            keyval = SetValueEx(nKey, 'CL2', 0, REG_SZ, self.c2)
-            keyval = SetValueEx(nKey, 'CL3', 0, REG_SZ, self.c3)
-            keyval = SetValueEx(nKey, 'CL4', 0, REG_SZ, self.c4)
-            keyval = SetValueEx(nKey, 'LT1', 0, REG_SZ, self.l1)
-            keyval = SetValueEx(nKey, 'LT2', 0, REG_SZ, self.l2)
-            keyval = SetValueEx(nKey, 'LT3', 0, REG_SZ, self.l3)
-            keyval = SetValueEx(nKey, 'LT4', 0, REG_SZ, self.l4)
-            keyval = SetValueEx(nKey, 'LT5', 0, REG_SZ, self.l5)
-            keyval = SetValueEx(nKey, 'LT6', 0, REG_SZ, self.l6)
-            keyval = SetValueEx(nKey, 'WT1', 0, REG_SZ, self.w1)
-            keyval = SetValueEx(nKey, 'WT2', 0, REG_SZ, self.w2)
-            keyval = SetValueEx(nKey, 'WT3', 0, REG_SZ, self.w3)
-            keyval = SetValueEx(nKey, 'WT4', 0, REG_SZ, self.w4)
-            if self.station == 'UCFM':
-                keyval = SetValueEx(nKey, 'WT5', 0, REG_SZ, self.w5)
-                keyval = SetValueEx(nKey, 'WT6', 0, REG_SZ, self.w6)
-            keyval = SetValueEx(nKey, 'TEMP1', 0, REG_SZ, self.t1)
-            keyval = SetValueEx(nKey, 'TEMP2', 0, REG_SZ, self.t2)
-            keyval = SetValueEx(nKey, 'PRES1', 0, REG_SZ, self.p1)
-            keyval = SetValueEx(nKey, 'PRES2', 0, REG_SZ, self.p2)
+            for k, v in self.sens.items():
+                keyval = SetValueEx(nKey, k, 0, REG_SZ, v)
         except Exception as e:
             Sens.logWrite(self, e)
             pass
-        #Пишем настройки COM в реестр
-        try:
-            aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
-            nKey = CreateKeyEx(aReg, r'Software\IRAM\MAINT\SERIAL', 0, KEY_ALL_ACCESS)
-            keyval = SetValueEx(nKey, 'CL1', 0, REG_SZ, self.port_c1)
-            keyval = SetValueEx(nKey, 'CL2', 0, REG_SZ, self.port_c2)
-            keyval = SetValueEx(nKey, 'CL3', 0, REG_SZ, self.port_c3)
-            keyval = SetValueEx(nKey, 'CL4', 0, REG_SZ, self.port_c4)
-            keyval = SetValueEx(nKey, 'LT1', 0, REG_SZ, self.port_l1)
-            keyval = SetValueEx(nKey, 'LT2', 0, REG_SZ, self.port_l2)
-            keyval = SetValueEx(nKey, 'LT3', 0, REG_SZ, self.port_l3)
-            keyval = SetValueEx(nKey, 'LT4', 0, REG_SZ, self.port_l4)
-            keyval = SetValueEx(nKey, 'LT5', 0, REG_SZ, self.port_l5)
-            keyval = SetValueEx(nKey, 'LT6', 0, REG_SZ, self.port_l6)
-            keyval = SetValueEx(nKey, 'WT1', 0, REG_SZ, self.port_w1)
-            keyval = SetValueEx(nKey, 'WT2', 0, REG_SZ, self.port_w2)
-            keyval = SetValueEx(nKey, 'WT3', 0, REG_SZ, self.port_w3)
-            keyval = SetValueEx(nKey, 'WT4', 0, REG_SZ, self.port_w4)
-            if self.station == 'UCFM':
-                keyval = SetValueEx(nKey, 'WT5', 0, REG_SZ, self.port_w5)
-                keyval = SetValueEx(nKey, 'WT6', 0, REG_SZ, self.port_w6)
-            keyval = SetValueEx(nKey, 'TEMP1', 0, REG_SZ, self.port_t1)
-            keyval = SetValueEx(nKey, 'TEMP2', 0, REG_SZ, self.port_t2)
-            keyval = SetValueEx(nKey, 'PRES1', 0, REG_SZ, self.port_p1)
-            keyval = SetValueEx(nKey, 'PRES2', 0, REG_SZ, self.port_p2)
-            #Настройки скорости
-            keyval = SetValueEx(nKey, 'CL1_baud', 0, REG_SZ, self.port_c1_b)
-            keyval = SetValueEx(nKey, 'CL2_baud', 0, REG_SZ, self.port_c2_b)
-            keyval = SetValueEx(nKey, 'CL3_baud', 0, REG_SZ, self.port_c3_b)
-            keyval = SetValueEx(nKey, 'CL4_baud', 0, REG_SZ, self.port_c4_b)
-            keyval = SetValueEx(nKey, 'LT1_baud', 0, REG_SZ, self.port_l1_b)
-            keyval = SetValueEx(nKey, 'LT2_baud', 0, REG_SZ, self.port_l2_b)
-            keyval = SetValueEx(nKey, 'LT3_baud', 0, REG_SZ, self.port_l3_b)
-            keyval = SetValueEx(nKey, 'LT4_baud', 0, REG_SZ, self.port_l4_b)
-            keyval = SetValueEx(nKey, 'LT5_baud', 0, REG_SZ, self.port_l5_b)
-            keyval = SetValueEx(nKey, 'LT6_baud', 0, REG_SZ, self.port_l6_b)
-            keyval = SetValueEx(nKey, 'WT1_baud', 0, REG_SZ, self.port_w1_b)
-            keyval = SetValueEx(nKey, 'WT2_baud', 0, REG_SZ, self.port_w2_b)
-            keyval = SetValueEx(nKey, 'WT3_baud', 0, REG_SZ, self.port_w3_b)
-            keyval = SetValueEx(nKey, 'WT4_baud', 0, REG_SZ, self.port_w4_b)
-            if self.station == 'UCFM':
-                keyval = SetValueEx(nKey, 'WT5_baud', 0, REG_SZ, self.port_w5_b)
-                keyval = SetValueEx(nKey, 'WT6_baud', 0, REG_SZ, self.port_w6_b)
-            keyval = SetValueEx(nKey, 'TEMP1_baud', 0, REG_SZ, self.port_t1_b)
-            keyval = SetValueEx(nKey, 'TEMP2_baud', 0, REG_SZ, self.port_t2_b)
-            keyval = SetValueEx(nKey, 'PRES1_baud', 0, REG_SZ, self.port_p1_b)
-            keyval = SetValueEx(nKey, 'PRES2_baud', 0, REG_SZ, self.port_p2_b)
         except Exception as e:
             Sens.logWrite(self, e)
             pass
@@ -423,20 +162,19 @@ class SettingsInit(QtWidgets.QFrame):
         self.btnIramSett.accepted.disconnect()
         self.btnHelp.clicked.disconnect()
         self.sensAdd.clicked.disconnect()
-        self.serRun.clicked.disconnect()
 
     def stChange(self):
-        self.station = self.stationSett.currentText()
+        self.set['STATION'] = self.stationSett.currentText()
         self.stationSett.activated[str].disconnect()
         aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
         nKey = CreateKeyEx(aReg, r'Software\IRAM\MAINT\SETT', 0, KEY_ALL_ACCESS)
-        keyval = SetValueEx(nKey, 'STATION', 0, REG_SZ, self.station)
+        keyval = SetValueEx(nKey, 'STATION', 0, REG_SZ, self.set['STATION'])
         aReg.Close()
         self.settRead()
 
     def help(self):
         self.w = QtWidgets.QMainWindow()
-        if self.station == 'UCFM':
+        if self.set['STATION'] == 'UCFM':
             self.win = MainWindowManas()
         else:
             self.win = MainWindowOsh()
@@ -455,14 +193,15 @@ class SettingsInit(QtWidgets.QFrame):
     def portInit(self):
         subprocess.Popen(['Mserial.exe'])
 
+
 class Window(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         self.set = SettingsInit()
         self.set.close()
-        if self.set.station == 'UCFM':
+        if self.set.set['STATION'] == 'UCFM':
             self.ui = MainWindowManas()
-        elif self.set.station == 'UCFO':
+        elif self.set.set['STATION'] == 'UCFO':
             self.ui =MainWindowOsh()
         else:
             SettingsInit().show()
@@ -472,45 +211,6 @@ class Window(QtWidgets.QMainWindow):
             self.About = QtWidgets.QFrame()
             self.ui_a = Ui_AboutFrame()
             self.ui_a.setupUi(self.About)
-            #Привязка датчиков к окнам
-            self.CL1 = self.ui.lineCL1
-            self.CL2 = self.ui.lineCL2
-            self.CL3 = self.ui.lineCL3
-            self.CL4 = self.ui.lineCL4
-            self.LT1 = self.ui.lineLT1
-            self.LT2 = self.ui.lineLT2
-            self.LT3 = self.ui.lineLT3
-            self.LT4 = self.ui.lineLT4
-            self.LT5 = self.ui.lineLT5
-            self.LT6 = self.ui.lineLT6
-            self.WT1 = self.ui.lineWT1
-            self.WT2 = self.ui.lineWT2
-            self.WT3 = self.ui.lineWT3
-            self.WT4 = self.ui.lineWT4
-            if self.set.station == 'UCFM':
-                self.WT5 = self.ui.lineWT5
-                self.WT6 = self.ui.lineWT6
-            self.CL1_v = self.ui.labelCL1
-            self.CL2_v = self.ui.labelCL2
-            self.CL3_v = self.ui.labelCL3
-            self.CL4_v = self.ui.labelCL4
-            self.LT1_v = self.ui.labelLT1
-            self.LT2_v = self.ui.labelLT2
-            self.LT3_v = self.ui.labelLT3
-            self.LT4_v = self.ui.labelLT4
-            self.LT5_v = self.ui.labelLT5
-            self.LT6_v = self.ui.labelLT6
-            self.WT1_v = self.ui.labelWT1
-            self.WT2_v = self.ui.labelWT2
-            self.WT3_v = self.ui.labelWT3
-            self.WT4_v = self.ui.labelWT4
-            if self.set.station == 'UCFM':
-                self.WT5_v = self.ui.labelWT5
-                self.WT6_v = self.ui.labelWT6
-            self.Temp1_v = self.ui.lcdTemp1
-            self.Temp2_v = self.ui.lcdTemp2
-            self.Pres1_v = self.ui.lcdPres1
-            self.Pres2_v = self.ui.lcdPres2
             #Привязка виджетов Window
             self.menuSett = self.ui.menu
             self.menuIram = self.ui.iram
@@ -525,24 +225,58 @@ class Window(QtWidgets.QMainWindow):
             self.dtime = self.ui.timedate
             self.bar = self.ui.statusBar
             self.term = self.ui.terminal
-            self.btnCL1 = self.ui.btnCL1
-            self.btnCL2 = self.ui.btnCL2
-            self.btnCL3 = self.ui.btnCL3
-            self.btnCL4 = self.ui.btnCL4
-            self.btnLT1 = self.ui.btnLT1
-            self.btnLT2 = self.ui.btnLT2
-            self.btnLT3 = self.ui.btnLT3
-            self.btnLT4 = self.ui.btnLT4
-            self.btnLT5 = self.ui.btnLT5
-            self.btnLT6 = self.ui.btnLT6
-            self.btnWT1 = self.ui.btnWind1
-            self.btnWT2 = self.ui.btnWind2
-            self.btnWT3 = self.ui.btnWind3
-            self.btnWT4 = self.ui.btnWind4
-            if self.set.station == 'UCFM':
-                self.btnWT5 = self.ui.btnWind5
-                self.btnWT6 = self.ui.btnWind6
             self.menuSett.menuAction().setStatusTip("Настройки")
+            #Привязка переменных из класса SettingsInit
+            self.s = self.set.set #Prog settings
+            self.sens_s = self.set.sens #Sensor settings
+            self.sens_list = self.set.sens_list
+            #Привязка датчиков к окнам
+            self.sens_win_s = {
+            'LT1': self.ui.lineLT1, 'LT2': self.ui.lineLT2, 'LT3': self.ui.lineLT3,
+            'LT4': self.ui.lineLT4, 'LT5': self.ui.lineLT5, 'LT6': self.ui.lineLT6,
+            'CL1': self.ui.lineCL1, 'CL2': self.ui.lineCL2, 'CL3': self.ui.lineCL3,
+            'CL4': self.ui.lineCL4, 'WT1': self.ui.lineWT1, 'WT2': self.ui.lineWT2,
+            'WT3': self.ui.lineWT3, 'WT4': self.ui.lineWT4
+            }
+            self.sens_win_v = {
+            'LT1': self.ui.labelLT1, 'LT2': self.ui.labelLT2, 'LT3': self.ui.labelLT3,
+            'LT4': self.ui.labelLT4, 'LT5': self.ui.labelLT5, 'LT6': self.ui.labelLT6,
+            'CL1': self.ui.labelCL1, 'CL2': self.ui.labelCL2, 'CL3': self.ui.labelCL3,
+            'CL4': self.ui.labelCL4,  'WT1': self.ui.labelWT1, 'WT2': self.ui.labelWT2,
+            'WT3': self.ui.labelWT3, 'WT4': self.ui.labelWT4, 'TEMP1': self.ui.lcdTemp1,
+            'TEMP2': self.ui.lcdTemp2, 'PRES1': self.ui.lcdPres1, 'PRES2': self.ui.lcdPres2
+            }
+            self.mute_but = {
+            'LT1': self.ui.btnLT1, 'LT2': self.ui.btnLT2, 'LT3': self.ui.btnLT3,
+            'LT4': self.ui.btnLT4, 'LT5': self.ui.btnLT5, 'LT6': self.ui.btnLT6,
+            'CL1': self.ui.btnCL1, 'CL2': self.ui.btnCL2, 'CL3': self.ui.btnCL3,
+            'CL4': self.ui.btnCL4, 'WT1': self.ui.btnWind1, 'WT2': self.ui.btnWind2,
+            'WT3': self.ui.btnWind3, 'WT4': self.ui.btnWind4
+            }
+            if  self.set.set['STATION'] == 'UCFM':
+                self.sens_win_s['WT5'] = self.ui.lineWT5
+                self.sens_win_s['WT6'] = self.ui.lineWT6
+                self.sens_win_v['WT5'] = self.ui.labelWT5
+                self.sens_win_v['WT6'] = self.ui.labelWT6
+                self.mute_but['WT5'] = self.ui.btnWind5
+                self.mute_but['WT6'] = self.ui.btnWind6
+            self.mute = dict.fromkeys(self.sens_list, 0)
+            #Определение цветов
+            self.red = "background-color: qconicalgradient(cx:1, cy:0.329773, \
+                        angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));"
+            self.green = "background-color: qconicalgradient(cx:1, cy:0.529, angle:0,\
+                        stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255));"
+            self.yellow = "background-color: qconicalgradient(cx:1, cy:0.329773, \
+                        angle:0, stop:0.363636 rgba(219, 219, 0, 255), stop:1 rgba(255, 255, 255, 255));"
+            self.blue = "background-color: qconicalgradient(cx:1, cy:0.529, angle:0,\
+                        stop:0.215909 rgba(100, 200, 250, 200), stop:1 rgba(255, 255, 255, 255));"
+            #Привязка кнопок к putty
+            for k, v in self.sens_win_s.items():
+                self.puttySett(v, k)
+            #Привязка кнопок к mute
+            for k, v in self.mute_but.items():
+                self.muteSett(v, k)
+            self.btn.clicked.connect(self.muteALL)
             #Привязка виджетов About
             self.about = self.ui_a.about
             #Версия программы
@@ -563,112 +297,12 @@ class Window(QtWidgets.QMainWindow):
             self.repShct.activated.connect(self.openRep)
             self.logShct = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+L"), self)
             self.logShct.activated.connect(self.openLog)
-            #Определение цвета
-            self.red = "background-color: qconicalgradient(cx:1, cy:0.329773, \
-                        angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));"
-            self.green = "background-color: qconicalgradient(cx:1, cy:0.529, angle:0,\
-                        stop:0.215909 rgba(38, 174, 23, 255), stop:1 rgba(255, 255, 255, 255));"
-            self.yellow = "background-color: qconicalgradient(cx:1, cy:0.329773, \
-                        angle:0, stop:0.363636 rgba(219, 219, 0, 255), stop:1 rgba(255, 255, 255, 255));"
-            self.blue = "background-color: qconicalgradient(cx:1, cy:0.529, angle:0,\
-                        stop:0.215909 rgba(100, 200, 250, 200), stop:1 rgba(255, 255, 255, 255));"
-            #Привязка кнопок к putty
-            self.CL1.clicked.connect(lambda: self.putty("CL1"))
-            self.CL2.clicked.connect(lambda: self.putty("CL2"))
-            self.CL3.clicked.connect(lambda: self.putty("CL3"))
-            self.CL4.clicked.connect(lambda: self.putty("CL4"))
-            self.LT1.clicked.connect(lambda: self.putty("LT1"))
-            self.LT2.clicked.connect(lambda: self.putty("LT2"))
-            self.LT3.clicked.connect(lambda: self.putty("LT3"))
-            self.LT4.clicked.connect(lambda: self.putty("LT4"))
-            self.LT5.clicked.connect(lambda: self.putty("LT5"))
-            self.LT6.clicked.connect(lambda: self.putty("LT6"))
-            self.WT1.clicked.connect(lambda: self.putty("WT1"))
-            self.WT2.clicked.connect(lambda: self.putty("WT2"))
-            self.WT3.clicked.connect(lambda: self.putty("WT3"))
-            self.WT4.clicked.connect(lambda: self.putty("WT4"))
-            if self.set.station == 'UCFM':
-                self.WT5.clicked.connect(lambda: self.putty("WT5"))
-                self.WT6.clicked.connect(lambda: self.putty("WT6"))
-            #Привязка кнопок к mute
-            self.btn.clicked.connect(self.muteALL)
-            self.btnCL1.clicked.connect(lambda: self.muteCL(0))
-            self.btnCL1.setStyleSheet(self.green)
-            self.btnCL2.clicked.connect(lambda: self.muteCL(1))
-            self.btnCL2.setStyleSheet(self.green)
-            self.btnCL3.clicked.connect(lambda: self.muteCL(2))
-            self.btnCL3.setStyleSheet(self.green)
-            self.btnCL4.clicked.connect(lambda: self.muteCL(3))
-            self.btnCL4.setStyleSheet(self.green)
-            self.btnLT1.clicked.connect(lambda: self.muteLT(0))
-            self.btnLT1.setStyleSheet(self.green)
-            self.btnLT2.clicked.connect(lambda: self.muteLT(1))
-            self.btnLT2.setStyleSheet(self.green)
-            self.btnLT3.clicked.connect(lambda: self.muteLT(2))
-            self.btnLT3.setStyleSheet(self.green)
-            self.btnLT4.clicked.connect(lambda: self.muteLT(3))
-            self.btnLT4.setStyleSheet(self.green)
-            self.btnLT5.clicked.connect(lambda: self.muteLT(4))
-            self.btnLT5.setStyleSheet(self.green)
-            self.btnLT6.clicked.connect(lambda: self.muteLT(5))
-            self.btnLT6.setStyleSheet(self.green)
-            self.btnWT1.clicked.connect(lambda: self.muteWT(0))
-            self.btnWT1.setStyleSheet(self.green)
-            self.btnWT2.clicked.connect(lambda: self.muteWT(1))
-            self.btnWT2.setStyleSheet(self.green)
-            self.btnWT3.clicked.connect(lambda: self.muteWT(2))
-            self.btnWT3.setStyleSheet(self.green)
-            self.btnWT4.clicked.connect(lambda: self.muteWT(3))
-            self.btnWT4.setStyleSheet(self.green)
-            if self.set.station == 'UCFM':
-                self.btnWT5.clicked.connect(lambda: self.muteWT(4))
-                self.btnWT5.setStyleSheet(self.green)
-                self.btnWT6.clicked.connect(lambda: self.muteWT(5))
-                self.btnWT6.setStyleSheet(self.green)
-            #инициализируем переменные выключения звука, прогресс бара, паузы
-            self.ml = [0, 0, 0, 0, 0, 0]
-            self.mc = [0, 0, 0, 0]
-            self.mw = [0, 0, 0, 0, 0, 0]
-            self.progress = 0
             self.pause = True
-            #Привязка переменных из класса SettingsInit
-            self.station = self.set.station
-            self.iram = self.set.iram
-            self.snd = self.set.snd
-            self.dur = self.set.dur
-            self.tTimer = self.set.tTimer
-            self.tTimer = int(self.tTimer)*1000
-            self.av_path = self.set.av_path
-            self.sensW = self.set.sensW
-            self.repW = self.set.repW
-            self.logW = self.set.logW
-            self.av6W = self.set.av6W
-            self.av_time1 = self.set.av_time1 + '00'
-            self.av_time2 = self.set.av_time2 + '00'
-            self.c1 = self.set.c1
-            self.c2 = self.set.c2
-            self.c3 = self.set.c3
-            self.c4 = self.set.c4
-            self.l1 = self.set.l1
-            self.l2 = self.set.l2
-            self.l3 = self.set.l3
-            self.l4 = self.set.l4
-            self.l5 = self.set.l5
-            self.l6 = self.set.l6
-            self.w1 = self.set.w1
-            self.w2 = self.set.w2
-            self.w3 = self.set.w3
-            self.w4 = self.set.w4
-            if self.set.station == 'UCFM':
-                self.w5 = self.set.w5
-                self.w6 = self.set.w6
-            self.t1 = self.set.t1
-            self.t2 = self.set.t2
-            self.p1 = self.set.p1
-            self.p2 = self.set.p2
         except Exception as e:
             Sens.logWrite(self, e)
+            print(str(e))
             pass
+
     def goStart(self):
         self.pause = False
         self.start.setText("Пауза")
@@ -692,134 +326,122 @@ class Window(QtWidgets.QMainWindow):
     def statLT(self):
         self.s_list = list()
         if self.pause == False:
-            l1 = [self.LT1, self.LT2, self.LT3,
-                  self.LT4, self.LT5, self.LT6]
-            l2 = [self.l1, self.l2, self.l3,
-                  self.l4, self.l5, self.l6]
-            l3 = [self.LT1_v, self.LT2_v, self.LT3_v,
-                  self.LT4_v, self.LT5_v, self.LT6_v]
-            for i in range(6):
-                self.LT_l = l1[i]
-                self.lt = l2[i]
-                self.LT_v = l3[i]
-                s = Sens(self.iram, self.lt, self.dur, self.repW, self.logW)
-                s.ltInit()
-                self.LT_l.setText(s.lt_status)
-                self.LT_v.setText(s.lt_val)
-                self.info2.setText("Идет процесс... LT" )
-                self.info2.setStyleSheet(self.blue)
-                if s.lt_error == 1:
-                    self.LT_l.setStyleSheet(self.red)
-                    self.LT_v.setStyleSheet(self.red)
-                    if self.ml[i] == 0:
-                        self.sndplay()
-                elif s.lt_error == 2:
-                    self.LT_l.setStyleSheet(self.yellow)
-                    self.LT_v.setStyleSheet(self.yellow)
-                    if self.ml[i] == 0:
-                        self.sndplay()
-                elif s.lt_error == 3:
-                    self.LT_l.setStyleSheet(self.red)
-                    self.LT_v.setStyleSheet(self.red)
-                else:
-                    self.LT_l.setStyleSheet(self.green)
-                    self.LT_v.setStyleSheet(self.green)
-                    pass
-                self.s_list.append(s.lt_status + ' ' + s.lt_val)
-                if s.LOGs == "0":
-                    pass
-                else:
-                    self.info.setText(s.LOGs)
-            QTimer().singleShot(self.tTimer, self.statCL)
+            for i in self.sens_list:
+                if i[:2] == 'LT':
+                    sensor = self.sens_s[i]
+                    w_sta = self.sens_win_s[i]
+                    w_val = self.sens_win_v[i]
+                    mut = self.mute[i]
+                    s = Sens(self.s['PATH'], sensor, self.s['DUR'], self.s['REP'], self.s['LOG'])
+                    s.ltInit()
+                    w_sta.setText(s.lt_status)
+                    w_val.setText(s.lt_val)
+                    self.info2.setText("Идет процесс... LT" )
+                    self.info2.setStyleSheet(self.blue)
+                    if s.lt_error == 1:
+                        w_sta.setStyleSheet(self.red)
+                        w_val.setStyleSheet(self.red)
+                        if self.mute[mut] == 0:
+                            self.sndplay()
+                    elif s.lt_error == 2:
+                        w_sta.setStyleSheet(self.yellow)
+                        w_val.setStyleSheet(self.yellow)
+                        if self.mute[mut] == 0:
+                            self.sndplay()
+                    elif s.lt_error == 3:
+                        w_sta.setStyleSheet(self.red)
+                        w_val.setStyleSheet(self.red)
+                    else:
+                        w_sta.setStyleSheet(self.green)
+                        w_val.setStyleSheet(self.green)
+                        pass
+                    self.s_list.append(s.lt_status + ' ' + s.lt_val)
+                    if s.LOGs == "0":
+                        pass
+                    else:
+                        self.info.setText(s.LOGs)
+            QTimer().singleShot(int(self.s['REFRESH']), self.statCL)
         else:
             self.info2.setText("Остановлено")
             self.info2.setStyleSheet(self.red)
             pass
 
     def statCL(self):
+        self.s_list = list()
         if self.pause == False:
-            l1 = [self.CL1, self.CL2, self.CL3, self.CL4]
-            l2 = [self.c1, self.c2, self.c3, self.c4]
-            l3 = [self.CL1_v, self.CL2_v, self.CL3_v, self.CL4_v]
-            for i  in range(4):
-                self.CL_l = l1[i]
-                self.cl = l2[i]
-                self.CL_v = l3[i]
-                s = Sens(self.iram, self.cl, self.dur, self.repW, self.logW)
-                s.clInit()
-                self.CL_l.setText(s.cl_status)
-                self.CL_v.setText(s.cl_val)
-                self.info2.setText("Идет процесс... CL ")
-                self.info2.setStyleSheet(self.blue)
-                if s.cl_error == 1:
-                    self.CL_l.setStyleSheet(self.red)
-                    self.CL_v.setStyleSheet(self.red)
-                    if self.mc[i] == 0:
-                        self.sndplay()
-                elif s.cl_error == 2:
-                    self.CL_l.setStyleSheet(self.yellow)
-                    self.CL_v.setStyleSheet(self.yellow)
-                    if self.mc[i] == 0:
-                        self.sndplay()
-                elif s.cl_error == 3:
-                    self.CL_l.setStyleSheet(self.red)
-                    self.CL_v.setStyleSheet(self.red)
-                else:
-                    self.CL_l.setStyleSheet(self.green)
-                    self.CL_v.setStyleSheet(self.green)
-                    pass
-                self.s_list.append(s.cl_status + ' ' + s.cl_val)
-                if s.LOGs == "0":
-                    pass
-                else:
-                    self.info.setText(s.LOGs)
-            QTimer().singleShot(self.tTimer, self.statWT)
+            for i in self.sens_list:
+                if i[:2] == 'CL':
+                    sensor = self.sens_s[i]
+                    w_sta = self.sens_win_s[i]
+                    w_val = self.sens_win_v[i]
+                    mut = self.mute[i]
+                    s = Sens(self.s['PATH'], sensor, self.s['DUR'], self.s['REP'], self.s['LOG'])
+                    s.clInit()
+                    w_sta.setText(s.cl_status)
+                    w_val.setText(s.cl_val)
+                    self.info2.setText("Идет процесс... CL ")
+                    self.info2.setStyleSheet(self.blue)
+                    if s.cl_error == 1:
+                        w_sta.setStyleSheet(self.red)
+                        w_val.setStyleSheet(self.red)
+                        if self.mute[mut] == 0:
+                            self.sndplay()
+                    elif s.cl_error == 2:
+                        w_sta.setStyleSheet(self.yellow)
+                        w_val.setStyleSheet(self.yellow)
+                        if self.mute[mut] == 0:
+                            self.sndplay()
+                    elif s.cl_error == 3:
+                        w_sta.setStyleSheet(self.red)
+                        w_val.setStyleSheet(self.red)
+                    else:
+                        w_sta.setStyleSheet(self.green)
+                        w_val.setStyleSheet(self.green)
+                        pass
+                    self.s_list.append(s.cl_status + ' ' + s.cl_val)
+                    if s.LOGs == "0":
+                        pass
+                    else:
+                        self.info.setText(s.LOGs)
+            QTimer().singleShot(int(self.s['REFRESH']), self.statWT)
         else:
             self.info2.setText("Остановлено")
             self.info2.setStyleSheet(self.red)
             pass
 
     def statWT(self):
+        self.s_list = list()
         if self.pause == False:
-            if self.set.station == 'UCFM':
-                l1 = [self.WT1, self.WT2, self.WT3,
-                      self.WT4, self.WT5, self.WT6]
-                l2 = [self.w1, self.w2, self.w3,
-                      self.w4, self.w5, self.w6]
-                l3 = [self.WT1_v, self.WT2_v, self.WT3_v,
-                      self.WT4_v, self.WT5_v, self.WT6_v]
-            else:
-                l1 = [self.WT1, self.WT2, self.WT3, self.WT4]
-                l2 = [self.w1, self.w2, self.w3, self.w4]
-                l3 = [self.WT1_v, self.WT2_v, self.WT3_v, self.WT4_v]
-            for i in range(len(l2)):
-                self.WT_l = l1[i]
-                self.wt = l2[i]
-                self.WT_v = l3[i]
-                s = Sens(self.iram, self.wt, self.dur, self.repW, self.logW)
-                s.wtInit()
-                self.WT_l.setText(s.wt_status)
-                self.WT_v.setText(s.wt_val)
-                self.info2.setText("Идет процесс... WIND")
-                self.info2.setStyleSheet(self.blue)
-                if s.wt_error == 1:
-                    self.WT_l.setStyleSheet(self.red)
-                    self.WT_v.setStyleSheet(self.red)
-                    if self.mw[i] == 0:
-                        self.sndplay()
-                elif s.wt_error == 3:
-                    self.WT_l.setStyleSheet(self.red)
-                    self.WT_v.setStyleSheet(self.red)
-                else:
-                    self.WT_l.setStyleSheet(self.green)
-                    self.WT_v.setStyleSheet(self.green)
-                    pass
-                self.s_list.append(s.wt_status + ' ' + s.wt_val)
-                if s.LOGs == "0":
-                    pass
-                else:
-                    self.info.setText(s.LOGs)
-            QTimer().singleShot(self.tTimer, self.statTemp)
+            for i in self.sens_list:
+                if i[:2] == 'WT':
+                    sensor = self.sens_s[i]
+                    w_sta = self.sens_win_s[i]
+                    w_val = self.sens_win_v[i]
+                    mut = self.mute[i]
+                    s = Sens(self.s['PATH'], sensor, self.s['DUR'], self.s['REP'], self.s['LOG'])
+                    s.wtInit()
+                    w_sta.setText(s.wt_status)
+                    w_val.setText(s.wt_val)
+                    self.info2.setText("Идет процесс... WIND")
+                    self.info2.setStyleSheet(self.blue)
+                    if s.wt_error == 1:
+                        w_sta.setStyleSheet(self.red)
+                        w_val.setStyleSheet(self.red)
+                        if self.mute[mut] == 0:
+                            self.sndplay()
+                    elif s.wt_error == 3:
+                        w_sta.setStyleSheet(self.red)
+                        w_val.setStyleSheet(self.red)
+                    else:
+                        w_sta.setStyleSheet(self.green)
+                        w_val.setStyleSheet(self.green)
+                        pass
+                    self.s_list.append(s.wt_status + ' ' + s.wt_val)
+                    if s.LOGs == "0":
+                        pass
+                    else:
+                        self.info.setText(s.LOGs)
+            QTimer().singleShot(int(self.s['REFRESH']), self.statTemp)
         else:
             self.info2.setText("Остановлено")
             self.info2.setStyleSheet(self.red)
@@ -827,18 +449,17 @@ class Window(QtWidgets.QMainWindow):
 
     def statTemp(self):
         if self.pause == False:
-            l1 = [self.t1, self.t2, self.p1, self.p2]
-            l2 = [self.Temp1_v, self.Temp2_v, self.Pres1_v, self.Pres2_v]
-            for i in range(4):
-                self.tm = l1[i]
-                self.tm_v = l2[i]
-                s = Sens(self.iram, self.tm, self.dur, self.repW, self.logW)
-                s.tempInit()
-                self.tm_v.display(s.tm_val)
-                self.info2.setText("Идет процесс... TEMP")
-                self.s_list.append(str(self.tm) + ' ' + str(s.tm_val))
+            for i in self.mute:
+                if i[:2] == 'TE' or i[:2] == 'PR':
+                    sensor = self.sens_s[i]
+                    w_val = self.sens_win_v[i]
+                    s = Sens(self.s['PATH'], sensor, self.s['DUR'], self.s['REP'], self.s['LOG'])
+                    s.tempInit()
+                    w_val.display(s.tm_val)
+                    self.info2.setText("Идет процесс... TEMP")
+                    self.s_list.append(sensor + ' ' + str(s.tm_val))
             self.sensWrite(self.s_list)
-            QTimer().singleShot(self.tTimer, self.statLT)
+            QTimer().singleShot(int(self.s['REFRESH']), self.statLT)
         else:
             self.info2.setText("Остановлено")
             self.info2.setStyleSheet(self.red)
@@ -846,122 +467,82 @@ class Window(QtWidgets.QMainWindow):
 
     def sndplay(self):
         mixer.init()
-        mixer.music.load(self.snd)
+        mixer.music.load(self.s['SOUND'])
         mixer.music.play()
 
-    def muteLT(self, m):
-        b = [self.btnLT1, self.btnLT2, self.btnLT3, self.btnLT4, self.btnLT5, self.btnLT6]
-        b = b[m]
-        b.setStyleSheet(self.red)
-        b.clicked.disconnect()
-        b.clicked.connect(lambda: self.unmuteLT(m))
-        self.ml[m] = 1
+    def muteSett(self, but, sen):
+        but.clicked.connect(lambda: self.muteSen(but, sen))
+        but.setStyleSheet(self.green)
 
-    def unmuteLT(self, m):
-        b = [self.btnLT1, self.btnLT2, self.btnLT3, self.btnLT4, self.btnLT5, self.btnLT6]
-        b = b[m]
-        b.setStyleSheet(self.green)
-        b.clicked.disconnect()
-        b.clicked.connect(lambda: self.muteLT(m))
-        self.ml[m] = 0
+    def muteSen(self, but, sen):
+        self.mute[sen] = 1
+        but.setStyleSheet(self.red)
+        but.clicked.disconnect()
+        but.clicked.connect(lambda: self.unmuteSen(but, sen))
 
-    def muteCL(self, m):
-        b = [self.btnCL1, self.btnCL2, self.btnCL3, self.btnCL4]
-        b = b[m]
-        b.setStyleSheet(self.red)
-        b.clicked.disconnect()
-        b.clicked.connect(lambda: self.unmuteCL(m))
-        self.mc[m] = 1
-
-    def unmuteCL(self, m):
-        b = [self.btnCL1, self.btnCL2, self.btnCL3, self.btnCL4]
-        b = b[m]
-        b.setStyleSheet(self.green)
-        b.clicked.disconnect()
-        b.clicked.connect(lambda: self.muteCL(m))
-        self.mc[m] = 0
-
-    def muteWT(self, m):
-        if self.set.station == 'UCFM':
-            b = [self.btnWT1, self.btnWT2, self.btnWT3, self.btnWT4, self.btnWT5, self.btnWT6]
-        else: b = [self.btnWT1, self.btnWT2, self.btnWT3, self.btnWT4]
-        b = b[m]
-        b.setStyleSheet(self.red)
-        b.clicked.disconnect()
-        b.clicked.connect(lambda: self.unmuteWT(m))
-        self.mw[m] = 1
-
-    def unmuteWT(self, m):
-        if self.set.station == 'UCFM':
-            b = [self.btnWT1, self.btnWT2, self.btnWT3, self.btnWT4, self.btnWT5, self.btnWT6]
-        else: b = [self.btnWT1, self.btnWT2, self.btnWT3, self.btnWT4]
-        b = b[m]
-        b.setStyleSheet(self.green)
-        b.clicked.disconnect()
-        b.clicked.connect(lambda: self.muteWT(m))
-        self.mw[m] = 0
+    def unmuteSen(self, but, sen):
+        self.mute[sen] = 0
+        but.setStyleSheet(self.green)
+        but.clicked.disconnect()
+        but.clicked.connect(lambda: self.muteSen(but, sen))
 
     def muteALL(self):
-        for m in range(6):
-            self.muteLT(m)
-        for m in range(4):
-            self.muteCL(m)
-        if self.set.station == 'UCFM':
-            r = 6
-        else: r = 4
-        for m in range(r):
-            self.muteWT(m)
+        for v in self.mute.values():
+            v = 1
+        for v in self.mute_but.values():
+            v.setStyleSheet(self.red)
         self.btn.clicked.disconnect()
         self.btn.clicked.connect(self.unmuteALL)
 
     def unmuteALL(self):
-        for m in range(6):
-            self.unmuteLT(m)
-        for m in range(4):
-            self.unmuteCL(m)
-        if self.set.station == 'UCFM':
-            r = 6
-        else: r = 4
-        for m in range(r):
-            self.unmuteWT(m)
+        for v in self.mute.values():
+            v = 0
+        for v in self.mute_but.values():
+            v.setStyleSheet(self.green)
         self.btn.clicked.disconnect()
         self.btn.clicked.connect(self.muteALL)
-        
+
     def dtimeTick(self):
         if self.pause == False:
-            self.t = datetime.strftime(datetime.now(), "%d-%m-%y  %H:%M:%S")
-            self.av_time = self.t.split()[1].split(':')[1] + self.t.split()[1].split(':')[2]
-            if self.av_time == self.av_time1 or self.av_time == self.av_time2:
-                self.copyAB6()
-            if self.sensW == '2' or self.sensW == '1':
+            t = datetime.strftime(datetime.now(), "%d-%m-%y  %H:%M:%S")
+            av_time = datetime.strftime(datetime.now(), "%M%S")
+            if av_time == (self.s['AV_T1'] + '00') or av_time == (self.s['AV_T2'] + '00'):
+                if self.s['AV_W'] != "0":
+                    path = self.s['AV_P']
+                    av = Av6(path)
+                    self.info.setText(av.av6_rep)
+            if self.s['SENS_W'] == '2' or self.s['SENS_W'] == '1':
                 sensW = "Вкл"
             else:
                 sensW = "Откл"
-            if self.repW == '2' or self.repW == '1':
+            if self.s['REP'] == '2' or self.s['REP'] == '1':
                 repW = "Вкл"
             else:
                 repW = "Откл"
-            # if self.logW == '2' or self.logW == '1':
+            # if self.s['LOG'] == '2' or self.s['LOG'] == '1':
             #     logW = "Вкл"
             # else:
             #     logW ="Откл"
-            if self.av6W == '2' or self.av6W == '1':
+            if self.s['AV_W'] == '2' or self.s['AV_W'] == '1':
                 av6W = "Вкл"
-                av_info = ("  ( " + self.av_path + "      " + self.av_time1[:2]
-                         + " , "  + self.av_time2[:2] + " мин )")
+                av_info = ("  ( " + self.s['AV_P'] + "      " + self.s['AV_T1'][:2]
+                         + " , "  + self.s['AV_T2'][:2] + " мин )")
             else:
                 av6W ="Откл"
                 av_info = "              "
-            self.bar.showMessage("Рабочий каталог: " + self.iram
+            self.bar.showMessage("Рабочий каталог: " + self.s['PATH']
             + "                                Время ожидания файла:  "
-            + str(self.dur) + " мин." + "      Время обновления:    "
-            + str(self.tTimer)[:-3] + " сек." + "       Отчет: " + repW
+            + str(self.s['DUR']) + " мин." + "      Время обновления:    "
+            + self.s['REFRESH'][:-3] + " сек." + "       Отчет: " + repW
             + "      Sens: " + sensW  + "               AB6:  " + av6W + av_info)
-            self.dtime.setText(self.t)
+            self.dtime.setText(t)
             QTimer().singleShot(1000, self.dtimeTick)
         else:
             self.dtime.clear()
             pass
+
+    def puttySett(self, but, sen):
+        but.clicked.connect(lambda: self.putty(sen))
 
     def putty(self, n):
         subprocess.Popen(['putty.exe', '-load', n])
@@ -972,12 +553,8 @@ class Window(QtWidgets.QMainWindow):
     def openLog(self):
         subprocess.Popen(['notepad.exe', r'LOGs\maintLog.txt'])
 
-    def copyAB6(self):
-        av = Av6(self.av_path, self.av6W)
-        self.info.setText(av.av6_rep)
-
     def sensWrite(self, sens):
-        if self.sensW != '0':
+        if self.s['SENS_W'] != '0':
             try:
                 if not os.path.exists('Sens'):
                     os.mkdir('Sens')
@@ -997,6 +574,299 @@ class Window(QtWidgets.QMainWindow):
         self.statPause()
         self.close()
         SettingsInit().show()
+
+
+class Sens():
+
+    def __init__(self, iram, sens, dur, repW, logW):
+        self.s = {
+        'PATH': iram, 'DUR': int(dur), 'REP': repW, 'LOG': logW
+        }
+        self.sens = sens
+        self.LOGs = "0"
+
+    def checkTime(self, f):
+        #Check time and write time difference to dift
+        now = datetime.now()
+        stat = os.stat(f)
+        t_f = datetime.fromtimestamp(stat.st_mtime)
+        self.dift = now - t_f
+
+    def ltInit(self):
+        if self.sens != 'OFF':
+            try:
+                #File in DAT_SENS define
+                self.f = (self.s['PATH'] + self.sens + ".DAT")
+                #Check time of file
+                self.checkTime(self.f)
+                if self.dift > timedelta(minutes=self.s['DUR']):
+                    self.lt_status = str(self.sens + ' Тревога!!! Нет данных!!!')
+                    self.lt_error = 1
+                    self.lt_val = "ERROR"
+                else:
+                #Чтение файла и запись данных в переменные
+                    with open(self.f, 'r', encoding='UTF-8', errors='ignore') as f:
+                        tek_f = f.read()
+                    try:
+                        lt_stat = tek_f.split()[6]
+                        self.lt_val = tek_f.split()[4]
+                        if self.lt_val != '///////':
+                            self.lt_val = str(float(tek_f.split()[4]))[:-2]
+                    except ValueError as e:
+                        lt_stat = tek_f.split()[6]
+                        self.lt_val = tek_f.split()[4]
+                        self.logWrite(self.sens + " ValueError " + str(e) + " " + self.lt_val)
+                        pass
+                    lt_batt = lt_stat[2]
+                #Проверка ошибок и вывод результата
+                    if lt_batt == '1' and lt_stat[0] == 'I' or lt_batt == '2' and lt_stat[0] == 'I':
+                        self.lt_status = str(self.sens + ' Внимание!!! Работа от батареи!!!')
+                        self.lt_error = 2
+                    elif lt_stat[0] == 'I':
+                        self.lt_status = str(self.sens + ' Ненормальная ситуация !!! ' + lt_stat)
+                        self.lt_error = 1
+                    elif lt_stat[0] == 'W':
+                        self.lt_status = str(self.sens + ' Предупреждение !!! ' + lt_stat)
+                        self.lt_error = 1
+                    elif lt_stat[0] == 'A':
+                        self.lt_status = str(self.sens + ' Авария  !!! ' + lt_stat)
+                        self.lt_error = 1
+                    elif lt_stat[0] == 'E':
+                        self.lt_status = str(self.sens + ' Ошибка !!! ' + lt_stat)
+                        self.lt_error = 1
+                    elif lt_stat[0] == 'S':
+                        self.lt_status = str(self.sens + ' Открыт интерфейс !!! ' + lt_stat)
+                        self.lt_error = 1
+                    else:
+                        self.lt_status = str(self.sens + ' OK ' + lt_stat)
+                        self.lt_error = 0
+                if self.lt_error != 0:
+                    self.repWrite(self.lt_status)
+            except FileNotFoundError as e:
+                self.lt_status = str(self.sens + " Не найден файл с данными!!!")
+                self.lt_error = 3
+                self.lt_val = "ERROR"
+                self.logWrite(self.sens + " FileNotFoundError " + str(e))
+            except PermissionError as e:
+                self.lt_status = str(self.sens + " Обработка....")
+                self.lt_error = 0
+                self.lt_val = "-----"
+                self.logWrite(self.sens + " PermissionError " + str(e))
+            except Exception as e:
+                print(str(e))
+                self.lt_status = str(self.sens + " Ошибка !!!")
+                self.lt_error = 0
+                self.lt_val = "-----"
+                self.logWrite(self.sens + " Exception " + str(e))
+                pass
+        else:
+            self.lt_status = self.lt_error = self.lt_val = ' OFF'
+
+    def clInit(self):
+        if self.sens != 'OFF':
+            try:
+                #File in DAT_SENS define
+                self.f = (self.s['PATH'] + self.sens + ".DAT")
+                #Check time of file
+                self.checkTime(self.f)
+                if self.dift > timedelta(minutes=self.s['DUR']):
+                    self.cl_status = str(self.sens + ' Тревога!!! Нет данных!!!')
+                    self.cl_error = 1
+                    self.cl_val = "ERROR"
+                else:
+                #Чтение файла и запись данных в переменные
+                    with open(self.f, 'r', encoding='UTF-8', errors='ignore') as f:
+                        tek_f = f.read()
+                    try:
+                        cl_stat = tek_f.split()[7]
+                        self.cl_val = tek_f.split()[4]
+                        if self.cl_val != '/////':
+                            self.cl_val = str(float(self.cl_val))[:-2]
+                    except ValueError as e:
+                        cl_stat = tek_f.split()[7]
+                        self.cl_val = tek_f.split()[4]
+                        self.logWrite(self.sens + " ValueError " + str(e) + self.cl_val)
+                        pass
+                    cl_batt = cl_stat[5::3]
+                    cl_norm = '0000'
+                #Проверка ошибок и вывод результата
+                    if cl_batt == '4' and cl_stat[:4] == (cl_norm):
+                        self.cl_status = str(self.sens + ' Внимание!!! Работа от батареи!!!')
+                        self.cl_error = 2
+                    elif cl_stat[:4] == (cl_norm):
+                        self.cl_status = str(self.sens + ' OK ' + cl_stat)
+                        self.cl_error = 0
+                    else:
+                        self.cl_status = str(self.sens + ' Внимание!!! СБОЙ!!! ' + cl_stat)
+                        self.cl_error = 1
+                if self.cl_error != 0:
+                    self.repWrite(self.cl_status)
+            except FileNotFoundError as e:
+                self.cl_status = str(self.sens + " Не найден файл с данными !!!")
+                self.cl_error = 3
+                self.cl_val = "ERROR"
+                self.logWrite(self.sens + " FileNotFoundError " + str(e))
+            except PermissionError as e:
+                self.cl_status = str(self.sens + " Обработка....")
+                self.cl_error = 0
+                self.cl_val = "-----"
+                self.logWrite(self.sens + " PermissionError " + str(e))
+            except Exception as e:
+                self.cl_status = str(self.sens + " Ошибка !!!")
+                self.cl_error = 0
+                self.cl_val = "-----"
+                self.logWrite(self.sens + " Exception " + str(e))
+                pass
+        else:
+            self.cl_status = self.cl_error = self.cl_val = 'OFF'
+
+    def wtInit(self):
+        if self.sens != "OFF":
+            try:
+                #File in DAT_SENS define
+                self.f = (self.s['PATH'] + self.sens + ".DAT")
+                #Check time of file
+                self.checkTime(self.f)
+                if self.dift > timedelta(minutes=self.s['DUR']):
+                    self.wt_status = str(self.sens + ' Тревога!!! Нет данных!!!')
+                    self.wt_error = 1
+                    self.wt_val = "ERROR"
+                else:
+                #Чтение файла и запись данных в переменные
+                    with open(self.f, 'r', encoding='UTF-8', errors='ignore') as f:
+                        tek_f = f.read()
+                    try:
+                        self.dd = float(tek_f.split()[3][:3])
+                        self.ff = float(tek_f.split()[4])
+                        self.wt_val = (str(self.dd)[:-2] + " / " + str(self.ff))
+                    except ValueError as e:
+                        self.dd = float(tek_f.split()[4][:3])
+                        self.ff = float(tek_f.split()[5])
+                        self.wt_val = (str(self.dd)[:-2] + " / " + str(self.ff))
+                        self.logWrite(self.sens + " ValueError " + str(e) + " " + self.wt_val)
+                        pass
+                    wt_stat = "OK"
+                #Проверка ошибок и вывод результата
+                    self.wt_status = (self.sens + " " + wt_stat)
+                    self.wt_error = 0
+                if self.wt_error != 0:
+                    self.repWrite(self.wt_status)
+            except FileNotFoundError as e:
+                self.wt_status = str(self.sens + " Не найден файл с данными !!!")
+                self.wt_error = 3
+                self.wt_val = "ERROR"
+                self.logWrite(self.sens + " FileNotFoundError " + str(e))
+            except PermissionError as e:
+                self.wt_status = str(self.sens + " Обработка.... ")
+                self.wt_error = 0
+                self.wt_val = "-----"
+                self.logWrite(self.sens + " PermissionError " + str(e))
+            except Exception as e:
+                self.wt_status = str(self.sens + " Ошибка !!!")
+                self.wt_error = 0
+                self.wt_val = "-----"
+                self.logWrite(self.sens + " Exception " + str(e))
+                pass
+        else:
+            self.wt_status = self.wt_error = self.wt_val = 'OFF'
+
+    def tempInit(self):
+        if self.sens != 'OFF':
+            try:
+                #File in DAT_SENS define
+                self.f = (self.s['PATH'] + self.sens + ".DAT")
+                #Check time of file
+                self.checkTime(self.f)
+                if self.dift > timedelta(minutes=self.s['DUR']):
+                    self.tm_val = "ERROR"
+                else:
+                    with open(self.f, 'r', encoding='utf-8') as f:
+                        self.tm_val = f.read().split()[3]
+            except Exception as e:
+                self.tm_val = "ERROR"
+                self.logWrite(self.sens + " Exception" + str(e))
+                pass
+        else:
+            self.tm_val = "OFF"
+
+    def repWrite(self, r):
+        if self.s['REP'] != "0":
+            try:
+                if not os.path.exists('LOGs'):
+                    os.mkdir('LOGs')
+                t = datetime.strftime(datetime.now(), "%d-%m-%y %H:%M:%S")
+                with open(r'LOGs\maintReport.txt', 'a', encoding='utf-8') as f_rep:
+                    f_rep.write(t + " " + r + "\n")
+            except Exception as e:
+                self.LOGs = str(e)
+                pass
+
+    def logWrite(self, e):
+        try:
+            if not os.path.exists('LOGs'):
+                os.mkdir('LOGs')
+            t = datetime.strftime(datetime.now(), "%d-%m-%y %H:%M:%S")
+            with open(r'LOGs\maintLog.txt', 'a', encoding='utf-8') as f_bug:
+                f_bug.write(t + " " + str(e) + "\n")
+        except Exception as e:
+            self.LOGs = str(e)
+            pass
+
+
+class Av6():
+
+    def __init__(self, path):
+        self.arh = path
+        self.arhDirDef()
+
+    def arhDirDef(self):
+        try:
+            self.t = datetime.strftime(datetime.now(), "%d %m %Y %H%M")
+            t = self.t.split(' ')
+            self.day = ('D' + t[0])
+            self.month = ('M' + t[1])
+            self.year = ('G' + t[2])
+            self.hour = t[3]
+            self.arh_src_dir = self.arh + '\\ARX__AB6' + '\\' + self.year + '\\' + self.month + '\\' + self.day
+            self.arh_dst_dir = 'AV6_ARH' + '\\' + self.year + '\\' + self.month + '\\' + self.day
+            self.arhCopy()
+        except Exception as e:
+            Sens.logWrite(self, e)
+            self.LOGs = str(e)
+            pass
+
+    def arhCopy(self):
+        try:
+            if os.path.exists(self.arh_src_dir):
+                if not os.path.exists(self.arh_dst_dir):
+                    os.makedirs(self.arh_dst_dir)
+                self.arh_src = self.arh_src_dir + '\\' + 'AB6.DAT'
+                self.arh_dst = self.arh_dst_dir + '\\' + 'AB6_' + self.hour + '.DAT'
+                try:
+                    cp(self.arh_src, self.arh_dst)
+                    self.av6Rep(self.hour[:2] + ':' + self.hour[2:] + ' Файл АВ-6 успешно записан!')
+                except Exception as e:
+                    self.av6Rep(self.hour[:2] + ':' + self.hour[2:] + ' Файл АВ-6 не записан!')
+                    Sens.logWrite(self, e)
+                    pass
+            else:
+                self.av6Rep(self.hour[:2] + ':' + self.hour[2:] + ' Исходник АВ-6 не найден!')
+        except Exception as e:
+            Sens.logWrite(self, e)
+            self.LOGs = str(e)
+            pass
+
+    def av6Rep(self, r):
+        self.av6_rep = r
+        try:
+            if not os.path.exists('LOGs'):
+                os.mkdir('LOGs')
+            with open(r'LOGs\av6Report.txt', 'a', encoding='utf-8') as f_rep:
+                f_rep.write(r + "\n")
+        except Exception as e:
+            Sens.logWrite(self, e)
+            self.LOGs = str(e)
+            pass
 
 
 if __name__ == "__main__":

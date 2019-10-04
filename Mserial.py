@@ -1,11 +1,192 @@
-import time, sys, os, serial, threading
+import time, sys, os, serial, threading, multiprocessing
 from winreg import *
-# from subprocess import Popen, PIPE
-from datetime import datetime
+from datetime import datetime as tm
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal
 from Mserial_design import Ui_MainWindow as ComView
 from PortSettings_design import Ui_Frame as Settings
+
+
+class Thread1(QThread):
+
+    slot = pyqtSignal(str)
+
+    def __init__(self):
+        super().__init__()
+        self.win = SerialWindow()
+        self.text = " Thread start"
+
+    def run(self):
+        self.slot.emit(self.text)
+
+    def getData(self, data):
+        self.text = data
+        self.run()
+
+
+class SerialWindow(QtWidgets.QMainWindow):
+
+    def __init__(self):
+        super().__init__()
+        self.ui = ComView()
+        self.ui.setupUi(self)
+        self.comBx1 = self.ui.comBox1
+        self.comBx2 = self.ui.comBox2
+        self.comBx3 = self.ui.comBox3
+        self.comBx4 = self.ui.comBox4
+        self.comBr1 = self.ui.comBrowser1
+        self.comBr2 = self.ui.comBrowser2
+        self.comBr3 = self.ui.comBrowser3
+        self.comBr4 = self.ui.comBrowser4
+        self.senBt1 = self.ui.sensButton1
+        self.senBt2 = self.ui.sensButton2
+        self.senBt3 = self.ui.sensButton3
+        self.senBt4 = self.ui.sensButton4
+        self.statText = self.ui.statBrowser
+        self.startBt = self.ui.startButton
+        self.senBt1.clicked.connect(lambda: self.comBr1.setText(' '))
+        self.senBt2.clicked.connect(lambda: self.comBr2.setText(' '))
+        self.senBt3.clicked.connect(lambda: self.comBr3.setText(' '))
+        self.senBt4.clicked.connect(lambda: self.comBr4.setText(' '))
+        #Берем настройки из SerialSett
+        self.s = SerialSett()
+        self.s.settRead()
+        self.port_sens = self.s.s_dic
+        self.baud = self.s.b_dic
+        self.byte = self.s.bt_dic
+        self.parity = self.s.par_dic
+        self.sbit = self.s.st_dic
+        #Заполняем боксы наименованиеми портов
+        self.port_list = ['None']
+        for com, sens in self.port_sens.items():
+            if not sens: pass
+            else:
+                self.port_list += [com]
+        self.comBx1.addItems(self.port_list)
+        self.comBx2.addItems(self.port_list)
+        self.comBx3.addItems(self.port_list)
+        self.comBx4.addItems(self.port_list)
+        self.startBt.clicked.connect(self.portStart)
+        self.ui.actSettings.triggered.connect(self.settInit)
+
+    def threadPorts(self):
+        global threads_stop
+        threads_stop = False
+        #Запуск потоков подключенных портов
+        try:
+            for com, sens in self.port_sens.items():
+                if not sens: pass
+                else:
+                    port=com
+                    baud=self.baud[com]
+                    byte = self.byte[com]
+                    parity = self.parity[com]
+                    sbit = self.sbit[com]
+                    self.t = threading.Thread(target=self.portRead, args=(port, baud, byte, parity, sbit, sens), daemon=True)
+                    self.t.start()
+        except Exception as e:
+            print('err_threadStart' + str(e))
+            pass
+
+    def portRead(self, port, baud , byte, par, sbit, sens):
+        #Считывание данных с СОМ портов, вывод в файл и на Ui
+        try:
+            #Настройки СОМ порта
+            if par == 'EVEN': parity=serial.PARITY_EVEN
+            elif par == 'ODD': parity=serial.PARITY_ODD
+            elif par == 'NO': parity=serial.PARITY_NONE
+            elif par == 'MARK': parity=serial.PARITY_MARK
+            elif per =='SPACE': parity=serial.PARITY_SPACE
+            ser = serial.Serial(
+            port=port,
+            baudrate=baud,
+            bytesize=int(byte),
+            parity=parity,
+            stopbits=int(sbit),
+            timeout=3,
+            )
+            while not threads_stop:
+                #Запуск считывания сом порта
+                try:
+                    buf = ser.readline().rstrip()
+                    data = buf.decode('utf-8')
+                    print(buf)
+                except Exception:
+                    continue
+                self.com = port
+                self.sens = sens
+                print(tm.now().strftime("%H:%M:%S %d-%m-%Y") + ' ' + self.com + ' ' + self.sens + ' ' + str(data))
+                #Инициализация записи в файл
+                self.dataWrite(data)
+                self.thread.getData(data)
+                time.sleep(2)
+        except Exception as e:
+            print('err_portRead' + str(e))
+            pass
+
+    def dataWrite(self, data):
+        #Запись данных с портов в файл
+        try:
+            if not os.path.exists('Serial'):
+                os.mkdir('Serial')
+            with open('Serial\\' + self.sens + '.dat', 'w', encoding='ANSI') as f_sens:
+                f_sens.write(tm.now().strftime("%H:%M:%S %d-%m-%Y") + '\n' + str(data))
+        except Exception as e:
+            print('err_sensWrite' + str(e))
+            pass
+
+    def textSend(self, text):
+        try:
+            #Отображение текста на Ui
+            self.statText.setText(text)
+            com1 = self.comBx1.currentText()
+            com2 = self.comBx2.currentText()
+            com3 = self.comBx3.currentText()
+            com4 = self.comBx4.currentText()
+            if com1 == self.com:
+                self.comBr1.append(text)
+                self.senBt1.setText(self.sens)
+            elif com2 == self.com:
+                self.comBr2.append(text)
+                self.senBt2.setText(self.sens)
+            elif com3 == self.com:
+                self.comBr3.append(text)
+                self.senBt3.setText(self.sens)
+            elif com4 == self.com:
+                self.comBr4.append(text)
+                self.senBt4.setText(self.sens)
+            if com1 == 'None': self.comBr1.setText(' '); self.senBt1.setText(' ')
+            if com2 == 'None': self.comBr2.setText(' '); self.senBt2.setText(' ')
+            if com3 == 'None': self.comBr3.setText(' '); self.senBt3.setText(' ')
+            if com4 == 'None': self.comBr4.setText(' '); self.senBt4.setText(' ')
+        except Exception as e:
+            print('err_textSend' + str(e))
+            pass
+
+    def portStart(self):
+        self.startBt.disconnect()
+        self.startBt.setText('STOP')
+        self.startBt.clicked.connect(self.portStop)
+        self.threadPorts()
+        self.thread = Thread1()
+        self.thread.slot.connect(self.textSend)
+        time.sleep(1)
+        self.thread.start()
+
+    def portStop(self):
+        global threads_stop
+        threads_stop = True
+        self.startBt.disconnect()
+        self.startBt.setText('START')
+        self.startBt.clicked.connect(self.portStart)
+
+    def settInit(self):
+        self.close()
+        sett.show()
+
+    def keyPressEvent(self, e):
+        if e.key() == Qt.Key_Escape:
+            self.close()
 
 
 class SerialSett(QtWidgets.QFrame):
@@ -151,169 +332,8 @@ class SerialSett(QtWidgets.QFrame):
             self.settRead()
 
     def applySett(self):
-        serS.close()
-        ser.show()
-
-    def keyPressEvent(self, e):
-        if e.key() == Qt.Key_Escape:
-            self.close()
-
-
-class Thread1(QThread):
-
-    data_slot = pyqtSignal(str)
-
-    def __init__(self, data):
-        super().__init__()
-        self.data = data
-
-    def run(self):
-        self.data_slot.emit(self.data)
-
-class Serial(QtWidgets.QMainWindow):
-
-    def __init__(self):
-        super().__init__()
-        self.ui = ComView()
-        self.ui.setupUi(self)
-        self.comBx1 = self.ui.comBox1
-        self.comBx2 = self.ui.comBox2
-        self.comBx3 = self.ui.comBox3
-        self.comBx4 = self.ui.comBox4
-        self.comBr1 = self.ui.comBrowser1
-        self.comBr2 = self.ui.comBrowser2
-        self.comBr3 = self.ui.comBrowser3
-        self.comBr4 = self.ui.comBrowser4
-        self.senBt1 = self.ui.sensButton1
-        self.senBt2 = self.ui.sensButton2
-        self.senBt3 = self.ui.sensButton3
-        self.senBt4 = self.ui.sensButton4
-        self.senBt1.clicked.connect(lambda: self.comBr1.setText(' '))
-        self.senBt2.clicked.connect(lambda: self.comBr2.setText(' '))
-        self.senBt3.clicked.connect(lambda: self.comBr3.setText(' '))
-        self.senBt4.clicked.connect(lambda: self.comBr4.setText(' '))
-        self.ui.actSettings.triggered.connect(self.settInit)
-        #Берем настройки из SerialSett
-        self.s = SerialSett()
-        self.s.settRead()
-        self.port_sens = self.s.s_dic
-        self.baud = self.s.b_dic
-        self.byte = self.s.bt_dic
-        self.parity = self.s.par_dic
-        self.sbit = self.s.st_dic
-        #Заполняем боксы наименованиеми портов
-        self.port_list = ['None']
-        for com, sens in self.port_sens.items():
-            if not sens: pass
-            else:
-                self.port_list += [com]
-        self.comBx1.addItems(self.port_list)
-        self.comBx2.addItems(self.port_list)
-        self.comBx3.addItems(self.port_list)
-        self.comBx4.addItems(self.port_list)
-        self.threadStart()
-
-    def threadStart(self):
-        #Запуск потоков подключенных портов
-        try:
-            for com, sens in self.port_sens.items():
-                if not sens: pass
-                else:
-                    port=com
-                    baud=self.baud[com]
-                    byte = self.byte[com]
-                    parity = self.parity[com]
-                    sbit = self.sbit[com]
-                    self.t = threading.Thread(target=self.portRead, args=(port, baud, byte, parity, sbit, sens), daemon=True)
-                    self.t.start()
-        except Exception as e:
-            print('err_threadStart' + str(e))
-            pass
-
-    def portRead(self, port, baud , byte, par, sbit, sens):
-        #Считывание данных с СОМ портов, вывод в файл и на Ui
-        try:
-            #Настройки СОМ порта
-            if par == 'EVEN': parity=serial.PARITY_EVEN
-            elif par == 'ODD': parity=serial.PARITY_ODD
-            elif par == 'NO': parity=serial.PARITY_NONE
-            elif par == 'MARK': parity=serial.PARITY_MARK
-            elif per =='SPACE': parity=serial.PARITY_SPACE
-            ser = serial.Serial(
-            port=port,
-            baudrate=baud,
-            bytesize=int(byte),
-            parity=parity,
-            stopbits=int(sbit),
-            )
-        except Exception as e:
-            print('err_portRead0' + str(e))
-            pass
-        try:
-            #Запуск считывания сом порта
-            while True:
-                d = ser.readline()
-                # time.sleep(10)
-                try:
-                    data = d.decode('utf-8')
-                except Exception as e:
-                    print('err_portRead1' + str(e))
-                    pass
-                self.com = port
-                self.sens = sens
-                print(str(datetime.now().strftime("%H:%M")) + ' ' + self.com + ' ' + self.sens + ' ' + str(data))
-                #Запуск потока для передачи текста на Ui
-                self.thread = Thread1(data)
-                self.thread.data_slot.connect(self.textSend)
-                self.thread.start()
-                #Инициализация записи в файл
-                self.dataWrite(data)
-        except Exception as e:
-            print('err_portRead2' + str(e))
-            pass
-
-    def textSend(self, data):
-        try:
-            #Отображение текста на Ui
-            com1 = self.comBx1.currentText()
-            com2 = self.comBx2.currentText()
-            com3 = self.comBx3.currentText()
-            com4 = self.comBx4.currentText()
-            if com1 == self.com:
-                self.comBr1.append(data)
-                self.senBt1.setText(self.sens)
-            elif com2 == self.com:
-                self.comBr2.append(data)
-                self.senBt2.setText(self.sens)
-            elif com3 == self.com:
-                self.comBr3.append(data)
-                self.senBt3.setText(self.sens)
-            elif com4 == self.com:
-                self.comBr4.append(data)
-                self.senBt4.setText(self.sens)
-            if com1 == 'None': self.comBr1.setText(' '); self.senBt1.setText(' ')
-            if com2 == 'None': self.comBr2.setText(' '); self.senBt2.setText(' ')
-            if com3 == 'None': self.comBr3.setText(' '); self.senBt3.setText(' ')
-            if com4 == 'None': self.comBr4.setText(' '); self.senBt4.setText(' ')
-        except Exception as e:
-            print('err_textSend' + str(e))
-            pass
-
-    def dataWrite(self, data):
-        #Запись данных с портов в файл
-        try:
-            if not os.path.exists('Serial'):
-                os.mkdir('Serial')
-            with open('Serial\\' + self.sens + '.dat', 'w', encoding='ANSI') as f_sens:
-                f_sens.write(str(data))
-        except Exception as e:
-            print('err_sensWrite' + str(e))
-            pass
-
-    def settInit(self):
-        ser.close()
-        serS.show()
-
+        self.close()
+        window.show()
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
@@ -322,7 +342,7 @@ class Serial(QtWidgets.QMainWindow):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    ser = Serial()
-    serS = SerialSett()
-    ser.show()
+    window = SerialWindow()
+    sett = SerialSett()
+    window.show()
     sys.exit(app.exec_())
