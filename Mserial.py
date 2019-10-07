@@ -25,10 +25,10 @@ class SerialSett(QtWidgets.QFrame):
         self.u.extButton.clicked.connect(self.close)
         self.u.comBox.currentTextChanged.connect(self.settShow)
         self.c_list = [
-        'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
-        'COM10', 'COM11', 'COM12', 'COM13', 'COM14', 'COM15', 'COM16', 'COM17',
-        'COM18', 'COM19', 'COM20', 'COM21', 'COM22', 'COM23', 'COM24', 'COM25',
-        'COM26', 'COM27', 'COM28', 'COM29', 'COM30', 'COM31', 'COM32'
+            'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
+            'COM10', 'COM11', 'COM12', 'COM13', 'COM14', 'COM15', 'COM16', 'COM17',
+            'COM18', 'COM19', 'COM20', 'COM21', 'COM22', 'COM23', 'COM24', 'COM25',
+            'COM26', 'COM27', 'COM28', 'COM29', 'COM30', 'COM31', 'COM32'
         ]
         self.sens_type = ['LT', 'CL', 'WT', 'MAWS', 'PTB']
         self.b_list = ['300', '600', '1200', '1800', '2400', '4800', '7200', '9600']
@@ -52,11 +52,11 @@ class SerialSett(QtWidgets.QFrame):
 
     def settRead(self):
         aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
-        #Читаем настройки программы
+        # Читаем настройки программы
         try:
             rKey = OpenKey(aReg, r"Software\IRAM\MAINT\SETT")
             self.station = QueryValueEx(rKey, 'STATION')[0]
-            #Читаем настройки СОМ портов
+            # Читаем настройки СОМ портов
             rKey = OpenKey(aReg, r"Software\IRAM\MAINT\SERIAL")
             for i in self.c_list:
                 self.c = i
@@ -68,7 +68,8 @@ class SerialSett(QtWidgets.QFrame):
                 self.st = i + '_sbit'
                 try:
                     s = QueryValueEx(rKey, self.c)[0]
-                    if s == 'None': pass
+                    if s == 'None':
+                        pass
                     else:
                         s2 = QueryValueEx(rKey, self.s2)[0]
                         if not s2:
@@ -97,8 +98,9 @@ class SerialSett(QtWidgets.QFrame):
             pass
 
     def settShow(self, value):
-        #При выборе сом порта выставляем настройки
-        if value == 'None': pass
+        # При выборе сом порта выставляем настройки
+        if value == 'None':
+            pass
         else:
             try:
                 b = self.b_dic[value]
@@ -119,7 +121,7 @@ class SerialSett(QtWidgets.QFrame):
                 pass
 
     def textShow(self):
-        #Выводим данные в таблицу
+        # Выводим данные в таблицу
         self.cText.clear()
         self.bText.clear()
         self.btText.clear()
@@ -215,12 +217,12 @@ class SerialWindow(QtWidgets.QMainWindow):
         self.senBt2.clicked.connect(lambda: self.comBr2.setText(' '))
         self.senBt3.clicked.connect(lambda: self.comBr3.setText(' '))
         self.senBt4.clicked.connect(lambda: self.comBr4.setText(' '))
-        #Активируем Shortcuts
+        # Активируем Shortcuts
         self.settShct = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+S"), self)
         self.settShct.activated.connect(self.settInit)
         self.runShct = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+R"), self)
         self.runShct.activated.connect(self.portStart)
-        #Берем настройки из SerialSett
+        # Берем настройки из SerialSett
         self.s_dic = sett.s_dic
         self.s2_dic = sett.s2_dic
         self.typ_dic = sett.typ_dic
@@ -228,10 +230,11 @@ class SerialWindow(QtWidgets.QMainWindow):
         self.bt_dic = sett.bt_dic
         self.par_dic = sett.par_dic
         self.st_dic = sett.st_dic
-        #Заполняем боксы наименованиеми портов
+        # Заполняем боксы наименованиеми портов
         self.port_list = ['None']
         for com, sens in self.s_dic.items():
-            if not sens: pass
+            if not sens:
+                pass
             else:
                 self.port_list += [com]
         self.comBx1.addItems(self.port_list)
@@ -241,10 +244,11 @@ class SerialWindow(QtWidgets.QMainWindow):
 
     def threadPorts(self):
         self.threads_stop = False
-        #Запуск потоков подключенных портов
+        # Запуск потоков подключенных портов
         try:
             for com, sens in self.s_dic.items():
-                if not sens : pass
+                if not sens:
+                    pass
                 else:
                     baud = self.b_dic[com]
                     byte = self.bt_dic[com]
@@ -252,31 +256,37 @@ class SerialWindow(QtWidgets.QMainWindow):
                     bit = self.st_dic[com]
                     sens = self.s_dic[com]
                     type = self.typ_dic[com]
-                    self.t = threading.Thread(target=self.comListen, args=(com, baud, byte, par, bit, sens, type), daemon=True)
+                    self.t = threading.Thread(target=self.comListen, args=(com, baud, byte, par, bit, sens, type),
+                                              daemon=True)
                     self.t.start()
         except Exception as e:
             self.logWrite(f'threadPorts {e}')
             pass
 
     def comListen(self, com, baud, byte, par, bit, sens, type):
-        #Считывание данных с СОМ портов, вывод в файл и на Ui
+        # Считывание данных с СОМ портов, вывод в файл и на Ui
         try:
-            #Настройки СОМ порта
-            if par == 'EVEN': parity=serial.PARITY_EVEN
-            elif par == 'ODD': parity=serial.PARITY_ODD
-            elif par == 'NO': parity=serial.PARITY_NONE
-            elif par == 'MARK': parity=serial.PARITY_MARK
-            elif per =='SPACE': parity=serial.PARITY_SPACE
+            # Настройки СОМ порта
+            if par == 'EVEN':
+                parity = serial.PARITY_EVEN
+            elif par == 'ODD':
+                parity = serial.PARITY_ODD
+            elif par == 'NO':
+                parity = serial.PARITY_NONE
+            elif par == 'MARK':
+                parity = serial.PARITY_MARK
+            elif per == 'SPACE':
+                parity = serial.PARITY_SPACE
             ser = serial.Serial(
-            port=com,
-            baudrate=baud,
-            bytesize=int(byte),
-            parity=parity,
-            stopbits=int(bit),
-            timeout=3,
+                port=com,
+                baudrate=baud,
+                bytesize=int(byte),
+                parity=parity,
+                stopbits=int(bit),
+                timeout=3,
             )
             while not self.threads_stop:
-                #Запуск считывания сом порта
+                # Запуск считывания сом порта
                 try:
                     if type == 'CL':
                         buf = ser.read_until('\r').rstrip()
@@ -288,10 +298,11 @@ class SerialWindow(QtWidgets.QMainWindow):
                     data = buf.decode('utf-8')
                 except Exception:
                     continue
-                if not data: pass
+                if not data:
+                    pass
                 else:
                     text = (data + ':' + com + ':' + sens)
-                    #Инициализация записи в файл и вывод на gui
+                    # Инициализация записи в файл и вывод на gui
                     self.thread.getData(text)
                     self.dataSort(text, type)
                 time.sleep(1)
@@ -304,7 +315,7 @@ class SerialWindow(QtWidgets.QMainWindow):
         data = t[0]
         com = t[1]
         sens = t[2]
-        #Additional sensor
+        # Additional sensor
         sens2 = self.s2_dic[com]
         if type == 'WT':
             buf = data.split(',')
@@ -332,15 +343,15 @@ class SerialWindow(QtWidgets.QMainWindow):
             self.dataWrite(sens, data)
 
     def dataWrite(self, sens, data):
-            #Запись данных с портов в файл
-            try:
-                if not os.path.exists('Serial'):
-                    os.mkdir('Serial')
-                with open('Serial\\' + sens + '.dat', 'w', encoding='ANSI') as f_sens:
-                    f_sens.write(data)
-            except Exception as e:
-                self.logWrite(f'dataWrite {e}')
-                pass
+        # Запись данных с портов в файл
+        try:
+            if not os.path.exists('Serial'):
+                os.mkdir('Serial')
+            with open('Serial\\' + sens + '.dat', 'w', encoding='ANSI') as f_sens:
+                f_sens.write(data)
+        except Exception as e:
+            self.logWrite(f'dataWrite {e}')
+            pass
 
     def textSend(self, text):
         try:
@@ -348,7 +359,7 @@ class SerialWindow(QtWidgets.QMainWindow):
             data = t[0]
             com = t[1]
             sens = t[2]
-            #Отображение текста на Ui
+            # Отображение текста на Ui
             self.statText.setText(data)
             com1 = self.comBx1.currentText()
             com2 = self.comBx2.currentText()
@@ -408,7 +419,6 @@ class SerialWindow(QtWidgets.QMainWindow):
 
 
 class Thread1(QThread):
-
     slot = pyqtSignal(str)
 
     def __init__(self):
