@@ -270,13 +270,14 @@ class Window(QtWidgets.QMainWindow):
                         angle:0, stop:0.363636 rgba(219, 219, 0, 255), stop:1 rgba(255, 255, 255, 255));"
             self.blue = "background-color: qconicalgradient(cx:1, cy:0.529, angle:0,\
                         stop:0.215909 rgba(100, 200, 250, 200), stop:1 rgba(255, 255, 255, 255));"
-            #Привязка кнопок к putty
+            # Привязка кнопок к putty
             for k, v in self.sens_win_s.items():
                 self.puttySett(v, k)
-            #Привязка кнопок к mute
+            # Привязка кнопок к unmute
             for k, v in self.mute_but.items():
-                self.muteSett(v, k)
+                self.unmuteSens(v, k)
             self.btn.clicked.connect(self.muteALL)
+            self.btn.setStyleSheet(self.green)
             #Привязка виджетов About
             self.about = self.ui_a.about
             #Версия программы
@@ -300,7 +301,6 @@ class Window(QtWidgets.QMainWindow):
             self.pause = True
         except Exception as e:
             Sens.logWrite(self, e)
-            print(str(e))
             pass
 
     def goStart(self):
@@ -324,145 +324,166 @@ class Window(QtWidgets.QMainWindow):
         self.start.clicked.connect(self.goStart)
 
     def statLT(self):
-        self.s_list = list()
-        if self.pause == False:
-            for i in self.sens_list:
-                if i[:2] == 'LT':
-                    sensor = self.sens_s[i]
-                    w_sta = self.sens_win_s[i]
-                    w_val = self.sens_win_v[i]
-                    mut = self.mute[i]
-                    s = Sens(self.s['PATH'], sensor, self.s['DUR'], self.s['REP'], self.s['LOG'])
-                    s.ltInit()
-                    w_sta.setText(s.lt_status)
-                    w_val.setText(s.lt_val)
-                    self.info2.setText("Идет процесс... LT" )
-                    self.info2.setStyleSheet(self.blue)
-                    if s.lt_error == 1:
-                        w_sta.setStyleSheet(self.red)
-                        w_val.setStyleSheet(self.red)
-                        if self.mute[mut] == 0:
-                            self.sndplay()
-                    elif s.lt_error == 2:
-                        w_sta.setStyleSheet(self.yellow)
-                        w_val.setStyleSheet(self.yellow)
-                        if self.mute[mut] == 0:
-                            self.sndplay()
-                    elif s.lt_error == 3:
-                        w_sta.setStyleSheet(self.red)
-                        w_val.setStyleSheet(self.red)
-                    else:
-                        w_sta.setStyleSheet(self.green)
-                        w_val.setStyleSheet(self.green)
-                        pass
-                    self.s_list.append(s.lt_status + ' ' + s.lt_val)
-                    if s.LOGs == "0":
-                        pass
-                    else:
-                        self.info.setText(s.LOGs)
-            QTimer().singleShot(int(self.s['REFRESH']), self.statCL)
-        else:
-            self.info2.setText("Остановлено")
-            self.info2.setStyleSheet(self.red)
+        try:
+            self.s_list = list()
+            if self.pause == False:
+                for i in self.sens_list:
+                    if i[:2] == 'LT':
+                        sensor = self.sens_s[i]
+                        w_sta = self.sens_win_s[i]
+                        w_val = self.sens_win_v[i]
+                        mut = self.mute[i]
+                        s = Sens(self.s['PATH'], sensor, self.s['DUR'], self.s['REP'], self.s['LOG'], mut)
+                        s.ltInit()
+                        w_sta.setText(s.lt_status)
+                        w_val.setText(s.lt_val)
+                        self.info2.setText("Идет процесс... LT" )
+                        self.info2.setStyleSheet(self.blue)
+                        if s.lt_error == 1:
+                            w_sta.setStyleSheet(self.red)
+                            w_val.setStyleSheet(self.red)
+                            if mut == 0:
+                                self.sndplay()
+                        elif s.lt_error == 2:
+                            w_sta.setStyleSheet(self.yellow)
+                            w_val.setStyleSheet(self.yellow)
+                            if mut == 0:
+                                self.sndplay()
+                        elif s.lt_error == 3:
+                            w_sta.setStyleSheet(self.red)
+                            w_val.setStyleSheet(self.red)
+                        else:
+                            w_sta.setStyleSheet(self.green)
+                            w_val.setStyleSheet(self.green)
+                            pass
+                        self.s_list.append(s.lt_status + ' ' + s.lt_val)
+                        if s.LOGs == "0":
+                            pass
+                        else:
+                            self.info.setText(s.LOGs)
+                QTimer().singleShot(int(self.s['REFRESH']), self.statCL)
+            else:
+                self.info2.setText("Остановлено")
+                self.info2.setStyleSheet(self.red)
+                pass
+        except Exception as e:
+            log = 'StatLT ' + sensor + str(e)
+            Sens.logWrite(self, log)
             pass
 
     def statCL(self):
-        self.s_list = list()
-        if self.pause == False:
-            for i in self.sens_list:
-                if i[:2] == 'CL':
-                    sensor = self.sens_s[i]
-                    w_sta = self.sens_win_s[i]
-                    w_val = self.sens_win_v[i]
-                    mut = self.mute[i]
-                    s = Sens(self.s['PATH'], sensor, self.s['DUR'], self.s['REP'], self.s['LOG'])
-                    s.clInit()
-                    w_sta.setText(s.cl_status)
-                    w_val.setText(s.cl_val)
-                    self.info2.setText("Идет процесс... CL ")
-                    self.info2.setStyleSheet(self.blue)
-                    if s.cl_error == 1:
-                        w_sta.setStyleSheet(self.red)
-                        w_val.setStyleSheet(self.red)
-                        if self.mute[mut] == 0:
-                            self.sndplay()
-                    elif s.cl_error == 2:
-                        w_sta.setStyleSheet(self.yellow)
-                        w_val.setStyleSheet(self.yellow)
-                        if self.mute[mut] == 0:
-                            self.sndplay()
-                    elif s.cl_error == 3:
-                        w_sta.setStyleSheet(self.red)
-                        w_val.setStyleSheet(self.red)
-                    else:
-                        w_sta.setStyleSheet(self.green)
-                        w_val.setStyleSheet(self.green)
-                        pass
-                    self.s_list.append(s.cl_status + ' ' + s.cl_val)
-                    if s.LOGs == "0":
-                        pass
-                    else:
-                        self.info.setText(s.LOGs)
-            QTimer().singleShot(int(self.s['REFRESH']), self.statWT)
-        else:
-            self.info2.setText("Остановлено")
-            self.info2.setStyleSheet(self.red)
+        try:
+            self.s_list = list()
+            if self.pause == False:
+                for i in self.sens_list:
+                    if i[:2] == 'CL':
+                        sensor = self.sens_s[i]
+                        w_sta = self.sens_win_s[i]
+                        w_val = self.sens_win_v[i]
+                        mut = self.mute[i]
+                        s = Sens(self.s['PATH'], sensor, self.s['DUR'], self.s['REP'], self.s['LOG'], mut)
+                        s.clInit()
+                        w_sta.setText(s.cl_status)
+                        w_val.setText(s.cl_val)
+                        self.info2.setText("Идет процесс... CL ")
+                        self.info2.setStyleSheet(self.blue)
+                        if s.cl_error == 1:
+                            w_sta.setStyleSheet(self.red)
+                            w_val.setStyleSheet(self.red)
+                            if mut == 0:
+                                self.sndplay()
+                        elif s.cl_error == 2:
+                            w_sta.setStyleSheet(self.yellow)
+                            w_val.setStyleSheet(self.yellow)
+                            if mut == 0:
+                                self.sndplay()
+                        elif s.cl_error == 3:
+                            w_sta.setStyleSheet(self.red)
+                            w_val.setStyleSheet(self.red)
+                        else:
+                            w_sta.setStyleSheet(self.green)
+                            w_val.setStyleSheet(self.green)
+                            pass
+                        self.s_list.append(s.cl_status + ' ' + s.cl_val)
+                        if s.LOGs == "0":
+                            pass
+                        else:
+                            self.info.setText(s.LOGs)
+                QTimer().singleShot(int(self.s['REFRESH']), self.statWT)
+            else:
+                self.info2.setText("Остановлено")
+                self.info2.setStyleSheet(self.red)
+                pass
+        except Exception as e:
+            log = 'StatCL ' + sensor + str(e)
+            Sens.logWrite(self, log)
             pass
 
     def statWT(self):
-        self.s_list = list()
-        if self.pause == False:
-            for i in self.sens_list:
-                if i[:2] == 'WT':
-                    sensor = self.sens_s[i]
-                    w_sta = self.sens_win_s[i]
-                    w_val = self.sens_win_v[i]
-                    mut = self.mute[i]
-                    s = Sens(self.s['PATH'], sensor, self.s['DUR'], self.s['REP'], self.s['LOG'])
-                    s.wtInit()
-                    w_sta.setText(s.wt_status)
-                    w_val.setText(s.wt_val)
-                    self.info2.setText("Идет процесс... WIND")
-                    self.info2.setStyleSheet(self.blue)
-                    if s.wt_error == 1:
-                        w_sta.setStyleSheet(self.red)
-                        w_val.setStyleSheet(self.red)
-                        if self.mute[mut] == 0:
-                            self.sndplay()
-                    elif s.wt_error == 3:
-                        w_sta.setStyleSheet(self.red)
-                        w_val.setStyleSheet(self.red)
-                    else:
-                        w_sta.setStyleSheet(self.green)
-                        w_val.setStyleSheet(self.green)
-                        pass
-                    self.s_list.append(s.wt_status + ' ' + s.wt_val)
-                    if s.LOGs == "0":
-                        pass
-                    else:
-                        self.info.setText(s.LOGs)
-            QTimer().singleShot(int(self.s['REFRESH']), self.statTemp)
-        else:
-            self.info2.setText("Остановлено")
-            self.info2.setStyleSheet(self.red)
+        try:
+            self.s_list = list()
+            if self.pause == False:
+                for i in self.sens_list:
+                    if i[:2] == 'WT':
+                        sensor = self.sens_s[i]
+                        w_sta = self.sens_win_s[i]
+                        w_val = self.sens_win_v[i]
+                        mut = self.mute[i]
+                        s = Sens(self.s['PATH'], sensor, self.s['DUR'], self.s['REP'], self.s['LOG'], mut)
+                        s.wtInit()
+                        w_sta.setText(s.wt_status)
+                        w_val.setText(s.wt_val)
+                        self.info2.setText("Идет процесс... WIND")
+                        self.info2.setStyleSheet(self.blue)
+                        if s.wt_error == 1:
+                            w_sta.setStyleSheet(self.red)
+                            w_val.setStyleSheet(self.red)
+                            if mut == 0:
+                                self.sndplay()
+                        elif s.wt_error == 3:
+                            w_sta.setStyleSheet(self.red)
+                            w_val.setStyleSheet(self.red)
+                        else:
+                            w_sta.setStyleSheet(self.green)
+                            w_val.setStyleSheet(self.green)
+                            pass
+                        self.s_list.append(s.wt_status + ' ' + s.wt_val)
+                        if s.LOGs == "0":
+                            pass
+                        else:
+                            self.info.setText(s.LOGs)
+                QTimer().singleShot(int(self.s['REFRESH']), self.statTemp)
+            else:
+                self.info2.setText("Остановлено")
+                self.info2.setStyleSheet(self.red)
+                pass
+        except Exception as e:
+            log = 'StatWT ' + sensor + str(e)
+            Sens.logWrite(self, log)
             pass
 
     def statTemp(self):
-        if self.pause == False:
-            for i in self.mute:
-                if i[:2] == 'TE' or i[:2] == 'PR':
-                    sensor = self.sens_s[i]
-                    w_val = self.sens_win_v[i]
-                    s = Sens(self.s['PATH'], sensor, self.s['DUR'], self.s['REP'], self.s['LOG'])
-                    s.tempInit()
-                    w_val.display(s.tm_val)
-                    self.info2.setText("Идет процесс... TEMP")
-                    self.s_list.append(sensor + ' ' + str(s.tm_val))
-            self.sensWrite(self.s_list)
-            QTimer().singleShot(int(self.s['REFRESH']), self.statLT)
-        else:
-            self.info2.setText("Остановлено")
-            self.info2.setStyleSheet(self.red)
+        try:
+            if self.pause == False:
+                for i in self.mute:
+                    if i[:2] == 'TE' or i[:2] == 'PR':
+                        sensor = self.sens_s[i]
+                        w_val = self.sens_win_v[i]
+                        mut = 1
+                        s = Sens(self.s['PATH'], sensor, self.s['DUR'], self.s['REP'], self.s['LOG'], mut)
+                        s.tempInit()
+                        w_val.display(s.tm_val)
+                        self.info2.setText("Идет процесс... TEMP")
+                        self.s_list.append(sensor + ' ' + str(s.tm_val))
+                self.sensWrite(self.s_list)
+                QTimer().singleShot(int(self.s['REFRESH']), self.statLT)
+            else:
+                self.info2.setText("Остановлено")
+                self.info2.setStyleSheet(self.red)
+                pass
+        except Exception as e:
+            log = 'StatTemp ' + sensor + str(e)
+            Sens.logWrite(self, log)
             pass
 
     def sndplay(self):
@@ -470,37 +491,35 @@ class Window(QtWidgets.QMainWindow):
         mixer.music.load(self.s['SOUND'])
         mixer.music.play()
 
-    def muteSett(self, but, sen):
-        but.clicked.connect(lambda: self.muteSen(but, sen))
-        but.setStyleSheet(self.green)
-
-    def muteSen(self, but, sen):
+    def muteSens(self, but, sen):
         self.mute[sen] = 1
+        but.clicked.disconnect()
+        but.clicked.connect(lambda: self.unmuteSett(but, sen))
         but.setStyleSheet(self.red)
-        but.clicked.disconnect()
-        but.clicked.connect(lambda: self.unmuteSen(but, sen))
 
-    def unmuteSen(self, but, sen):
+    def unmuteSens(self, but, sen):
         self.mute[sen] = 0
+        try:
+            but.clicked.disconnect()
+        except Exception as e:
+            pass
+        but.clicked.connect(lambda: self.muteSett(but, sen))
         but.setStyleSheet(self.green)
-        but.clicked.disconnect()
-        but.clicked.connect(lambda: self.muteSen(but, sen))
 
     def muteALL(self):
-        for v in self.mute.values():
-            v = 1
-        for v in self.mute_but.values():
-            v.setStyleSheet(self.red)
-        self.btn.clicked.disconnect()
+        for sen, but in self.mute_but.items():
+            self.muteSens(but, sen)
+        self.btn.disconnect()
         self.btn.clicked.connect(self.unmuteALL)
+        self.btn.setStyleSheet(self.red)
+
 
     def unmuteALL(self):
-        for v in self.mute.values():
-            v = 0
-        for v in self.mute_but.values():
-            v.setStyleSheet(self.green)
-        self.btn.clicked.disconnect()
+        for sen, but in self.mute_but.items():
+            self.unmuteSens(but, sen)
+        self.btn.disconnect()
         self.btn.clicked.connect(self.muteALL)
+        self.btn.setStyleSheet(self.green)
 
     def dtimeTick(self):
         if self.pause == False:
@@ -578,11 +597,12 @@ class Window(QtWidgets.QMainWindow):
 
 class Sens():
 
-    def __init__(self, iram, sens, dur, repW, logW):
+    def __init__(self, iram, sens, dur, repW, logW, mut):
         self.s = {
         'PATH': iram, 'DUR': int(dur), 'REP': repW, 'LOG': logW
         }
         self.sens = sens
+        self.mut = mut
         self.LOGs = "0"
 
     def checkTime(self, f):
@@ -641,23 +661,23 @@ class Sens():
                         self.lt_status = str(self.sens + ' OK ' + lt_stat)
                         self.lt_error = 0
                 if self.lt_error != 0:
-                    self.repWrite(self.lt_status)
+                    if self.mut == 0:
+                        self.repWrite(self.lt_status)
             except FileNotFoundError as e:
                 self.lt_status = str(self.sens + " Не найден файл с данными!!!")
                 self.lt_error = 3
                 self.lt_val = "ERROR"
-                self.logWrite(self.sens + " FileNotFoundError " + str(e))
+                # self.logWrite(self.sens + " FileNotFoundError " + str(e))
             except PermissionError as e:
                 self.lt_status = str(self.sens + " Обработка....")
                 self.lt_error = 0
                 self.lt_val = "-----"
-                self.logWrite(self.sens + " PermissionError " + str(e))
+                # self.logWrite(self.sens + " PermissionError " + str(e))
             except Exception as e:
-                print(str(e))
                 self.lt_status = str(self.sens + " Ошибка !!!")
                 self.lt_error = 0
                 self.lt_val = "-----"
-                self.logWrite(self.sens + " Exception " + str(e))
+                # self.logWrite(self.sens + " Exception " + str(e))
                 pass
         else:
             self.lt_status = self.lt_error = self.lt_val = ' OFF'
@@ -700,22 +720,23 @@ class Sens():
                         self.cl_status = str(self.sens + ' Внимание!!! СБОЙ!!! ' + cl_stat)
                         self.cl_error = 1
                 if self.cl_error != 0:
-                    self.repWrite(self.cl_status)
+                    if self.mut == 0:
+                        self.repWrite(self.cl_status)
             except FileNotFoundError as e:
                 self.cl_status = str(self.sens + " Не найден файл с данными !!!")
                 self.cl_error = 3
                 self.cl_val = "ERROR"
-                self.logWrite(self.sens + " FileNotFoundError " + str(e))
+                # self.logWrite(self.sens + " FileNotFoundError " + str(e))
             except PermissionError as e:
                 self.cl_status = str(self.sens + " Обработка....")
                 self.cl_error = 0
                 self.cl_val = "-----"
-                self.logWrite(self.sens + " PermissionError " + str(e))
+                # self.logWrite(self.sens + " PermissionError " + str(e))
             except Exception as e:
                 self.cl_status = str(self.sens + " Ошибка !!!")
                 self.cl_error = 0
                 self.cl_val = "-----"
-                self.logWrite(self.sens + " Exception " + str(e))
+                # self.logWrite(self.sens + " Exception " + str(e))
                 pass
         else:
             self.cl_status = self.cl_error = self.cl_val = 'OFF'
@@ -750,22 +771,23 @@ class Sens():
                     self.wt_status = (self.sens + " " + wt_stat)
                     self.wt_error = 0
                 if self.wt_error != 0:
-                    self.repWrite(self.wt_status)
+                    if self.mut == 0:
+                        self.repWrite(self.wt_status)
             except FileNotFoundError as e:
                 self.wt_status = str(self.sens + " Не найден файл с данными !!!")
                 self.wt_error = 3
                 self.wt_val = "ERROR"
-                self.logWrite(self.sens + " FileNotFoundError " + str(e))
+                # self.logWrite(self.sens + " FileNotFoundError " + str(e))
             except PermissionError as e:
                 self.wt_status = str(self.sens + " Обработка.... ")
                 self.wt_error = 0
                 self.wt_val = "-----"
-                self.logWrite(self.sens + " PermissionError " + str(e))
+                # self.logWrite(self.sens + " PermissionError " + str(e))
             except Exception as e:
                 self.wt_status = str(self.sens + " Ошибка !!!")
                 self.wt_error = 0
                 self.wt_val = "-----"
-                self.logWrite(self.sens + " Exception " + str(e))
+                # self.logWrite(self.sens + " Exception " + str(e))
                 pass
         else:
             self.wt_status = self.wt_error = self.wt_val = 'OFF'
@@ -784,7 +806,7 @@ class Sens():
                         self.tm_val = f.read().split()[3]
             except Exception as e:
                 self.tm_val = "ERROR"
-                self.logWrite(self.sens + " Exception" + str(e))
+                # self.logWrite(self.sens + " Exception" + str(e))
                 pass
         else:
             self.tm_val = "OFF"
