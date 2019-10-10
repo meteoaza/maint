@@ -39,7 +39,7 @@
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
        <item row="0" column="5">
-        <widget class="QTextEdit" name="typeText">
+        <widget class="QTextEdit" name="typesText">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
            <horstretch>0</horstretch>
@@ -725,7 +725,7 @@ p, li { white-space: pre-wrap; }
           </widget>
          </item>
          <item row="5" column="1">
-          <widget class="QComboBox" name="typeBox">
+          <widget class="QComboBox" name="typesBox">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
              <horstretch>0</horstretch>

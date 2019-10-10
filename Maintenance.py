@@ -494,7 +494,7 @@ class Window(QtWidgets.QMainWindow):
     def muteSens(self, but, sen):
         self.mute[sen] = 1
         but.clicked.disconnect()
-        but.clicked.connect(lambda: self.unmuteSett(but, sen))
+        but.clicked.connect(lambda: self.unmuteSens(but, sen))
         but.setStyleSheet(self.red)
 
     def unmuteSens(self, but, sen):
@@ -503,7 +503,7 @@ class Window(QtWidgets.QMainWindow):
             but.clicked.disconnect()
         except Exception as e:
             pass
-        but.clicked.connect(lambda: self.muteSett(but, sen))
+        but.clicked.connect(lambda: self.muteSens(but, sen))
         but.setStyleSheet(self.green)
 
     def muteALL(self):

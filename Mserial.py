@@ -14,7 +14,7 @@ class SerialSett(QtWidgets.QFrame):
         self.u.setupUi(self)
         self.sText = self.u.sensText
         self.s2Text = self.u.sensText_2
-        self.s_tText = self.u.typeText
+        self.s_tText = self.u.typesText
         self.cText = self.u.comText
         self.bText = self.u.baudText
         self.btText = self.u.byteText
@@ -30,7 +30,7 @@ class SerialSett(QtWidgets.QFrame):
             'COM18', 'COM19', 'COM20', 'COM21', 'COM22', 'COM23', 'COM24', 'COM25',
             'COM26', 'COM27', 'COM28', 'COM29', 'COM30', 'COM31', 'COM32'
         ]
-        self.sens_type = ['LT', 'CL', 'WT', 'MAWS', 'PTB']
+        self.sens_types = ['LT', 'CL', 'WT', 'MAWS', 'PTB']
         self.b_list = ['300', '600', '1200', '1800', '2400', '4800', '7200', '9600']
         self.bt_list = ['5', '6', '7', '8']
         self.par_list = ['NO', 'ODD', 'EVEN', 'MARK', 'SPACE']
@@ -43,7 +43,7 @@ class SerialSett(QtWidgets.QFrame):
         self.par_dic = {}
         self.st_dic = {}
         self.u.comBox.addItems(['None'] + self.c_list)
-        self.u.typeBox.addItems([''] + self.sens_type)
+        self.u.typesBox.addItems([''] + self.sens_types)
         self.u.baudBox.addItems([''] + self.b_list)
         self.u.bytesizeBox.addItems([''] + self.bt_list)
         self.u.parityBox.addItems([''] + self.par_list)
@@ -61,7 +61,7 @@ class SerialSett(QtWidgets.QFrame):
             for i in self.c_list:
                 self.c = i
                 self.s2 = i + '_s2'
-                self.s_type = i + '_type'
+                self.s_types = i + '_types'
                 self.b = i + '_baud'
                 self.bt = i + '_byte'
                 self.par = i + '_par'
@@ -75,7 +75,7 @@ class SerialSett(QtWidgets.QFrame):
                         if not s2:
                             nKey = CreateKeyEx(aReg, r'Software\IRAM\MAINT\SERIAL', 0, KEY_ALL_ACCESS)
                             keyval = SetValueEx(nKey, self.s2, 0, REG_SZ, 'None')
-                        s_t = QueryValueEx(rKey, self.s_type)[0]
+                        s_t = QueryValueEx(rKey, self.s_types)[0]
                         b = QueryValueEx(rKey, self.b)[0]
                         bt = QueryValueEx(rKey, self.bt)[0]
                         par = QueryValueEx(rKey, self.par)[0]
@@ -112,7 +112,7 @@ class SerialSett(QtWidgets.QFrame):
                 s_t = self.typ_dic[value]
                 self.u.sensEdit.setText(s)
                 self.u.sensEdit_2.setText(s2)
-                self.u.typeBox.setCurrentText(s_t)
+                self.u.typesBox.setCurrentText(s_t)
                 self.u.baudBox.setCurrentText(b)
                 self.u.bytesizeBox.setCurrentText(bt)
                 self.u.parityBox.setCurrentText(par)
@@ -138,8 +138,8 @@ class SerialSett(QtWidgets.QFrame):
                 self.sText.append(sens)
                 sens2 = self.s2_dic[com]
                 self.s2Text.append(sens2)
-                s_type = self.typ_dic[com]
-                self.s_tText.append(s_type)
+                s_types = self.typ_dic[com]
+                self.s_tText.append(s_types)
                 baud = self.b_dic[com]
                 self.bText.append(baud)
                 byte = self.bt_dic[com]
@@ -152,7 +152,7 @@ class SerialSett(QtWidgets.QFrame):
     def settWrite(self):
         sens = self.u.sensEdit.text()
         sens2 = self.u.sensEdit_2.text()
-        s_type = self.u.typeBox.currentText()
+        s_types = self.u.typesBox.currentText()
         com = self.u.comBox.currentText()
         baud = self.u.baudBox.currentText()
         byte = self.u.bytesizeBox.currentText()
@@ -160,7 +160,7 @@ class SerialSett(QtWidgets.QFrame):
         sbit = self.u.stopbitsBox.currentText()
 
         s2 = com + '_s2'
-        s_t = com + '_type'
+        s_t = com + '_types'
         b = com + '_baud'
         bt = com + '_byte'
         par = com + '_par'
@@ -175,7 +175,7 @@ class SerialSett(QtWidgets.QFrame):
                 pass
             keyval = SetValueEx(nKey, com, 0, REG_SZ, sens)
             keyval = SetValueEx(nKey, s2, 0, REG_SZ, sens2)
-            keyval = SetValueEx(nKey, s_t, 0, REG_SZ, s_type)
+            keyval = SetValueEx(nKey, s_t, 0, REG_SZ, s_types)
             keyval = SetValueEx(nKey, b, 0, REG_SZ, baud)
             keyval = SetValueEx(nKey, bt, 0, REG_SZ, byte)
             keyval = SetValueEx(nKey, par, 0, REG_SZ, parity)
@@ -255,15 +255,15 @@ class SerialWindow(QtWidgets.QMainWindow):
                     par = self.par_dic[com]
                     bit = self.st_dic[com]
                     sens = self.s_dic[com]
-                    type = self.typ_dic[com]
-                    self.t = threading.Thread(target=self.comListen, args=(com, baud, byte, par, bit, sens, type),
+                    types = self.typ_dic[com]
+                    self.t = threading.Thread(target=self.comListen, args=(com, baud, byte, par, bit, sens, types),
                                               daemon=True)
                     self.t.start()
         except Exception as e:
             self.logWrite(f'threadPorts {e}')
             pass
 
-    def comListen(self, com, baud, byte, par, bit, sens, type):
+    def comListen(self, com, baud, byte, par, bit, sens, types):
         # Считывание данных с СОМ портов, вывод в файл и на Ui
         try:
             # Настройки СОМ порта
@@ -288,9 +288,9 @@ class SerialWindow(QtWidgets.QMainWindow):
             while not self.threads_stop:
                 # Запуск считывания сом порта
                 try:
-                    if type == 'CL':
+                    if types == 'CL':
                         buf = ser.read_until('\r').rstrip()
-                    elif type == 'LT':
+                    elif types == 'LT':
                         b = ser.readline()
                         buf = b + ser.read_until('\r').rstrip()
                     else:
@@ -304,20 +304,20 @@ class SerialWindow(QtWidgets.QMainWindow):
                     text = (data + ':' + com + ':' + sens)
                     # Инициализация записи в файл и вывод на gui
                     self.thread.getData(text)
-                    self.dataSort(text, type)
+                    self.dataSort(text, types)
                 time.sleep(1)
         except Exception as e:
             self.logWrite(f'portRead {e}, text = {text}, data = {data}')
             pass
 
-    def dataSort(self, text, type):
+    def dataSort(self, text, types):
         t = text.split(':')
         data = t[0]
         com = t[1]
         sens = t[2]
         # Additional sensor
         sens2 = self.s2_dic[com]
-        if type == 'WT':
+        if types == 'WT':
             buf = data.split(',')
             data = tm.now().strftime("%H:%M:%S %d-%m-%Y ") + com + ' ' + str(buf[1]) + ' ' + str(buf[3])
             self.dataWrite(sens, data)
@@ -326,7 +326,7 @@ class SerialWindow(QtWidgets.QMainWindow):
                 for i in buf[0]:
                     if i == 'T':
                         self.dataWrite(sens2, data)
-        if type == 'MAWS':
+        if types == 'MAWS':
             buf = data.split(',')
             if len(buf) > 2:
                 data = tm.now().strftime("%H:%M:%S %d-%m-%Y ") + com + ' ' + str(buf[1]) + ' ' + str(buf[3])
@@ -338,7 +338,7 @@ class SerialWindow(QtWidgets.QMainWindow):
                     for i in buf[0]:
                         if i == 'T':
                             self.dataWrite(sens2, data)
-        if type == 'LT' or type == 'CL' or type == 'PTB':
+        if types == 'LT' or types == 'CL' or types == 'PTB':
             data = tm.now().strftime("%H:%M:%S %d-%m-%Y \n") + data
             self.dataWrite(sens, data)
 
