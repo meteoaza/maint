@@ -11,9 +11,9 @@ from Maintenance_design_osh import Ui_MainWindow as MainWindowOsh
 from Settings_design import Ui_Settings
 from About_design import Ui_AboutFrame
 
-
 global ver
 ver = '2.0'
+
 
 class SettingsInit(QtWidgets.QFrame):
 
@@ -41,20 +41,20 @@ class SettingsInit(QtWidgets.QFrame):
         self.av_Time2 = self.ui.lineAVtime2
         self.btnIramSett = self.ui.buttOK
         self.btnHelp = self.ui.buttHelp
-        #Список станций в настройках
+        # Список станций в настройках
         self.stationSett.addItems([' ', 'UCFM', 'UCFO'])
-        #Запускаем Чтение настроек
+        # Запускаем Чтение настроек
         self.settRead()
 
     def settRead(self):
         self.stationSett.activated[str].connect(self.stChange)
         self.set = {
-        'STATION': 'UCFM', 'PATH': 'y:\\tek\\dat_sens\\',
-        'SOUND': 'd:\\IRAM\\KRAMS_DAT\\WAV\\Srok1M.WAV',
-        'DUR': '1', 'REFRESH': '3', 'AV_P': 'Y:\\', 'SENS_W': '0',
-        'REP': '2', 'LOG': '0', 'AV_W': '2', 'AV_T1': '00', 'AV_T2': '30'
+            'STATION': 'UCFM', 'PATH': 'y:\\tek\\dat_sens\\',
+            'SOUND': 'd:\\IRAM\\KRAMS_DAT\\WAV\\Srok1M.WAV',
+            'DUR': '1', 'REFRESH': '3', 'AV_P': 'Y:\\', 'SENS_W': '0',
+            'REP': '2', 'LOG': '0', 'AV_W': '2', 'AV_T1': '00', 'AV_T2': '30'
         }
-        #Читаем настройки программы
+        # Читаем настройки программы
         aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
         try:
             rKey = OpenKey(aReg, r"Software\IRAM\MAINT\SETT")
@@ -66,10 +66,10 @@ class SettingsInit(QtWidgets.QFrame):
             print(str(e))
             pass
         self.sens_list = [
-        'LT1', 'LT2', 'LT3', 'LT4', 'LT5', 'LT6', 'CL1', 'CL2', 'CL3', 'CL4',
-        'WT1', 'WT2', 'WT3', 'WT4', 'TEMP1', 'TEMP2', 'PRES1', 'PRES2'
+            'LT1', 'LT2', 'LT3', 'LT4', 'LT5', 'LT6', 'CL1', 'CL2', 'CL3', 'CL4',
+            'WT1', 'WT2', 'WT3', 'WT4', 'TEMP1', 'TEMP2', 'PRES1', 'PRES2'
         ]
-        if  self.set['STATION'] == 'UCFM':
+        if self.set['STATION'] == 'UCFM':
             self.sens_list.insert(14, 'WT5')
             self.sens_list.insert(15, 'WT6')
         self.sens = dict.fromkeys(self.sens_list)
@@ -78,7 +78,7 @@ class SettingsInit(QtWidgets.QFrame):
         except Exception as e:
             Sens.logWrite(self, e)
             self.set['STATION'] = '----'
-        #Читаем настройки датчиков
+        # Читаем настройки датчиков
         try:
             rKey = OpenKey(aReg, r"Software\IRAM\MAINT\SENS")
             for k, v in self.sens.items():
@@ -87,7 +87,7 @@ class SettingsInit(QtWidgets.QFrame):
         except Exception as e:
             Sens.logWrite(self, e)
             pass
-        #Выводим текст настроек в Settings
+        # Выводим текст настроек в Settings
         self.stInd.setText(self.set['STATION'])
         self.iram_Sett.setText(self.set['PATH'])
         self.snd_Sett.setText(self.set['SOUND'])
@@ -100,41 +100,44 @@ class SettingsInit(QtWidgets.QFrame):
         self.checkAv6.setCheckState(int(self.set['AV_W']))
         self.av_Time1.setText(self.set['AV_T1'])
         self.av_Time2.setText(self.set['AV_T2'])
-        #Привязка кнопок
+        # Привязка кнопок
         self.btnIramSett.accepted.connect(self.settWrite)
         self.btnIramSett.rejected.connect(lambda: self.close())
         self.btnHelp.clicked.connect(self.help)
         self.sensAdd.clicked.connect(self.settSens)
         self.serRun.clicked.connect(self.portInit)
         self.viewSens()
-    #Привязка датчиков
+
+    # Привязка датчиков
     def settSens(self):
         text = self.sensList.currentText()
         for k, v in self.sens.items():
             if text == k: v = self.sensSett.text()
             self.sens[k] = v
         self.viewSens()
-    #Просмотр привязки датчиков
+
+    # Просмотр привязки датчиков
     def viewSens(self):
         self.sensView.setText('')
         for k, v in self.sens.items():
-            self.sensView.append(str(k) + '\t ---- \t '  + str(v))
-    #Запись настроек в реестр
+            self.sensView.append(str(k) + '\t ---- \t ' + str(v))
+
+    # Запись настроек в реестр
     def settWrite(self):
-        #Читаем настройки программы из полей для записи в реестр
+        # Читаем настройки программы из полей для записи в реестр
         self.set['STATION'] = self.stInd.text()
         self.set['PATH'] = self.iram_Sett.text()
         self.set['SOUND'] = self.snd_Sett.text()
         self.set['DUR'] = self.FileTSett.text()
         self.set['REFRESH'] = self.TimerSett.text()
         self.set['AV_P'] = self.av_Sett.text()
-        self.set['SENS_W'] =str(self.checkSensW.checkState())
+        self.set['SENS_W'] = str(self.checkSensW.checkState())
         self.set['REP'] = str(self.checkRepW.checkState())
         self.set['LOG'] = str(self.checkLogW.checkState())
         self.set['AV_W'] = str(self.checkAv6.checkState())
         self.set['AV_T1'] = self.av_Time1.text()
         self.set['AV_T2'] = self.av_Time2.text()
-        #Пишем настройки программы в реестр
+        # Пишем настройки программы в реестр
         aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
         try:
             nKey = CreateKeyEx(aReg, r'Software\IRAM\MAINT\SETT', 0, KEY_ALL_ACCESS)
@@ -144,7 +147,7 @@ class SettingsInit(QtWidgets.QFrame):
         except Exception as e:
             Sens.logWrite(self, e)
             pass
-        #Пишем настройки датчиков в реестр
+        # Пишем настройки датчиков в реестр
         try:
             aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
             nKey = CreateKeyEx(aReg, r'Software\IRAM\MAINT\SENS', 0, KEY_ALL_ACCESS)
@@ -202,7 +205,7 @@ class Window(QtWidgets.QMainWindow):
         if self.set.set['STATION'] == 'UCFM':
             self.ui = MainWindowManas()
         elif self.set.set['STATION'] == 'UCFO':
-            self.ui =MainWindowOsh()
+            self.ui = MainWindowOsh()
         else:
             SettingsInit().show()
         try:
@@ -211,7 +214,7 @@ class Window(QtWidgets.QMainWindow):
             self.About = QtWidgets.QFrame()
             self.ui_a = Ui_AboutFrame()
             self.ui_a.setupUi(self.About)
-            #Привязка виджетов Window
+            # Привязка виджетов Window
             self.menuSett = self.ui.menu
             self.menuIram = self.ui.iram
             self.menuReport = self.ui.report
@@ -226,34 +229,34 @@ class Window(QtWidgets.QMainWindow):
             self.bar = self.ui.statusBar
             self.term = self.ui.terminal
             self.menuSett.menuAction().setStatusTip("Настройки")
-            #Привязка переменных из класса SettingsInit
-            self.s = self.set.set #Prog settings
-            self.sens_s = self.set.sens #Sensor settings
+            # Привязка переменных из класса SettingsInit
+            self.s = self.set.set  # Prog settings
+            self.sens_s = self.set.sens  # Sensor settings
             self.sens_list = self.set.sens_list
-            #Привязка датчиков к окнам
+            # Привязка датчиков к окнам
             self.sens_win_s = {
-            'LT1': self.ui.lineLT1, 'LT2': self.ui.lineLT2, 'LT3': self.ui.lineLT3,
-            'LT4': self.ui.lineLT4, 'LT5': self.ui.lineLT5, 'LT6': self.ui.lineLT6,
-            'CL1': self.ui.lineCL1, 'CL2': self.ui.lineCL2, 'CL3': self.ui.lineCL3,
-            'CL4': self.ui.lineCL4, 'WT1': self.ui.lineWT1, 'WT2': self.ui.lineWT2,
-            'WT3': self.ui.lineWT3, 'WT4': self.ui.lineWT4
+                'LT1': self.ui.lineLT1, 'LT2': self.ui.lineLT2, 'LT3': self.ui.lineLT3,
+                'LT4': self.ui.lineLT4, 'LT5': self.ui.lineLT5, 'LT6': self.ui.lineLT6,
+                'CL1': self.ui.lineCL1, 'CL2': self.ui.lineCL2, 'CL3': self.ui.lineCL3,
+                'CL4': self.ui.lineCL4, 'WT1': self.ui.lineWT1, 'WT2': self.ui.lineWT2,
+                'WT3': self.ui.lineWT3, 'WT4': self.ui.lineWT4
             }
             self.sens_win_v = {
-            'LT1': self.ui.labelLT1, 'LT2': self.ui.labelLT2, 'LT3': self.ui.labelLT3,
-            'LT4': self.ui.labelLT4, 'LT5': self.ui.labelLT5, 'LT6': self.ui.labelLT6,
-            'CL1': self.ui.labelCL1, 'CL2': self.ui.labelCL2, 'CL3': self.ui.labelCL3,
-            'CL4': self.ui.labelCL4,  'WT1': self.ui.labelWT1, 'WT2': self.ui.labelWT2,
-            'WT3': self.ui.labelWT3, 'WT4': self.ui.labelWT4, 'TEMP1': self.ui.lcdTemp1,
-            'TEMP2': self.ui.lcdTemp2, 'PRES1': self.ui.lcdPres1, 'PRES2': self.ui.lcdPres2
+                'LT1': self.ui.labelLT1, 'LT2': self.ui.labelLT2, 'LT3': self.ui.labelLT3,
+                'LT4': self.ui.labelLT4, 'LT5': self.ui.labelLT5, 'LT6': self.ui.labelLT6,
+                'CL1': self.ui.labelCL1, 'CL2': self.ui.labelCL2, 'CL3': self.ui.labelCL3,
+                'CL4': self.ui.labelCL4, 'WT1': self.ui.labelWT1, 'WT2': self.ui.labelWT2,
+                'WT3': self.ui.labelWT3, 'WT4': self.ui.labelWT4, 'TEMP1': self.ui.lcdTemp1,
+                'TEMP2': self.ui.lcdTemp2, 'PRES1': self.ui.lcdPres1, 'PRES2': self.ui.lcdPres2
             }
             self.mute_but = {
-            'LT1': self.ui.btnLT1, 'LT2': self.ui.btnLT2, 'LT3': self.ui.btnLT3,
-            'LT4': self.ui.btnLT4, 'LT5': self.ui.btnLT5, 'LT6': self.ui.btnLT6,
-            'CL1': self.ui.btnCL1, 'CL2': self.ui.btnCL2, 'CL3': self.ui.btnCL3,
-            'CL4': self.ui.btnCL4, 'WT1': self.ui.btnWind1, 'WT2': self.ui.btnWind2,
-            'WT3': self.ui.btnWind3, 'WT4': self.ui.btnWind4
+                'LT1': self.ui.btnLT1, 'LT2': self.ui.btnLT2, 'LT3': self.ui.btnLT3,
+                'LT4': self.ui.btnLT4, 'LT5': self.ui.btnLT5, 'LT6': self.ui.btnLT6,
+                'CL1': self.ui.btnCL1, 'CL2': self.ui.btnCL2, 'CL3': self.ui.btnCL3,
+                'CL4': self.ui.btnCL4, 'WT1': self.ui.btnWind1, 'WT2': self.ui.btnWind2,
+                'WT3': self.ui.btnWind3, 'WT4': self.ui.btnWind4
             }
-            if  self.set.set['STATION'] == 'UCFM':
+            if self.set.set['STATION'] == 'UCFM':
                 self.sens_win_s['WT5'] = self.ui.lineWT5
                 self.sens_win_s['WT6'] = self.ui.lineWT6
                 self.sens_win_v['WT5'] = self.ui.labelWT5
@@ -261,7 +264,7 @@ class Window(QtWidgets.QMainWindow):
                 self.mute_but['WT5'] = self.ui.btnWind5
                 self.mute_but['WT6'] = self.ui.btnWind6
             self.mute = dict.fromkeys(self.sens_list, 0)
-            #Определение цветов
+            # Определение цветов
             self.red = "background-color: qconicalgradient(cx:1, cy:0.329773, \
                         angle:0, stop:0.3125 rgba(239, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));"
             self.green = "background-color: qconicalgradient(cx:1, cy:0.529, angle:0,\
@@ -278,20 +281,20 @@ class Window(QtWidgets.QMainWindow):
                 self.unmuteSens(v, k)
             self.btn.clicked.connect(self.muteALL)
             self.btn.setStyleSheet(self.green)
-            #Привязка виджетов About
+            # Привязка виджетов About
             self.about = self.ui_a.about
-            #Версия программы
+            # Версия программы
             self.ui_a.ver.setText('Version' + ver)
-            #Привязка элементов МЕНЮ
+            # Привязка элементов МЕНЮ
             self.menuIram.triggered.connect(self.goSett)
             self.menuReport.triggered.connect(self.openRep)
             self.menuLog.triggered.connect(self.openLog)
             self.menuAbout.triggered.connect(self.About.show)
-            #Привязка кнопок
+            # Привязка кнопок
             self.start.clicked.connect(self.goStart)
             self.exit.clicked.connect(self.close)
             self.term.clicked.connect(lambda: self.putty(""))
-            #Активируем Shortcuts
+            # Активируем Shortcuts
             self.settShct = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+S"), self)
             self.settShct.activated.connect(self.goSett)
             self.repShct = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+R"), self)
@@ -311,9 +314,9 @@ class Window(QtWidgets.QMainWindow):
         self.info2.setStyleSheet("background-color: ")
         self.start.clicked.disconnect()
         self.start.clicked.connect(self.statPause)
-        #заводим часы
+        # заводим часы
         self.dtimeTick()
-        #Запуск основного процесса
+        # Запуск основного процесса
         self.statLT()
 
     def statPause(self):
@@ -337,7 +340,7 @@ class Window(QtWidgets.QMainWindow):
                         s.ltInit()
                         w_sta.setText(s.lt_status)
                         w_val.setText(s.lt_val)
-                        self.info2.setText("Идет процесс... LT" )
+                        self.info2.setText("Идет процесс... LT")
                         self.info2.setStyleSheet(self.blue)
                         if s.lt_error == 1:
                             w_sta.setStyleSheet(self.red)
@@ -513,7 +516,6 @@ class Window(QtWidgets.QMainWindow):
         self.btn.clicked.connect(self.unmuteALL)
         self.btn.setStyleSheet(self.red)
 
-
     def unmuteALL(self):
         for sen, but in self.mute_but.items():
             self.unmuteSens(but, sen)
@@ -545,15 +547,15 @@ class Window(QtWidgets.QMainWindow):
             if self.s['AV_W'] == '2' or self.s['AV_W'] == '1':
                 av6W = "Вкл"
                 av_info = ("  ( " + self.s['AV_P'] + "      " + self.s['AV_T1'][:2]
-                         + " , "  + self.s['AV_T2'][:2] + " мин )")
+                           + " , " + self.s['AV_T2'][:2] + " мин )")
             else:
-                av6W ="Откл"
+                av6W = "Откл"
                 av_info = "              "
             self.bar.showMessage("Рабочий каталог: " + self.s['PATH']
-            + "                                Время ожидания файла:  "
-            + str(self.s['DUR']) + " мин." + "      Время обновления:    "
-            + self.s['REFRESH'][:-3] + " сек." + "       Отчет: " + repW
-            + "      Sens: " + sensW  + "               AB6:  " + av6W + av_info)
+                                 + "                                Время ожидания файла:  "
+                                 + str(self.s['DUR']) + " мин." + "      Время обновления:    "
+                                 + self.s['REFRESH'][:-3] + " сек." + "       Отчет: " + repW
+                                 + "      Sens: " + sensW + "               AB6:  " + av6W + av_info)
             self.dtime.setText(t)
             QTimer().singleShot(1000, self.dtimeTick)
         else:
@@ -599,14 +601,14 @@ class Sens():
 
     def __init__(self, iram, sens, dur, repW, logW, mut):
         self.s = {
-        'PATH': iram, 'DUR': int(dur), 'REP': repW, 'LOG': logW
+            'PATH': iram, 'DUR': int(dur), 'REP': repW, 'LOG': logW
         }
         self.sens = sens
         self.mut = mut
         self.LOGs = "0"
 
     def checkTime(self, f):
-        #Check time and write time difference to dift
+        # Check time and write time difference to dift
         now = datetime.now()
         stat = os.stat(f)
         t_f = datetime.fromtimestamp(stat.st_mtime)
@@ -615,16 +617,16 @@ class Sens():
     def ltInit(self):
         if self.sens != 'OFF':
             try:
-                #File in DAT_SENS define
+                # File in DAT_SENS define
                 self.f = (self.s['PATH'] + self.sens + ".DAT")
-                #Check time of file
+                # Check time of file
                 self.checkTime(self.f)
                 if self.dift > timedelta(minutes=self.s['DUR']):
                     self.lt_status = str(self.sens + ' Тревога!!! Нет данных!!!')
                     self.lt_error = 1
                     self.lt_val = "ERROR"
                 else:
-                #Чтение файла и запись данных в переменные
+                    # Чтение файла и запись данных в переменные
                     with open(self.f, 'r', encoding='UTF-8', errors='ignore') as f:
                         tek_f = f.read()
                     try:
@@ -638,7 +640,7 @@ class Sens():
                         self.logWrite(self.sens + " ValueError " + str(e) + " " + self.lt_val)
                         pass
                     lt_batt = lt_stat[2]
-                #Проверка ошибок и вывод результата
+                    # Проверка ошибок и вывод результата
                     if lt_batt == '1' and lt_stat[0] == 'I' or lt_batt == '2' and lt_stat[0] == 'I':
                         self.lt_status = str(self.sens + ' Внимание!!! Работа от батареи!!!')
                         self.lt_error = 2
@@ -685,16 +687,16 @@ class Sens():
     def clInit(self):
         if self.sens != 'OFF':
             try:
-                #File in DAT_SENS define
+                # File in DAT_SENS define
                 self.f = (self.s['PATH'] + self.sens + ".DAT")
-                #Check time of file
+                # Check time of file
                 self.checkTime(self.f)
                 if self.dift > timedelta(minutes=self.s['DUR']):
                     self.cl_status = str(self.sens + ' Тревога!!! Нет данных!!!')
                     self.cl_error = 1
                     self.cl_val = "ERROR"
                 else:
-                #Чтение файла и запись данных в переменные
+                    # Чтение файла и запись данных в переменные
                     with open(self.f, 'r', encoding='UTF-8', errors='ignore') as f:
                         tek_f = f.read()
                     try:
@@ -709,7 +711,7 @@ class Sens():
                         pass
                     cl_batt = cl_stat[5::3]
                     cl_norm = '0000'
-                #Проверка ошибок и вывод результата
+                    # Проверка ошибок и вывод результата
                     if cl_batt == '4' and cl_stat[:4] == (cl_norm):
                         self.cl_status = str(self.sens + ' Внимание!!! Работа от батареи!!!')
                         self.cl_error = 2
@@ -744,16 +746,16 @@ class Sens():
     def wtInit(self):
         if self.sens != "OFF":
             try:
-                #File in DAT_SENS define
+                # File in DAT_SENS define
                 self.f = (self.s['PATH'] + self.sens + ".DAT")
-                #Check time of file
+                # Check time of file
                 self.checkTime(self.f)
                 if self.dift > timedelta(minutes=self.s['DUR']):
                     self.wt_status = str(self.sens + ' Тревога!!! Нет данных!!!')
                     self.wt_error = 1
                     self.wt_val = "ERROR"
                 else:
-                #Чтение файла и запись данных в переменные
+                    # Чтение файла и запись данных в переменные
                     with open(self.f, 'r', encoding='UTF-8', errors='ignore') as f:
                         tek_f = f.read()
                     try:
@@ -767,7 +769,7 @@ class Sens():
                         self.logWrite(self.sens + " ValueError " + str(e) + " " + self.wt_val)
                         pass
                     wt_stat = "OK"
-                #Проверка ошибок и вывод результата
+                    # Проверка ошибок и вывод результата
                     self.wt_status = (self.sens + " " + wt_stat)
                     self.wt_error = 0
                 if self.wt_error != 0:
@@ -795,9 +797,9 @@ class Sens():
     def tempInit(self):
         if self.sens != 'OFF':
             try:
-                #File in DAT_SENS define
+                # File in DAT_SENS define
                 self.f = (self.s['PATH'] + self.sens + ".DAT")
-                #Check time of file
+                # Check time of file
                 self.checkTime(self.f)
                 if self.dift > timedelta(minutes=self.s['DUR']):
                     self.tm_val = "ERROR"
