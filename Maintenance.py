@@ -1,4 +1,5 @@
 import subprocess, sys, os, time
+import psutil
 from winreg import *
 from pygame import mixer
 from datetime import datetime
@@ -31,10 +32,9 @@ class SettingsInit(QtWidgets.QFrame):
         self.sensList = self.ui.boxSensors
         self.sensSett = self.ui.lineSensors
         self.sensAdd = self.ui.buttSensors
-        self.serRun = self.ui.buttSerial
+        self.serRun = self.ui.checkSerial
         self.sensView = self.ui.viewSensors
         self.checkSensW = self.ui.checkSensW
-        self.checkLogW = self.ui.checkLogW
         self.checkRepW = self.ui.checkRepW
         self.checkAv6 = self.ui.checkAv6
         self.av_Time1 = self.ui.lineAVtime1
@@ -52,7 +52,7 @@ class SettingsInit(QtWidgets.QFrame):
             'STATION': 'UCFM', 'PATH': 'y:\\tek\\dat_sens\\',
             'SOUND': 'd:\\IRAM\\KRAMS_DAT\\WAV\\Srok1M.WAV',
             'DUR': '1', 'REFRESH': '3', 'AV_P': 'Y:\\', 'SENS_W': '0',
-            'REP': '2', 'LOG': '0', 'AV_W': '2', 'AV_T1': '00', 'AV_T2': '30'
+            'REP': '2', 'SER': 0, 'LOG': '0', 'AV_W': '2', 'AV_T1': '00', 'AV_T2': '30'
         }
         # Читаем настройки программы
         aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
@@ -63,8 +63,6 @@ class SettingsInit(QtWidgets.QFrame):
                 self.set[k] = v
         except (ValueError, FileNotFoundError)as e:
             Sens.logWrite(self, e)
-            print(str(e))
-            pass
         self.sens_list = [
             'LT1', 'LT2', 'LT3', 'LT4', 'LT5', 'LT6', 'CL1', 'CL2', 'CL3', 'CL4',
             'WT1', 'WT2', 'WT3', 'WT4', 'TEMP1', 'TEMP2', 'PRES1', 'PRES2'
@@ -86,7 +84,6 @@ class SettingsInit(QtWidgets.QFrame):
                 self.sens[k] = v
         except Exception as e:
             Sens.logWrite(self, e)
-            pass
         # Выводим текст настроек в Settings
         self.stInd.setText(self.set['STATION'])
         self.iram_Sett.setText(self.set['PATH'])
@@ -96,7 +93,7 @@ class SettingsInit(QtWidgets.QFrame):
         self.av_Sett.setText(self.set['AV_P'])
         self.checkSensW.setCheckState(int(self.set['SENS_W']))
         self.checkRepW.setCheckState(int(self.set['REP']))
-        self.checkLogW.setCheckState(int(self.set['LOG']))
+        self.serRun.setCheckState(int(self.set['SER']))
         self.checkAv6.setCheckState(int(self.set['AV_W']))
         self.av_Time1.setText(self.set['AV_T1'])
         self.av_Time2.setText(self.set['AV_T2'])
@@ -105,7 +102,6 @@ class SettingsInit(QtWidgets.QFrame):
         self.btnIramSett.rejected.connect(lambda: self.close())
         self.btnHelp.clicked.connect(self.help)
         self.sensAdd.clicked.connect(self.settSens)
-        self.serRun.clicked.connect(self.portInit)
         self.viewSens()
 
     # Привязка датчиков
@@ -133,7 +129,7 @@ class SettingsInit(QtWidgets.QFrame):
         self.set['AV_P'] = self.av_Sett.text()
         self.set['SENS_W'] = str(self.checkSensW.checkState())
         self.set['REP'] = str(self.checkRepW.checkState())
-        self.set['LOG'] = str(self.checkLogW.checkState())
+        self.set['SER'] = str(self.serRun.checkState())
         self.set['AV_W'] = str(self.checkAv6.checkState())
         self.set['AV_T1'] = self.av_Time1.text()
         self.set['AV_T2'] = self.av_Time2.text()
@@ -146,7 +142,6 @@ class SettingsInit(QtWidgets.QFrame):
                 self.set[k] = v
         except Exception as e:
             Sens.logWrite(self, e)
-            pass
         # Пишем настройки датчиков в реестр
         try:
             aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
@@ -155,10 +150,6 @@ class SettingsInit(QtWidgets.QFrame):
                 keyval = SetValueEx(nKey, k, 0, REG_SZ, v)
         except Exception as e:
             Sens.logWrite(self, e)
-            pass
-        except Exception as e:
-            Sens.logWrite(self, e)
-            pass
         aReg.Close()
         self.goWindow()
         self.stationSett.activated[str].disconnect()
@@ -192,9 +183,6 @@ class SettingsInit(QtWidgets.QFrame):
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
             self.close()
-
-    def portInit(self):
-        subprocess.Popen(['Mserial.exe'])
 
 
 class Window(QtWidgets.QMainWindow):
@@ -304,7 +292,6 @@ class Window(QtWidgets.QMainWindow):
             self.pause = True
         except Exception as e:
             Sens.logWrite(self, e)
-            pass
 
     def goStart(self):
         self.pause = False
@@ -314,6 +301,10 @@ class Window(QtWidgets.QMainWindow):
         self.info2.setStyleSheet("background-color: ")
         self.start.clicked.disconnect()
         self.start.clicked.connect(self.statPause)
+        # Start Mserial if checked in settings
+        if self.s['SER'] != '0':
+            self.s['PATH'] = os.getcwd() + '\Serial\\'
+            self.serInit()
         # заводим часы
         self.dtimeTick()
         # Запуск основного процесса
@@ -329,7 +320,7 @@ class Window(QtWidgets.QMainWindow):
     def statLT(self):
         try:
             self.s_list = list()
-            if self.pause == False:
+            if not self.pause:
                 for i in self.sens_list:
                     if i[:2] == 'LT':
                         sensor = self.sens_s[i]
@@ -358,7 +349,6 @@ class Window(QtWidgets.QMainWindow):
                         else:
                             w_sta.setStyleSheet(self.green)
                             w_val.setStyleSheet(self.green)
-                            pass
                         self.s_list.append(s.lt_status + ' ' + s.lt_val)
                         if s.LOGs == "0":
                             pass
@@ -368,16 +358,14 @@ class Window(QtWidgets.QMainWindow):
             else:
                 self.info2.setText("Остановлено")
                 self.info2.setStyleSheet(self.red)
-                pass
         except Exception as e:
             log = 'StatLT ' + sensor + str(e)
             Sens.logWrite(self, log)
-            pass
 
     def statCL(self):
         try:
             self.s_list = list()
-            if self.pause == False:
+            if not self.pause:
                 for i in self.sens_list:
                     if i[:2] == 'CL':
                         sensor = self.sens_s[i]
@@ -406,7 +394,6 @@ class Window(QtWidgets.QMainWindow):
                         else:
                             w_sta.setStyleSheet(self.green)
                             w_val.setStyleSheet(self.green)
-                            pass
                         self.s_list.append(s.cl_status + ' ' + s.cl_val)
                         if s.LOGs == "0":
                             pass
@@ -416,16 +403,14 @@ class Window(QtWidgets.QMainWindow):
             else:
                 self.info2.setText("Остановлено")
                 self.info2.setStyleSheet(self.red)
-                pass
         except Exception as e:
             log = 'StatCL ' + sensor + str(e)
             Sens.logWrite(self, log)
-            pass
 
     def statWT(self):
         try:
             self.s_list = list()
-            if self.pause == False:
+            if not self.pause:
                 for i in self.sens_list:
                     if i[:2] == 'WT':
                         sensor = self.sens_s[i]
@@ -449,7 +434,6 @@ class Window(QtWidgets.QMainWindow):
                         else:
                             w_sta.setStyleSheet(self.green)
                             w_val.setStyleSheet(self.green)
-                            pass
                         self.s_list.append(s.wt_status + ' ' + s.wt_val)
                         if s.LOGs == "0":
                             pass
@@ -459,17 +443,15 @@ class Window(QtWidgets.QMainWindow):
             else:
                 self.info2.setText("Остановлено")
                 self.info2.setStyleSheet(self.red)
-                pass
         except Exception as e:
             log = 'StatWT ' + sensor + str(e)
             Sens.logWrite(self, log)
-            pass
 
     def statTemp(self):
         try:
-            if self.pause == False:
+            if not self.pause:
                 for i in self.mute:
-                    if i[:2] == 'TE' or i[:2] == 'PR':
+                    if i[:2] == 'TE':
                         sensor = self.sens_s[i]
                         w_val = self.sens_win_v[i]
                         mut = 1
@@ -479,15 +461,35 @@ class Window(QtWidgets.QMainWindow):
                         self.info2.setText("Идет процесс... TEMP")
                         self.s_list.append(sensor + ' ' + str(s.tm_val))
                 self.sensWrite(self.s_list)
+                QTimer().singleShot(int(self.s['REFRESH']), self.statPres)
+            else:
+                self.info2.setText("Остановлено")
+                self.info2.setStyleSheet(self.red)
+        except Exception as e:
+            log = 'StatTemp ' + sensor + str(e)
+            Sens.logWrite(self, log)
+
+    def statPres(self):
+        try:
+            if not self.pause:
+                for i in self.mute:
+                    if i[:2] == 'PR':
+                        sensor = self.sens_s[i]
+                        w_val = self.sens_win_v[i]
+                        mut = 1
+                        s = Sens(self.s['PATH'], sensor, self.s['DUR'], self.s['REP'], self.s['LOG'], mut)
+                        s.presInit()
+                        w_val.display(s.pres_val)
+                        self.info2.setText("Идет процесс... PRES")
+                        self.s_list.append(sensor + ' ' + str(s.pres_val))
+                self.sensWrite(self.s_list)
                 QTimer().singleShot(int(self.s['REFRESH']), self.statLT)
             else:
                 self.info2.setText("Остановлено")
                 self.info2.setStyleSheet(self.red)
-                pass
         except Exception as e:
-            log = 'StatTemp ' + sensor + str(e)
+            log = 'StatPres ' + sensor + str(e)
             Sens.logWrite(self, log)
-            pass
 
     def sndplay(self):
         mixer.init()
@@ -524,7 +526,7 @@ class Window(QtWidgets.QMainWindow):
         self.btn.setStyleSheet(self.green)
 
     def dtimeTick(self):
-        if self.pause == False:
+        if not self.pause:
             t = datetime.strftime(datetime.now(), "%d-%m-%y  %H:%M:%S")
             av_time = datetime.strftime(datetime.now(), "%M%S")
             if av_time == (self.s['AV_T1'] + '00') or av_time == (self.s['AV_T2'] + '00'):
@@ -540,27 +542,25 @@ class Window(QtWidgets.QMainWindow):
                 repW = "Вкл"
             else:
                 repW = "Откл"
-            # if self.s['LOG'] == '2' or self.s['LOG'] == '1':
-            #     logW = "Вкл"
-            # else:
-            #     logW ="Откл"
             if self.s['AV_W'] == '2' or self.s['AV_W'] == '1':
                 av6W = "Вкл"
                 av_info = ("  ( " + self.s['AV_P'] + "      " + self.s['AV_T1'][:2]
                            + " , " + self.s['AV_T2'][:2] + " мин )")
             else:
                 av6W = "Откл"
-                av_info = "              "
-            self.bar.showMessage("Рабочий каталог: " + self.s['PATH']
-                                 + "                                Время ожидания файла:  "
-                                 + str(self.s['DUR']) + " мин." + "      Время обновления:    "
-                                 + self.s['REFRESH'][:-3] + " сек." + "       Отчет: " + repW
-                                 + "      Sens: " + sensW + "               AB6:  " + av6W + av_info)
+                av_info = "    "
+            if self.s['SER'] == '2' or self.s['REP'] == '1':
+                serR = "Вкл"
+            else:
+                serR = "Откл"
+            self.bar.showMessage(
+                "Рабочий каталог: " + self.s['PATH'] + "    Время ожидания файла:  " + str(self.s['DUR']) + " мин."
+                + "    Время обновления:  " + self.s['REFRESH'][:-3] + " сек." + "    Отчет: " + repW + "    Sens: "
+                + sensW + "    AB6:  " + av6W + av_info + "    Mserial  " + serR)
             self.dtime.setText(t)
             QTimer().singleShot(1000, self.dtimeTick)
         else:
             self.dtime.clear()
-            pass
 
     def puttySett(self, but, sen):
         but.clicked.connect(lambda: self.putty(sen))
@@ -574,6 +574,14 @@ class Window(QtWidgets.QMainWindow):
     def openLog(self):
         subprocess.Popen(['notepad.exe', r'LOGs\maintLog.txt'])
 
+    def serInit(self):
+        if not self.pause:
+            proc = 'Mserial.exe' in (p.name() for p in psutil.process_iter())
+            if not proc:
+                subprocess.Popen('Mserial.exe')
+        QTimer.singleShot(3000, self.serInit)
+
+
     def sensWrite(self, sens):
         if self.s['SENS_W'] != '0':
             try:
@@ -585,7 +593,6 @@ class Window(QtWidgets.QMainWindow):
                         f_sens.write("%s\n" % s)
             except Exception as e:
                 Sens.logWrite(self, e)
-                pass
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
@@ -638,7 +645,6 @@ class Sens():
                         lt_stat = tek_f.split()[6]
                         self.lt_val = tek_f.split()[4]
                         self.logWrite(self.sens + " ValueError " + str(e) + " " + self.lt_val)
-                        pass
                     lt_batt = lt_stat[2]
                     # Проверка ошибок и вывод результата
                     if lt_batt == '1' and lt_stat[0] == 'I' or lt_batt == '2' and lt_stat[0] == 'I':
@@ -680,7 +686,6 @@ class Sens():
                 self.lt_error = 0
                 self.lt_val = "-----"
                 # self.logWrite(self.sens + " Exception " + str(e))
-                pass
         else:
             self.lt_status = self.lt_error = self.lt_val = ' OFF'
 
@@ -708,7 +713,6 @@ class Sens():
                         cl_stat = tek_f.split()[7]
                         self.cl_val = tek_f.split()[4]
                         self.logWrite(self.sens + " ValueError " + str(e) + self.cl_val)
-                        pass
                     cl_batt = cl_stat[5::3]
                     cl_norm = '0000'
                     # Проверка ошибок и вывод результата
@@ -739,7 +743,6 @@ class Sens():
                 self.cl_error = 0
                 self.cl_val = "-----"
                 # self.logWrite(self.sens + " Exception " + str(e))
-                pass
         else:
             self.cl_status = self.cl_error = self.cl_val = 'OFF'
 
@@ -767,7 +770,6 @@ class Sens():
                         self.ff = float(tek_f.split()[5])
                         self.wt_val = (str(self.dd)[:-2] + " / " + str(self.ff))
                         self.logWrite(self.sens + " ValueError " + str(e) + " " + self.wt_val)
-                        pass
                     wt_stat = "OK"
                     # Проверка ошибок и вывод результата
                     self.wt_status = (self.sens + " " + wt_stat)
@@ -790,7 +792,6 @@ class Sens():
                 self.wt_error = 0
                 self.wt_val = "-----"
                 # self.logWrite(self.sens + " Exception " + str(e))
-                pass
         else:
             self.wt_status = self.wt_error = self.wt_val = 'OFF'
 
@@ -809,9 +810,26 @@ class Sens():
             except Exception as e:
                 self.tm_val = "ERROR"
                 # self.logWrite(self.sens + " Exception" + str(e))
-                pass
         else:
             self.tm_val = "OFF"
+
+    def presInit(self):
+        if self.sens != 'OFF':
+            try:
+                # File in DAT_SENS define
+                self.f = (self.s['PATH'] + self.sens + ".DAT")
+                # Check time of file
+                self.checkTime(self.f)
+                if self.dift > timedelta(minutes=self.s['DUR']):
+                    self.pres_val = "ERROR"
+                else:
+                    with open(self.f, 'r', encoding='utf-8') as f:
+                        self.pres_val = f.read().split()[3]
+            except Exception as e:
+                self.pres_val = "ERROR"
+                # self.logWrite(self.sens + " Exception" + str(e))
+        else:
+            self.pres_val = "OFF"
 
     def repWrite(self, r):
         if self.s['REP'] != "0":
@@ -823,7 +841,6 @@ class Sens():
                     f_rep.write(t + " " + r + "\n")
             except Exception as e:
                 self.LOGs = str(e)
-                pass
 
     def logWrite(self, e):
         try:
@@ -834,7 +851,6 @@ class Sens():
                 f_bug.write(t + " " + str(e) + "\n")
         except Exception as e:
             self.LOGs = str(e)
-            pass
 
 
 class Av6():
@@ -857,7 +873,6 @@ class Av6():
         except Exception as e:
             Sens.logWrite(self, e)
             self.LOGs = str(e)
-            pass
 
     def arhCopy(self):
         try:
@@ -872,13 +887,11 @@ class Av6():
                 except Exception as e:
                     self.av6Rep(self.hour[:2] + ':' + self.hour[2:] + ' Файл АВ-6 не записан!')
                     Sens.logWrite(self, e)
-                    pass
             else:
                 self.av6Rep(self.hour[:2] + ':' + self.hour[2:] + ' Исходник АВ-6 не найден!')
         except Exception as e:
             Sens.logWrite(self, e)
             self.LOGs = str(e)
-            pass
 
     def av6Rep(self, r):
         self.av6_rep = r
@@ -890,7 +903,6 @@ class Av6():
         except Exception as e:
             Sens.logWrite(self, e)
             self.LOGs = str(e)
-            pass
 
 
 if __name__ == "__main__":

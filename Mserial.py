@@ -30,7 +30,7 @@ class SerialSett(QtWidgets.QFrame):
             'COM18', 'COM19', 'COM20', 'COM21', 'COM22', 'COM23', 'COM24', 'COM25',
             'COM26', 'COM27', 'COM28', 'COM29', 'COM30', 'COM31', 'COM32'
         ]
-        self.sens_types = ['LT', 'CL', 'WT', 'MAWS', 'PTB']
+        self.sens_types = ['LT', 'CL', 'WT', 'MAWS', 'MILOS', 'PTB']
         self.b_list = ['300', '600', '1200', '1800', '2400', '4800', '7200', '9600']
         self.bt_list = ['5', '6', '7', '8']
         self.par_list = ['NO', 'ODD', 'EVEN', 'MARK', 'SPACE']
@@ -241,6 +241,8 @@ class SerialWindow(QtWidgets.QMainWindow):
         self.comBx2.addItems(self.port_list)
         self.comBx3.addItems(self.port_list)
         self.comBx4.addItems(self.port_list)
+        # Start port reading
+        self.portStart()
 
     def threadPorts(self):
         self.threads_stop = False
@@ -250,97 +252,115 @@ class SerialWindow(QtWidgets.QMainWindow):
                 if not sens:
                     pass
                 else:
-                    baud = self.b_dic[com]
-                    byte = self.bt_dic[com]
-                    par = self.par_dic[com]
-                    bit = self.st_dic[com]
-                    sens = self.s_dic[com]
-                    types = self.typ_dic[com]
-                    self.t = threading.Thread(target=self.comListen, args=(com, baud, byte, par, bit, sens, types),
+                    port_args = [
+                    com,
+                    self.b_dic[com], # baud
+                    self.bt_dic[com], # byte
+                    self.par_dic[com], # parity
+                    self.st_dic[com], # stop bit
+                    self.s_dic[com], # sens
+                    self.typ_dic[com] # types
+                    ]
+                    self.t = threading.Thread(target=self.comListen, args=(port_args),
                                               daemon=True)
                     self.t.start()
         except Exception as e:
             self.logWrite(f'threadPorts {e}')
             pass
 
-    def comListen(self, com, baud, byte, par, bit, sens, types):
+    def comListen(self, *port_args):
         # Считывание данных с СОМ портов, вывод в файл и на Ui
         try:
             # Настройки СОМ порта
-            if par == 'EVEN':
+            if port_args[3] == 'EVEN':
                 parity = serial.PARITY_EVEN
-            elif par == 'ODD':
+            elif port_args[3] == 'ODD':
                 parity = serial.PARITY_ODD
-            elif par == 'NO':
+            elif port_args[3] == 'NO':
                 parity = serial.PARITY_NONE
-            elif par == 'MARK':
+            elif port_args[3] == 'MARK':
                 parity = serial.PARITY_MARK
-            elif per == 'SPACE':
+            elif port_args[3] == 'SPACE':
                 parity = serial.PARITY_SPACE
             ser = serial.Serial(
-                port=com,
-                baudrate=baud,
-                bytesize=int(byte),
+                port=port_args[0],
+                baudrate=port_args[1],
+                bytesize=int(port_args[2]),
                 parity=parity,
-                stopbits=int(bit),
+                stopbits=int(port_args[4]),
                 timeout=3,
             )
             while not self.threads_stop:
                 # Запуск считывания сом порта
                 try:
-                    if types == 'CL':
+                    if port_args[6] == 'CL':
                         buf = ser.read_until('\r').rstrip()
-                    elif types == 'LT':
+                    elif port_args[6] == 'LT':
                         b = ser.readline()
                         buf = b + ser.read_until('\r').rstrip()
                     else:
                         buf = ser.readline().rstrip()
                     data = buf.decode('utf-8')
-                except Exception:
+                except Exception as e:
+                    print(e)
                     continue
                 if not data:
                     pass
                 else:
-                    text = (data + ':' + com + ':' + sens)
+                    text = [data, port_args[0], port_args[5], port_args[6]]
                     # Инициализация записи в файл и вывод на gui
                     self.thread.getData(text)
-                    self.dataSort(text, types)
+                    self.dataSort(text)
                 time.sleep(1)
         except Exception as e:
-            self.logWrite(f'portRead {e}, text = {text}, data = {data}')
-            pass
+            self.logWrite(f'comListen {e}')
 
-    def dataSort(self, text, types):
-        t = text.split(':')
-        data = t[0]
-        com = t[1]
-        sens = t[2]
-        # Additional sensor
-        sens2 = self.s2_dic[com]
-        if types == 'WT':
-            buf = data.split(',')
-            data = tm.now().strftime("%H:%M:%S %d-%m-%Y ") + com + ' ' + str(buf[1]) + ' ' + str(buf[3])
-            self.dataWrite(sens, data)
-            if sens2[:4] == 'TEMP':
-                buf = data.split()
-                for i in buf[0]:
-                    if i == 'T':
-                        self.dataWrite(sens2, data)
-        if types == 'MAWS':
-            buf = data.split(',')
-            if len(buf) > 2:
-                data = tm.now().strftime("%H:%M:%S %d-%m-%Y ") + com + ' ' + str(buf[1]) + ' ' + str(buf[3])
-                self.dataWrite(sens, data)
-            else:
-                if sens2[:4] == 'TEMP':
-                    buf = data.split()
+    def dataSort(self, text):
+        try:
+            data = text[0]
+            com = text[1]
+            sens = text[2]
+            types = text[3]
+            # Additional sensor
+            sens2 = self.s2_dic[com]
+            if types == 'WT':
+                if 'WIMWV' in data:
+                    buf = data.split(',')
+                    data = tm.now().strftime("%H:%M:%S %d-%m-%Y ") + com + ' ' + str(buf[1]) + ' ' + str(buf[3])
+                    self.dataWrite(sens, data)
+                elif 'TU' in data:
                     data = tm.now().strftime("%H:%M:%S %d-%m-%Y \n") + data
-                    for i in buf[0]:
-                        if i == 'T':
-                            self.dataWrite(sens2, data)
-        if types == 'LT' or types == 'CL' or types == 'PTB':
-            data = tm.now().strftime("%H:%M:%S %d-%m-%Y \n") + data
-            self.dataWrite(sens, data)
+                    self.dataWrite(sens2, data)
+            if types == 'MAWS':
+                if 'PAMWV' in data:
+                    buf = data.split(',')
+                    data = tm.now().strftime("%H:%M:%S %d-%m-%Y ") + com + ' ' + str(buf[1]) + ' ' + str(buf[3])
+                    self.dataWrite(sens, data)
+                elif 'TU' in data:
+                    data = tm.now().strftime("%H:%M:%S %d-%m-%Y \n") + data
+                    self.dataWrite(sens2, data)
+            if types == 'MILOS':
+                if '' in data:
+                    buf = data.split(',')
+                    data = tm.now().strftime("%H:%M:%S %d-%m-%Y ") + com + ' ' + str(buf[1]) + ' ' + str(buf[3])
+                    self.dataWrite(sens, data)
+                elif 'TU' in data:
+                    data = tm.now().strftime("%H:%M:%S %d-%m-%Y \n") + data
+                    self.dataWrite(sens2, data)
+            if types == 'LT':
+                if 'VIS' in data:
+                    data = tm.now().strftime("%H:%M:%S %d-%m-%Y \n") + data
+                    self.dataWrite(sens, data)
+            if types == 'CL':
+                if 'CT' in data:
+                    data = tm.now().strftime("%H:%M:%S %d-%m-%Y \n") + data
+                    self.dataWrite(sens, data)
+            if types == 'PTB':
+                if 'PTB' in data:
+                    data = tm.now().strftime("%H:%M:%S %d-%m-%Y \n") + data
+                    self.dataWrite(sens, data)
+        except Exception as e:
+            self.logWrite(f'dataSort {e}')
 
     def dataWrite(self, sens, data):
         # Запись данных с портов в файл
@@ -355,10 +375,9 @@ class SerialWindow(QtWidgets.QMainWindow):
 
     def textSend(self, text):
         try:
-            t = text.split(':')
-            data = t[0]
-            com = t[1]
-            sens = t[2]
+            data = text[0]
+            com = text[1]
+            sens = text[2]
             # Отображение текста на Ui
             self.statText.setText(data)
             com1 = self.comBx1.currentText()
@@ -382,25 +401,30 @@ class SerialWindow(QtWidgets.QMainWindow):
             if com3 == 'None': self.comBr3.setText(' '); self.senBt3.setText(' ')
             if com4 == 'None': self.comBr4.setText(' '); self.senBt4.setText(' ')
         except Exception as e:
-            self.logWrite(f'textSend {e}, t = {t}, data = {data}')
+            self.logWrite(f'textSend {e}  {text}')
             pass
 
     def portStart(self):
-        self.startBt.disconnect()
-        self.startBt.setText('STOP')
-        self.startBt.clicked.connect(self.portStop)
-        self.threadPorts()
-        self.thread = Thread1()
-        self.thread.slot.connect(self.textSend)
-        time.sleep(1)
-        self.thread.start()
+        try:
+            self.startBt.disconnect()
+            self.startBt.setText('STOP')
+            self.startBt.clicked.connect(self.portStop)
+            self.threadPorts()
+            self.thread = Thread1()
+            self.thread.slot.connect(self.textSend)
+            self.thread.start()
+        except Exception as e:
+            self.logWrite(f'portStart {e}')
 
     def portStop(self):
-        self.threads_stop
-        self.threads_stop = True
-        self.startBt.disconnect()
-        self.startBt.setText('START')
-        self.startBt.clicked.connect(self.portStart)
+        try:
+            self.threads_stop
+            self.threads_stop = True
+            self.startBt.disconnect()
+            self.startBt.setText('START')
+            self.startBt.clicked.connect(self.portStart)
+        except Exception as e:
+            self.logWrite(f'portStop {e}')
 
     def settInit(self):
         self.close()
@@ -419,11 +443,10 @@ class SerialWindow(QtWidgets.QMainWindow):
 
 
 class Thread1(QThread):
-    slot = pyqtSignal(str)
+    slot = pyqtSignal(list)
 
     def __init__(self):
         super().__init__()
-        self.win = SerialWindow()
         self.text = "Thread start"
 
     def run(self):

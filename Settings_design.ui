@@ -180,7 +180,7 @@
        <item>
         <spacer name="horizontalSpacer_23">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+          <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -193,6 +193,9 @@
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Expanding</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -381,7 +384,7 @@
           </size>
          </property>
          <property name="text">
-          <string/>
+          <string>Mserial</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -389,7 +392,7 @@
         </widget>
        </item>
        <item alignment="Qt::AlignRight">
-        <widget class="QCheckBox" name="checkLogW">
+        <widget class="QCheckBox" name="checkSerial">
          <property name="enabled">
           <bool>true</bool>
          </property>
@@ -403,7 +406,7 @@
           <string/>
          </property>
          <property name="checkable">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="checked">
           <bool>false</bool>
@@ -642,7 +645,7 @@
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>80</width>
+           <width>100</width>
            <height>20</height>
           </size>
          </property>
@@ -678,7 +681,7 @@
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>135</width>
+           <width>120</width>
            <height>20</height>
           </size>
          </property>
@@ -696,13 +699,6 @@
           </size>
          </property>
         </spacer>
-       </item>
-       <item>
-        <widget class="QPushButton" name="buttSerial">
-         <property name="text">
-          <string>Serial</string>
-         </property>
-        </widget>
        </item>
       </layout>
      </item>
