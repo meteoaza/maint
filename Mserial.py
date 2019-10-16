@@ -298,6 +298,8 @@ class SerialWindow(QtWidgets.QMainWindow):
                     elif port_args[6] == 'LT':
                         b = ser.readline()
                         buf = b + ser.read_until('\r').rstrip()
+                    elif port_args[6] == 'MILOS':
+                        buf = ser.readline().strip()
                     else:
                         buf = ser.readline().rstrip()
                     data = buf.decode('utf-8')
@@ -340,12 +342,19 @@ class SerialWindow(QtWidgets.QMainWindow):
                     data = tm.now().strftime("%H:%M:%S %d-%m-%Y \n") + data
                     self.dataWrite(sens2, data)
             if types == 'MILOS':
-                if '' in data:
-                    buf = data.split(',')
-                    data = tm.now().strftime("%H:%M:%S %d-%m-%Y ") + com + ' ' + str(buf[1]) + ' ' + str(buf[3])
-                    self.dataWrite(sens, data)
+                if 'A' in data:
+                    position = data.index('A')
+                    buf = data[position:]
+                    if len(buf) ==6:
+                        v = int(buf[4:])/10
+                        d = int(buf[1:4])
+                        data = tm.now().strftime("%H:%M:%S %d-%m-%Y ") + com + ' ' + str(d) + ' ' + str(v)
+                        self.dataWrite(sens, data)
                 elif 'TU' in data:
-                    data = tm.now().strftime("%H:%M:%S %d-%m-%Y \n") + data
+                    buf = data[4:].split()
+                    buf.insert(0, 'TU')
+                    buf = ','.join(buf).replace(',', ' ')
+                    data = tm.now().strftime("%H:%M:%S %d-%m-%Y \n") + buf
                     self.dataWrite(sens2, data)
             if types == 'LT':
                 if 'VIS' in data:
