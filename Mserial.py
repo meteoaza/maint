@@ -13,7 +13,6 @@ class SerialSett(QtWidgets.QFrame):
         self.u = Settings()
         self.u.setupUi(self)
         self.sText = self.u.sensText
-        self.s2Text = self.u.sensText_2
         self.s_tText = self.u.typesText
         self.cText = self.u.comText
         self.bText = self.u.baudText
@@ -36,7 +35,6 @@ class SerialSett(QtWidgets.QFrame):
         self.par_list = ['NO', 'ODD', 'EVEN', 'MARK', 'SPACE']
         self.st_list = ['1', '1.5', '2']
         self.s_dic = {}
-        self.s2_dic = {}
         self.typ_dic = {}
         self.b_dic = {}
         self.bt_dic = {}
@@ -54,13 +52,12 @@ class SerialSett(QtWidgets.QFrame):
         aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
         # Читаем настройки программы
         try:
-            rKey = OpenKey(aReg, r"Software\IRAM\MAINT\SETT")
+            rKey = OpenKey(aReg, r"Software\IRAM\MAINT\PROGSETT")
             self.station = QueryValueEx(rKey, 'STATION')[0]
             # Читаем настройки СОМ портов
             rKey = OpenKey(aReg, r"Software\IRAM\MAINT\SERIAL")
             for i in self.c_list:
                 self.c = i
-                self.s2 = i + '_s2'
                 self.s_types = i + '_types'
                 self.b = i + '_baud'
                 self.bt = i + '_byte'
@@ -71,17 +68,12 @@ class SerialSett(QtWidgets.QFrame):
                     if s == 'None':
                         pass
                     else:
-                        s2 = QueryValueEx(rKey, self.s2)[0]
-                        if not s2:
-                            nKey = CreateKeyEx(aReg, r'Software\IRAM\MAINT\SERIAL', 0, KEY_ALL_ACCESS)
-                            keyval = SetValueEx(nKey, self.s2, 0, REG_SZ, 'None')
                         s_t = QueryValueEx(rKey, self.s_types)[0]
                         b = QueryValueEx(rKey, self.b)[0]
                         bt = QueryValueEx(rKey, self.bt)[0]
                         par = QueryValueEx(rKey, self.par)[0]
                         st = QueryValueEx(rKey, self.st)[0]
                         self.s_dic[i] = s
-                        self.s2_dic[i] = s2
                         self.typ_dic[i] = s_t
                         self.b_dic[i] = b
                         self.bt_dic[i] = bt
@@ -89,7 +81,7 @@ class SerialSett(QtWidgets.QFrame):
                         self.st_dic[i] = st
                 except Exception as e:
                     nKey = CreateKeyEx(aReg, r'Software\IRAM\MAINT\SERIAL', 0, KEY_ALL_ACCESS)
-                    keyval = SetValueEx(nKey, self.c, 0, REG_SZ, 'None')
+                    SetValueEx(nKey, self.c, 0, REG_SZ, 'None')
                     print(str(e))
                     pass
             self.textShow()
@@ -108,10 +100,8 @@ class SerialSett(QtWidgets.QFrame):
                 par = self.par_dic[value]
                 st = self.st_dic[value]
                 s = self.s_dic[value]
-                s2 = self.s2_dic[value]
                 s_t = self.typ_dic[value]
                 self.u.sensEdit.setText(s)
-                self.u.sensEdit_2.setText(s2)
                 self.u.typesBox.setCurrentText(s_t)
                 self.u.baudBox.setCurrentText(b)
                 self.u.bytesizeBox.setCurrentText(bt)
@@ -128,7 +118,6 @@ class SerialSett(QtWidgets.QFrame):
         self.parText.clear()
         self.stText.clear()
         self.s_tText.clear()
-        self.s2Text.clear()
         self.sText.clear()
         for com, sens in self.s_dic.items():
             if not sens:
@@ -136,8 +125,6 @@ class SerialSett(QtWidgets.QFrame):
             else:
                 self.cText.append(com)
                 self.sText.append(sens)
-                sens2 = self.s2_dic[com]
-                self.s2Text.append(sens2)
                 s_types = self.typ_dic[com]
                 self.s_tText.append(s_types)
                 baud = self.b_dic[com]
@@ -151,7 +138,6 @@ class SerialSett(QtWidgets.QFrame):
 
     def settWrite(self):
         sens = self.u.sensEdit.text()
-        sens2 = self.u.sensEdit_2.text()
         s_types = self.u.typesBox.currentText()
         com = self.u.comBox.currentText()
         baud = self.u.baudBox.currentText()
@@ -159,7 +145,6 @@ class SerialSett(QtWidgets.QFrame):
         parity = self.u.parityBox.currentText()
         sbit = self.u.stopbitsBox.currentText()
 
-        s2 = com + '_s2'
         s_t = com + '_types'
         b = com + '_baud'
         bt = com + '_byte'
@@ -173,13 +158,12 @@ class SerialSett(QtWidgets.QFrame):
                 nKey = CreateKeyEx(aReg, r'Software\IRAM\MAINT\SERIAL', 0, KEY_ALL_ACCESS)
             except Exception:
                 pass
-            keyval = SetValueEx(nKey, com, 0, REG_SZ, sens)
-            keyval = SetValueEx(nKey, s2, 0, REG_SZ, sens2)
-            keyval = SetValueEx(nKey, s_t, 0, REG_SZ, s_types)
-            keyval = SetValueEx(nKey, b, 0, REG_SZ, baud)
-            keyval = SetValueEx(nKey, bt, 0, REG_SZ, byte)
-            keyval = SetValueEx(nKey, par, 0, REG_SZ, parity)
-            keyval = SetValueEx(nKey, st, 0, REG_SZ, sbit)
+            SetValueEx(nKey, com, 0, REG_SZ, sens)
+            SetValueEx(nKey, s_t, 0, REG_SZ, s_types)
+            SetValueEx(nKey, b, 0, REG_SZ, baud)
+            SetValueEx(nKey, bt, 0, REG_SZ, byte)
+            SetValueEx(nKey, par, 0, REG_SZ, parity)
+            SetValueEx(nKey, st, 0, REG_SZ, sbit)
             self.settRead()
 
     def applySett(self):
@@ -224,7 +208,6 @@ class SerialWindow(QtWidgets.QMainWindow):
         self.runShct.activated.connect(self.portStart)
         # Берем настройки из SerialSett
         self.s_dic = sett.s_dic
-        self.s2_dic = sett.s2_dic
         self.typ_dic = sett.typ_dic
         self.b_dic = sett.b_dic
         self.bt_dic = sett.bt_dic
@@ -253,13 +236,13 @@ class SerialWindow(QtWidgets.QMainWindow):
                     pass
                 else:
                     port_args = [
-                    com,
-                    self.b_dic[com], # baud
-                    self.bt_dic[com], # byte
-                    self.par_dic[com], # parity
-                    self.st_dic[com], # stop bit
-                    self.s_dic[com], # sens
-                    self.typ_dic[com] # types
+                        com,
+                        self.b_dic[com],  # baud
+                        self.bt_dic[com],  # byte
+                        self.par_dic[com],  # parity
+                        self.st_dic[com],  # stop bit
+                        self.s_dic[com],  # sens
+                        self.typ_dic[com]  # types
                     ]
                     self.t = threading.Thread(target=self.comListen, args=(port_args),
                                               daemon=True)
@@ -282,6 +265,8 @@ class SerialWindow(QtWidgets.QMainWindow):
                 parity = serial.PARITY_MARK
             elif port_args[3] == 'SPACE':
                 parity = serial.PARITY_SPACE
+            else:
+                parity = 'NO'
             ser = serial.Serial(
                 port=port_args[0],
                 baudrate=port_args[1],
@@ -323,50 +308,54 @@ class SerialWindow(QtWidgets.QMainWindow):
             com = text[1]
             sens = text[2]
             types = text[3]
-            # Additional sensor
-            sens2 = self.s2_dic[com]
+            timeNow = tm.now().strftime("%H:%M:%S %d-%m-%Y  ")
             if types == 'WT':
                 if 'WIMWV' in data:
                     buf = data.split(',')
-                    data = tm.now().strftime("%H:%M:%S %d-%m-%Y ") + com + ' ' + str(buf[1]) + ' ' + str(buf[3])
+                    data = timeNow + com + ' ' + str(buf[1]) + ' ' + str(buf[3])
                     self.dataWrite(sens, data)
                 elif 'TU' in data:
-                    data = tm.now().strftime("%H:%M:%S %d-%m-%Y \n") + data
-                    self.dataWrite(sens2, data)
+                    data = timeNow + '\n' + data
+                    self.dataWrite(com + '_TU', data)
             if types == 'MAWS':
                 if 'PAMWV' in data:
                     buf = data.split(',')
-                    data = tm.now().strftime("%H:%M:%S %d-%m-%Y ") + com + ' ' + str(buf[1]) + ' ' + str(buf[3])
+                    data = timeNow + com + ' ' + str(buf[1]) + ' ' + str(buf[3])
                     self.dataWrite(sens, data)
                 elif 'TU' in data:
-                    data = tm.now().strftime("%H:%M:%S %d-%m-%Y \n") + data
-                    self.dataWrite(sens2, data)
+                    data = timeNow + '\n' + data
+                    self.dataWrite(com + '_TU', data)
             if types == 'MILOS':
                 if 'A' in data:
-                    position = data.index('A')
-                    buf = data[position:]
-                    if len(buf) ==6:
-                        v = int(buf[4:])/10
-                        d = int(buf[1:4])
-                        data = tm.now().strftime("%H:%M:%S %d-%m-%Y ") + com + ' ' + str(d) + ' ' + str(v)
-                        self.dataWrite(sens, data)
+                    pos = data.index('A')
+                    if pos <= 1:
+                        buf = data[pos:]
+                        if len(buf) == 6:
+                            vd = buf[1:]
+                            v = int(vd[:3]) / 10
+                            d = int(vd[3:]) * 4.66
+                            data = timeNow + com + ' ' + str(d) + ' ' + str(v)
+                            self.dataWrite(sens, data)
                 elif 'TU' in data:
                     buf = data[4:].split()
                     buf.insert(0, 'TU')
-                    buf = ','.join(buf).replace(',', ' ')
-                    data = tm.now().strftime("%H:%M:%S %d-%m-%Y \n") + buf
-                    self.dataWrite(sens2, data)
+                    data = ','.join(buf).replace(',', ' ')
+                    data = timeNow + '\n' + data
+                    self.dataWrite(com + '_TU', data)
+                elif 'P' in data:
+                    data = timeNow + '\n' + data
+                    self.dataWrite(com + '_P', data)
             if types == 'LT':
-                if 'VIS' in data:
-                    data = tm.now().strftime("%H:%M:%S %d-%m-%Y \n") + data
+                if 'LT' in data and 'VIS' in data:
+                    data = timeNow + '\n' + data
                     self.dataWrite(sens, data)
             if types == 'CL':
                 if 'CT' in data:
-                    data = tm.now().strftime("%H:%M:%S %d-%m-%Y \n") + data
+                    data = timeNow + '\n' + data
                     self.dataWrite(sens, data)
             if types == 'PTB':
                 if 'PTB' in data:
-                    data = tm.now().strftime("%H:%M:%S %d-%m-%Y \n") + data
+                    data = timeNow + '\n' + data
                     self.dataWrite(sens, data)
         except Exception as e:
             self.logWrite(f'dataSort {e}')
@@ -405,10 +394,18 @@ class SerialWindow(QtWidgets.QMainWindow):
             elif com4 == com:
                 self.comBr4.append(data)
                 self.senBt4.setText(sens)
-            if com1 == 'None': self.comBr1.setText(' '); self.senBt1.setText(' ')
-            if com2 == 'None': self.comBr2.setText(' '); self.senBt2.setText(' ')
-            if com3 == 'None': self.comBr3.setText(' '); self.senBt3.setText(' ')
-            if com4 == 'None': self.comBr4.setText(' '); self.senBt4.setText(' ')
+            if com1 == 'None':
+                self.comBr1.setText(' ')
+                self.senBt1.setText(' ')
+            if com2 == 'None':
+                self.comBr2.setText(' ')
+                self.senBt2.setText(' ')
+            if com3 == 'None':
+                self.comBr3.setText(' ')
+                self.senBt3.setText(' ')
+            if com4 == 'None':
+                self.comBr4.setText(' ')
+                self.senBt4.setText(' ')
         except Exception as e:
             self.logWrite(f'textSend {e}  {text}')
             pass
@@ -427,7 +424,6 @@ class SerialWindow(QtWidgets.QMainWindow):
 
     def portStop(self):
         try:
-            self.threads_stop
             self.threads_stop = True
             self.startBt.disconnect()
             self.startBt.setText('START')
