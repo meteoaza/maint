@@ -705,6 +705,21 @@ p, li { white-space: pre-wrap; }
             </property>
            </widget>
           </item>
+          <item row="7" column="0">
+           <widget class="QCheckBox" name="arh_sensCh">
+            <property name="font">
+             <font>
+              <family>Times New Roman</family>
+              <pointsize>9</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Запись в архив</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
        </layout>

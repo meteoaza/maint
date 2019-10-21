@@ -41,6 +41,7 @@ class SettingsInit(QtWidgets.QFrame):
         self._sett.buttOK.rejected.connect(lambda: self.close())
         self._sett.buttHelp.clicked.connect(self.help)
         self._sett.sens_addBt.clicked.connect(self.addSens)
+        self._sett.sound_testBt.clicked.connect(self.sndTest)
         self.readSettings()
 
     def readSettings(self):
@@ -133,6 +134,11 @@ class SettingsInit(QtWidgets.QFrame):
         SetValueEx(nKey, 'STATION', 0, REG_SZ, self.prog_sett_dic['STATION'])
         aReg.Close()
         self.readSettings()
+
+    def sndTest(self):
+        mixer.init()
+        mixer.music.load(self.prog_sett_dic['SNDPATH'])
+        mixer.music.play()
 
     def help(self):
         self.w = QtWidgets.QMainWindow()
@@ -303,7 +309,6 @@ class Window(QtWidgets.QMainWindow):
                             status.setStyleSheet(self.green)
                             value.setStyleSheet(self.green)
                             snd.setChecked(False)
-                            self.snd_play = 0
                 for lcd in self.senLcd.keys():
                     prog = self.prog_sett
                     sensor = self._si.sens_sett_dic[lcd]
@@ -325,9 +330,12 @@ class Window(QtWidgets.QMainWindow):
             if self.lineColor == 1:
                 self.lineColor -= 1
                 self._wdw.infoLn2.setStyleSheet(self.blue)
+            elif self.snd_play > 0:
+                self.lineColor +=1
+                self._wdw.infoLn2.setStyleSheet(self.red)
             else:
                 self.lineColor += 1
-                self._wdw.infoLn2.setStyleSheet(self.yellow)
+                self._wdw.infoLn2.setStyleSheet(self.green)
             QTimer.singleShot(int(self.prog_sett['REFRESH']), self.main)
 
     def sndplay(self):
@@ -480,7 +488,6 @@ class Sens():
             self.error = 0
             self.value = "-----"
         except Exception as e:
-            print(e)
             self.status = str(self.sens + " Ошибка !!!")
             self.error = 0
             self.value = "-----"
@@ -534,7 +541,6 @@ class Sens():
             self.error = 0
             self.value = "-----"
         except Exception as e:
-            print(e)
             self.status = str(self.sens + " Ошибка !!!")
             self.error = 0
             self.value = "-----"
@@ -594,7 +600,6 @@ class Sens():
                 with open(file, 'r', encoding='utf-8') as f:
                     self.value = f.read().split()[3]
         except Exception as e:
-            print(e)
             self.value = "ERROR"
 
     def presInit(self):

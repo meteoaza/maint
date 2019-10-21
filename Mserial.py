@@ -10,84 +10,84 @@ from PortSettings_design import Ui_Frame as Settings
 class SerialSett(QtWidgets.QFrame):
     def __init__(self):
         super().__init__()
-        self.u = Settings()
-        self.u.setupUi(self)
-        self.sText = self.u.sensText
-        self.s_tText = self.u.typesText
-        self.cText = self.u.comText
-        self.bText = self.u.baudText
-        self.btText = self.u.byteText
-        self.parText = self.u.parityText
-        self.stText = self.u.sbitText
-        self.u.addButton.clicked.connect(self.settWrite)
-        self.u.applyButton.clicked.connect(self.applySett)
-        self.u.extButton.clicked.connect(self.close)
-        self.u.comBox.currentTextChanged.connect(self.settShow)
-        self.c_list = [
-            'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
-            'COM10', 'COM11', 'COM12', 'COM13', 'COM14', 'COM15', 'COM16', 'COM17',
-            'COM18', 'COM19', 'COM20', 'COM21', 'COM22', 'COM23', 'COM24', 'COM25',
-            'COM26', 'COM27', 'COM28', 'COM29', 'COM30', 'COM31', 'COM32'
+        self._wdw = Settings()
+        self._wdw.setupUi(self)
+        self._wdw.addButton.clicked.connect(self.settWrite)
+        self._wdw.applyButton.clicked.connect(self.applySett)
+        self._wdw.extButton.clicked.connect(self.close)
+        self._wdw.comBox.currentTextChanged.connect(self.settShow)
+        self.com_list = [
+            'COM01', 'COM02', 'COM03', 'COM04', 'COM05', 'COM06', 'COM07', 'COM08',
+            'COM09', 'COM10', 'COM11', 'COM12', 'COM13', 'COM14', 'COM15', 'COM16',
+            'COM17', 'COM18', 'COM19', 'COM20', 'COM21', 'COM22', 'COM23', 'COM24',
+            'COM25', 'COM26', 'COM27', 'COM28', 'COM29', 'COM30', 'COM31', 'COM32'
         ]
         self.sens_types = ['LT', 'CL', 'WT', 'MAWS', 'MILOS', 'PTB']
-        self.b_list = ['300', '600', '1200', '1800', '2400', '4800', '7200', '9600']
-        self.bt_list = ['5', '6', '7', '8']
+        self.baud_list = ['300', '600', '1200', '1800', '2400', '4800', '7200', '9600']
+        self.byte_list = ['5', '6', '7', '8']
         self.par_list = ['NO', 'ODD', 'EVEN', 'MARK', 'SPACE']
-        self.st_list = ['1', '1.5', '2']
-        self.s_dic = {}
-        self.typ_dic = {}
-        self.b_dic = {}
-        self.bt_dic = {}
+        self.sbit_list = ['1', '1.5', '2']
+        self.sens_dic = {}
+        self.types_dic = {}
+        self.baud_dic = {}
+        self.byte_dic = {}
         self.par_dic = {}
-        self.st_dic = {}
-        self.u.comBox.addItems(['None'] + self.c_list)
-        self.u.typesBox.addItems([''] + self.sens_types)
-        self.u.baudBox.addItems([''] + self.b_list)
-        self.u.bytesizeBox.addItems([''] + self.bt_list)
-        self.u.parityBox.addItems([''] + self.par_list)
-        self.u.stopbitsBox.addItems([''] + self.st_list)
+        self.sbit_dic = {}
+        self.arh_dic = {}
+        self._wdw.comBox.addItems(['None'] + self.com_list)
+        self._wdw.typesBox.addItems([''] + self.sens_types)
+        self._wdw.baudBox.addItems([''] + self.baud_list)
+        self._wdw.bytesizeBox.addItems([''] + self.byte_list)
+        self._wdw.parityBox.addItems([''] + self.par_list)
+        self._wdw.stopbitsBox.addItems([''] + self.sbit_list)
         self.settRead()
 
     def settRead(self):
         aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
+        serKey = f"Software\\IRAM\\MAINT\\SERIAL\\"
         # Читаем настройки программы
         try:
             rKey = OpenKey(aReg, r"Software\IRAM\MAINT\PROGSETT")
             self.station = QueryValueEx(rKey, 'STATION')[0]
             # Читаем настройки СОМ портов
-            rKey = OpenKey(aReg, r"Software\IRAM\MAINT\SERIAL")
-            for i in self.c_list:
-                self.c = i
-                self.s_types = i + '_types'
-                self.b = i + '_baud'
-                self.bt = i + '_byte'
-                self.par = i + '_par'
-                self.st = i + '_sbit'
+            for i in self.com_list:
+                rKey = OpenKey(aReg, serKey+i)
+                sens_key = 'SENSNAME'
+                types_key ='SENSTYPE'
+                baud_key = 'BAUDRATE'
+                byte_key = 'BYTESIZE'
+                par_key = 'PARITY'
+                sbit_key = 'STOPBITS'
+                arh_key = 'SENSARH'
                 try:
-                    s = QueryValueEx(rKey, self.c)[0]
-                    if s == 'None':
+                    sens_val = QueryValueEx(rKey, sens_key)[0]
+                    if sens_val == 'None':
                         pass
                     else:
-                        s_t = QueryValueEx(rKey, self.s_types)[0]
-                        b = QueryValueEx(rKey, self.b)[0]
-                        bt = QueryValueEx(rKey, self.bt)[0]
-                        par = QueryValueEx(rKey, self.par)[0]
-                        st = QueryValueEx(rKey, self.st)[0]
-                        self.s_dic[i] = s
-                        self.typ_dic[i] = s_t
-                        self.b_dic[i] = b
-                        self.bt_dic[i] = bt
-                        self.par_dic[i] = par
-                        self.st_dic[i] = st
-                except Exception as e:
-                    nKey = CreateKeyEx(aReg, r'Software\IRAM\MAINT\SERIAL', 0, KEY_ALL_ACCESS)
-                    SetValueEx(nKey, self.c, 0, REG_SZ, 'None')
-                    print(str(e))
-                    pass
+                        types_val = QueryValueEx(rKey, types_key)[0]
+                        baud_val = QueryValueEx(rKey, baud_key)[0]
+                        byte_val = QueryValueEx(rKey, byte_key)[0]
+                        par_val = QueryValueEx(rKey, par_key)[0]
+                        sbit_val = QueryValueEx(rKey, sbit_key)[0]
+                        arh_val = QueryValueEx(rKey, arh_key)[0]
+                        self.sens_dic[i] = sens_val
+                        self.types_dic[i] = types_val
+                        self.baud_dic[i] = baud_val
+                        self.byte_dic[i] = byte_val
+                        self.par_dic[i] = par_val
+                        self.sbit_dic[i] = sbit_val
+                        self.arh_dic[i] = int(arh_val)
+                except WindowsError as e:
+                    keys = dict.fromkeys([sens_key, types_key, baud_key,
+                                          byte_key, par_key, sbit_key, arh_key])
+                    nKey = CreateKeyEx(aReg, serKey+i, 0, KEY_ALL_ACCESS)
+                    for k, v in keys.items():
+                        SetValueEx(nKey, k, 0, REG_SZ, str(v))
             self.textShow()
-        except Exception as e:
-            print(str(e))
-            pass
+        except WindowsError as e:
+            for i in self.com_list:
+                CreateKeyEx(aReg, serKey+i, 0, KEY_ALL_ACCESS)
+            self.settRead()
 
     def settShow(self, value):
         # При выборе сом порта выставляем настройки
@@ -95,75 +95,80 @@ class SerialSett(QtWidgets.QFrame):
             pass
         else:
             try:
-                b = self.b_dic[value]
-                bt = self.bt_dic[value]
-                par = self.par_dic[value]
-                st = self.st_dic[value]
-                s = self.s_dic[value]
-                s_t = self.typ_dic[value]
-                self.u.sensEdit.setText(s)
-                self.u.typesBox.setCurrentText(s_t)
-                self.u.baudBox.setCurrentText(b)
-                self.u.bytesizeBox.setCurrentText(bt)
-                self.u.parityBox.setCurrentText(par)
-                self.u.stopbitsBox.setCurrentText(st)
-            except Exception:
+                sens_val = self.sens_dic[value]
+                types_val = self.types_dic[value]
+                baud_val = self.baud_dic[value]
+                byte_val = self.byte_dic[value]
+                par_val = self.par_dic[value]
+                sbit_val = self.sbit_dic[value]
+                arh_val = self.arh_dic[value]
+                self._wdw.sensEdit.setText(sens_val)
+                self._wdw.typesBox.setCurrentText(types_val)
+                self._wdw.baudBox.setCurrentText(baud_val)
+                self._wdw.bytesizeBox.setCurrentText(byte_val)
+                self._wdw.parityBox.setCurrentText(par_val)
+                self._wdw.stopbitsBox.setCurrentText(sbit_val)
+                self._wdw.arh_sensCh.setChecked(arh_val)
+            except Exception as e:
                 pass
 
     def textShow(self):
         # Выводим данные в таблицу
-        self.cText.clear()
-        self.bText.clear()
-        self.btText.clear()
-        self.parText.clear()
-        self.stText.clear()
-        self.s_tText.clear()
-        self.sText.clear()
-        for com, sens in self.s_dic.items():
+        self._wdw.comText.clear()
+        self._wdw.baudText.clear()
+        self._wdw.byteText.clear()
+        self._wdw.parityText.clear()
+        self._wdw.sbitText.clear()
+        self._wdw.typesText.clear()
+        self._wdw.sensText.clear()
+        for com, sens in self.sens_dic.items():
             if not sens:
                 pass
             else:
-                self.cText.append(com)
-                self.sText.append(sens)
-                s_types = self.typ_dic[com]
-                self.s_tText.append(s_types)
-                baud = self.b_dic[com]
-                self.bText.append(baud)
-                byte = self.bt_dic[com]
-                self.btText.append(byte)
-                parity = self.par_dic[com]
-                self.parText.append(parity)
-                sbit = self.st_dic[com]
-                self.stText.append(sbit)
+                self._wdw.comText.append(com)
+                self._wdw.sensText.append(sens)
+                types_val = self.types_dic[com]
+                self._wdw.typesText.append(types_val)
+                baud_val = self.baud_dic[com]
+                self._wdw.baudText.append(baud_val)
+                byte_val = self.byte_dic[com]
+                self._wdw.byteText.append(byte_val)
+                par_val = self.par_dic[com]
+                self._wdw.parityText.append(par_val)
+                sbit_val = self.sbit_dic[com]
+                self._wdw.sbitText.append(sbit_val)
 
     def settWrite(self):
-        sens = self.u.sensEdit.text()
-        s_types = self.u.typesBox.currentText()
-        com = self.u.comBox.currentText()
-        baud = self.u.baudBox.currentText()
-        byte = self.u.bytesizeBox.currentText()
-        parity = self.u.parityBox.currentText()
-        sbit = self.u.stopbitsBox.currentText()
-
-        s_t = com + '_types'
-        b = com + '_baud'
-        bt = com + '_byte'
-        par = com + '_par'
-        st = com + '_sbit'
+        com = self._wdw.comBox.currentText()
+        sens_val = self._wdw.sensEdit.text()
+        types_val = self._wdw.typesBox.currentText()
+        baud_val = self._wdw.baudBox.currentText()
+        byte_val = self._wdw.bytesizeBox.currentText()
+        par_val = self._wdw.parityBox.currentText()
+        sbit_val = self._wdw.stopbitsBox.currentText()
+        arh_val = str(int(self._wdw.arh_sensCh.isChecked()))
+        sens_key = 'SENSNAME'
+        types_key = 'SENSTYPE'
+        baud_key = 'BAUDRATE'
+        byte_key = 'BYTESIZE'
+        par_key = 'PARITY'
+        sbit_key = 'STOPBITS'
+        arh_key = 'SENSARH'
         if com == 'None':
             pass
         else:
+            aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
             try:
-                aReg = ConnectRegistry(None, HKEY_CURRENT_USER)
-                nKey = CreateKeyEx(aReg, r'Software\IRAM\MAINT\SERIAL', 0, KEY_ALL_ACCESS)
+                nKey = CreateKeyEx(aReg, f"Software\\IRAM\\MAINT\\SERIAL\\{com}", 0, KEY_ALL_ACCESS)
+                SetValueEx(nKey, sens_key, 0, REG_SZ, sens_val)
+                SetValueEx(nKey, types_key, 0, REG_SZ, types_val)
+                SetValueEx(nKey, baud_key, 0, REG_SZ, baud_val)
+                SetValueEx(nKey, byte_key, 0, REG_SZ, byte_val)
+                SetValueEx(nKey, par_key, 0, REG_SZ, par_val)
+                SetValueEx(nKey, sbit_key, 0, REG_SZ, sbit_val)
+                SetValueEx(nKey, arh_key, 0, REG_SZ, arh_val)
             except Exception:
                 pass
-            SetValueEx(nKey, com, 0, REG_SZ, sens)
-            SetValueEx(nKey, s_t, 0, REG_SZ, s_types)
-            SetValueEx(nKey, b, 0, REG_SZ, baud)
-            SetValueEx(nKey, bt, 0, REG_SZ, byte)
-            SetValueEx(nKey, par, 0, REG_SZ, parity)
-            SetValueEx(nKey, st, 0, REG_SZ, sbit)
             self.settRead()
 
     def applySett(self):
@@ -207,15 +212,10 @@ class SerialWindow(QtWidgets.QMainWindow):
         self.runShct = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+R"), self)
         self.runShct.activated.connect(self.portStart)
         # Берем настройки из SerialSett
-        self.s_dic = sett.s_dic
-        self.typ_dic = sett.typ_dic
-        self.b_dic = sett.b_dic
-        self.bt_dic = sett.bt_dic
-        self.par_dic = sett.par_dic
-        self.st_dic = sett.st_dic
+        self._sett = SerialSett()
         # Заполняем боксы наименованиеми портов
         self.port_list = ['None']
-        for com, sens in self.s_dic.items():
+        for com, sens in self._sett.sens_dic.items():
             if not sens:
                 pass
             else:
@@ -225,28 +225,30 @@ class SerialWindow(QtWidgets.QMainWindow):
         self.comBx3.addItems(self.port_list)
         self.comBx4.addItems(self.port_list)
         # Start port reading
+        self.threads_stop = None
         self.portStart()
 
     def threadPorts(self):
         self.threads_stop = False
         # Запуск потоков подключенных портов
         try:
-            for com, sens in self.s_dic.items():
+            for com, sens in self._sett.sens_dic.items():
                 if not sens:
                     pass
                 else:
                     port_args = [
                         com,
-                        self.b_dic[com],  # baud
-                        self.bt_dic[com],  # byte
-                        self.par_dic[com],  # parity
-                        self.st_dic[com],  # stop bit
-                        self.s_dic[com],  # sens
-                        self.typ_dic[com]  # types
+                        self._sett.baud_dic[com],  # baud
+                        self._sett.byte_dic[com],  # byte
+                        self._sett.par_dic[com],  # parity
+                        self._sett.sbit_dic[com],  # stop bit
+                        sens,  # sens
+                        self._sett.types_dic[com],  # types
+                        self._sett.arh_dic[com]    # if arh write
                     ]
-                    self.t = threading.Thread(target=self.comListen, args=(port_args),
+                    t = threading.Thread(target=self.comListen, args=(port_args),
                                               daemon=True)
-                    self.t.start()
+                    t.start()
         except Exception as e:
             self.logWrite(f'threadPorts {e}')
             pass
@@ -267,8 +269,11 @@ class SerialWindow(QtWidgets.QMainWindow):
                 parity = serial.PARITY_SPACE
             else:
                 parity = 'NO'
+            comport = port_args[0]
+            if comport[3::2] == "0":
+                comport = (comport[:3] + comport[4:5])
             ser = serial.Serial(
-                port=port_args[0],
+                port=comport,
                 baudrate=port_args[1],
                 bytesize=int(port_args[2]),
                 parity=parity,
@@ -289,8 +294,7 @@ class SerialWindow(QtWidgets.QMainWindow):
                         buf = ser.readline().rstrip()
                     data = buf.decode('utf-8')
                 except Exception as e:
-                    print(e)
-                    continue
+                    self.logWrite(f'comListen_0 {e}')
                 if not data:
                     pass
                 else:
@@ -298,9 +302,11 @@ class SerialWindow(QtWidgets.QMainWindow):
                     # Инициализация записи в файл и вывод на gui
                     self.thread.getData(text)
                     self.dataSort(text)
+                    if port_args[7]:
+                        self.writeArh(text)
                 time.sleep(1)
         except Exception as e:
-            self.logWrite(f'comListen {e}')
+            self.logWrite(f'comListen_1 {e}')
 
     def dataSort(self, text):
         try:
@@ -361,7 +367,7 @@ class SerialWindow(QtWidgets.QMainWindow):
             self.logWrite(f'dataSort {e}')
 
     def dataWrite(self, sens, data):
-        # Запись данных с портов в файл
+        # Запись отсортированных данных с портов в файл
         try:
             if not os.path.exists('Serial'):
                 os.mkdir('Serial')
@@ -369,7 +375,21 @@ class SerialWindow(QtWidgets.QMainWindow):
                 f_sens.write(data)
         except Exception as e:
             self.logWrite(f'dataWrite {e}')
-            pass
+
+    def writeArh(self, text):
+        # Запись данных с портов в файл
+        try:
+            data = text[0]
+            com = text[1]
+            sens = text[2]
+            # types = text[3]
+            timeNow = tm.now().strftime("%H:%M:%S %d-%m-%Y  ")
+            if not os.path.exists('Arh_Sens'):
+                os.mkdir('Arh_Sens')
+            with open('Arh_Sens\\' + com + '.dat', 'a') as f_com:
+                f_com.write(f"{timeNow} ** {sens}\n{data}\n")
+        except Exception as e:
+            self.logWrite(f'writeArh {e}')
 
     def textSend(self, text):
         try:
@@ -433,7 +453,7 @@ class SerialWindow(QtWidgets.QMainWindow):
 
     def settInit(self):
         self.close()
-        sett.show()
+        self._sett.show()
 
     def logWrite(self, log):
         if not os.path.exists('LOGs'):
@@ -465,7 +485,6 @@ class Thread1(QThread):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    sett = SerialSett()
     window = SerialWindow()
     window.show()
     sys.exit(app.exec_())

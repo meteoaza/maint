@@ -367,6 +367,15 @@ class Ui_Frame(object):
         self.label_2.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.label_2.setObjectName("label_2")
         self.gridLayout.addWidget(self.label_2, 6, 0, 1, 1)
+        self.arh_sensCh = QtWidgets.QCheckBox(self.frame)
+        font = QtGui.QFont()
+        font.setFamily("Times New Roman")
+        font.setPointSize(9)
+        font.setBold(True)
+        font.setWeight(75)
+        self.arh_sensCh.setFont(font)
+        self.arh_sensCh.setObjectName("arh_sensCh")
+        self.gridLayout.addWidget(self.arh_sensCh, 7, 0, 1, 1)
         self.gridLayout_2.addLayout(self.gridLayout, 0, 7, 1, 1)
         self.gridLayout_4.addLayout(self.gridLayout_2, 0, 0, 1, 1)
         self.gridLayout_3.addWidget(self.frame, 0, 0, 1, 1)
@@ -397,5 +406,6 @@ class Ui_Frame(object):
         self.extButton.setText(_translate("Frame", "ВЫХОД"))
         self.label_5.setText(_translate("Frame", "Parity"))
         self.label_2.setText(_translate("Frame", "Датчик"))
+        self.arh_sensCh.setText(_translate("Frame", "Запись в архив"))
 
 
